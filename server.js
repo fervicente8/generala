@@ -12,88 +12,160 @@ app.prepare().then(() => {
   const httpServer = createServer(handler);
 
   const io = new Server(httpServer);
+  const onlineUsers = new Map();
 
   io.on("connection", (socket) => {
-    console.log("Usuario conectado con ID:", socket.id);
+
+    socket.on("userOnline", (user) => {
+      onlineUsers.set(user.id, { name: user.name, socketId: socket.id });
+      io.emit("updateOnlineUsers", Array.from(onlineUsers.keys()));
+    });
 
     socket.on("disconnect", () => {
-      console.log("Usuario desconectado con ID:", socket.id);
+      for (const [userId, userData] of onlineUsers.entries()) {
+        if (userData.socketId === socket.id) {
+          onlineUsers.delete(userId);
+          console.log(`Usuario ${userId} desconectado`);
+          break;
+        }
+      }
+
+      // Emitir la lista actualizada de usuarios en línea
+      io.emit("updateOnlineUsers", Array.from(onlineUsers.keys()));
     });
 
     socket.on("friendRequest", (data) => {
-      console.log(
-        `${data.requester.name} ha enviado una solicitud de amistad a ${data.receiver.name}`
-      );
-      // Emitir a todos los clientes que un usuario ha enviado una solicitud de amistad
-      io.emit("requestSent", data);
+      const requesterSocketId = onlineUsers.get(data.requester.id)?.socketId;
+      const receiverSocketId = onlineUsers.get(data.receiver.id)?.socketId;
+
+      if (requesterSocketId) {
+        io.to(requesterSocketId).emit("requestSent", data);
+      }
+
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("requestSent", data);
+      }
     });
 
     socket.on("cancelFriendRequest", (data) => {
-      console.log(
-        `${data.requester.name} ha cancelado la solicitud de amistad de ${data.receiver.name}`
-      );
-      // Emitir a todos los clientes que un usuario ha cancelado una solicitud de amistad
-      io.emit("requestCanceled", data);
+      const requesterSocketId = onlineUsers.get(data.requester.id)?.socketId;
+      const receiverSocketId = onlineUsers.get(data.receiver.id)?.socketId;
+
+      if (requesterSocketId) {
+        io.to(requesterSocketId).emit("requestCanceled", data);
+      }
+
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("requestCanceled", data);
+      }
     });
 
     socket.on("acceptFriendRequest", (data) => {
-      console.log(
-        `${data.requester.name} ha aceptado la solicitud de amistad de ${data.receiver.name}`
-      );
-      // Emitir a todos los clientes que un usuario ha aceptado una solicitud de amistad
-      io.emit("requestAccepted", data);
+      const requesterSocketId = onlineUsers.get(data.requester.id)?.socketId;
+      const receiverSocketId = onlineUsers.get(data.receiver.id)?.socketId;
+
+      if (requesterSocketId) {
+        io.to(requesterSocketId).emit("requestAccepted", data);
+      }
+
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("requestAccepted", data);
+      }
     });
 
     socket.on("rejectFriendRequest", (data) => {
-      console.log(
-        `${data.requester.name} ha rechazado la solicitud de amistad de ${data.receiver.name}`
-      );
-      // Emitir a todos los clientes que un usuario ha rechazado una solicitud de amistad
-      io.emit("requestRejected", data);
-    })
+      const requesterSocketId = onlineUsers.get(data.requester.id)?.socketId;
+      const receiverSocketId = onlineUsers.get(data.receiver.id)?.socketId;
+
+      if (requesterSocketId) {
+        io.to(requesterSocketId).emit("requestRejected", data);
+      }
+
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("requestRejected", data);
+      }
+    });
 
     socket.on("removeFriend", (data) => {
-      console.log(
-        `${data.requester.name} ha eliminado a ${data.receiver.name} de sus amigos`
-      );
-      // Emitir a todos los clientes que un usuario ha eliminado a otro de sus amigos
-      io.emit("friendRemoved", data);
+      // Emitir solo al solicitante y al receptor
+      const requesterSocketId = onlineUsers.get(data.requester.id)?.socketId;
+      const receiverSocketId = onlineUsers.get(data.receiver.id)?.socketId;
+
+      if (requesterSocketId) {
+        io.to(requesterSocketId).emit("friendRemoved", data);
+      }
+
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("friendRemoved", data);
+      }
     });
 
     socket.on("inviteGame", (data) => {
-      console.log(
-        `${data.sender.name} ha invitado a ${data.receiver.name} a una partida`
-      );
-      // Emitir a todos los clientes que un usuario ha invitado a otro a una partida
-      io.emit("gameInvited", data);
+      // Emitir solo al receptor usando su socket ID
+      const receiverData = onlineUsers.get(data.receiver.id);
+
+      if (receiverData) {
+        io.to(receiverData.socketId).emit("gameInvited", data);
+      } else {
+        console.log(`El usuario ${data.receiver.name} no está conectado`);
+      }
+    });
+
+    socket.on("acceptGameInvitation", (data) => {
+      const players = data.game.players;
+
+      players.forEach((gameUser) => {
+        const playerId = gameUser.user.id;
+
+        const playerSocketId = onlineUsers.get(playerId)?.socketId;
+
+        if (playerSocketId) {
+          io.to(playerSocketId).emit("userJoined", data);
+        } else {
+          console.log(`El usuario ${gameUser.user.name} no está conectado`);
+        }
+      });
     });
 
     socket.on("createGame", (data) => {
-      console.log(
-        `${data.owner.name} ha creado una partida con el nombre ${data.name}`
-      );
       // Emitir a todos los clientes que un usuario ha creado una partida
       io.emit("gameCreated", data);
     });
 
     socket.on("deleteGame", (data) => {
-      console.log(
-        `${data.owner.name} ha eliminado la partida con el nombre ${data.name}`
-      );
       // Emitir a todos los clientes que un usuario ha eliminado una partida
       io.emit("gameDeleted", data);
     });
 
     socket.on("joinGame", (data) => {
-      console.log(`${data.user.name} se ha unido a la partida ${data.gameId}`);
-      // Emitir a todos los clientes que un usuario se ha unido a la partida
-      io.emit("userJoined", data);
+      const players = data.game.players;
+
+      players.forEach((gameUser) => {
+        const playerId = gameUser.user.id;
+        const playerSocketId = onlineUsers.get(playerId)?.socketId;
+
+        if (playerSocketId) {
+          io.to(playerSocketId).emit("userJoined", data);
+        }
+      });
     });
 
     socket.on("leaveGame", (data) => {
-      console.log(`${data.user.name} ha abandonado la partida ${data.gameId}`);
-      // Emitir a todos los clientes que un usuario ha abandonado la partida
-      io.emit("userLeft", data);
+      const players = data.game.players;
+
+      players.forEach((gameUser) => {
+        const playerId = gameUser.user.id;
+        const playerSocketId = onlineUsers.get(playerId)?.socketId;
+
+        if (playerSocketId) {
+          io.to(playerSocketId).emit("userLeft", data);
+        }
+
+        const leaverSocketId = onlineUsers.get(data.user.id)?.socketId;
+        if (leaverSocketId) {
+          io.to(leaverSocketId).emit("userLeft", data);
+        }
+      });
     });
   });
 

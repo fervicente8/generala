@@ -29,6 +29,8 @@ export interface User {
     games: Game[];
     friendships: UserFriendship[]; 
     friendOf: UserFriendship[]; 
+    sentInvitations: GameInvitation[];
+    receivedInvitations: GameInvitation[];
 }
 
 export interface UserFriendship {
@@ -55,6 +57,7 @@ export interface Game {
     password?: string;
     owner: User;
     ownerId: string; 
+    invitations: GameInvitation[];
 }
 
 export interface GameUser {
@@ -64,3 +67,14 @@ export interface GameUser {
     game: Game;  
     gameId: string;
 }
+
+export interface GameInvitation {
+    id: string;
+    gameId: string;
+    game: Game;
+    senderId: string;
+    sender: User;
+    receiverId: string;
+    receiver: User;
+    createdAt: string;
+  }

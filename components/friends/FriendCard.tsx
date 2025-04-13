@@ -24,6 +24,26 @@ export default function FriendCard({
   const [invitationSent, setInvitationSent] = useState(false);
   const [loadingFriendRequest, setLoadingFriendRequest] = useState(true);
   const [friendRequestSent, setFriendRequestSent] = useState(false);
+  const [isOnline, setIsOnline] = useState(false);
+
+  useEffect(() => {
+    const handleUpdateOnlineUsers = (onlineUserIds: string[]) => {
+      const isCurrentlyOnline = onlineUserIds.includes(user.id);
+      setIsOnline(isCurrentlyOnline);
+      console.log("Is online?", isCurrentlyOnline); // Log del nuevo estado
+    };
+
+    socket.on("updateOnlineUsers", handleUpdateOnlineUsers);
+
+    return () => {
+      socket.off("updateOnlineUsers", handleUpdateOnlineUsers);
+    };
+  }, [user.id]);
+  console.log("por fuera", isOnline);
+
+  useEffect(() => {
+    console.log("por fuera", isOnline);
+  }, [isOnline]);
 
   const checkIfRequestSent = async (receiverId: string) => {
     setLoadingFriendRequest(true);
@@ -112,7 +132,7 @@ export default function FriendCard({
     if (!activeRoom) return;
 
     try {
-      const res = await fetch("/api/rooms/invite", {
+      const res = await fetch("/api/rooms/invite-room", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -120,25 +140,35 @@ export default function FriendCard({
         body: JSON.stringify({ roomId: activeRoom.id, userId: user.id }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        alert("Error al invitar a la sala");
+        alert(`Error al invitar a la sala: ${data.error}`);
         return;
       }
+
+      socket.emit("inviteGame", data);
     } catch (error) {
       console.error("Error al invitar a la sala", error);
     } finally {
       setInvitationSent(true);
     }
   };
+  console.log(user.image);
 
   return (
     <div className='flex items-center justify-between gap-2 select-none'>
       <div className='flex items-center gap-2'>
-        <img
-          src={user.image || "/default-avatar.png"}
-          alt='Avatar'
-          className='w-12 h-12 rounded-full'
-        />
+        <div className='relative'>
+          <img
+            src={user.image || "/default-avatar.png"}
+            alt='Avatar'
+            className='w-12 h-12 rounded-full'
+          />
+          {isOnline && (
+            <div className='absolute bottom-[2px] right-[2px] w-[14px] h-[14px] bg-[var(--color-green)] rounded-full'></div>
+          )}
+        </div>
         <h3 className='text-[16px] font-semibold'>{user.name}</h3>
       </div>
       {loadingIsFriend || loadingFriendRequest ? (

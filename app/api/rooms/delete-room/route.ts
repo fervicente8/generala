@@ -17,8 +17,8 @@ export async function DELETE(req: NextRequest) {
     const existingRoom = await prisma.game.findUnique({
       where: { id: roomId },
       include: {
-        players: true, // Incluir jugadores
-        owner: true, // Incluir propietario
+        players: true,
+        owner: true,
       },
     });
 
@@ -29,8 +29,13 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    // Eliminar jugadores relacionados en GameUser antes de eliminar la sala
+    // Eliminar jugadores relacionados
     await prisma.gameUser.deleteMany({
+      where: { gameId: roomId },
+    });
+
+    // Eliminar invitaciones relacionadas
+    await prisma.gameInvitation.deleteMany({
       where: { gameId: roomId },
     });
 
@@ -38,8 +43,8 @@ export async function DELETE(req: NextRequest) {
     const deletedRoom = await prisma.game.delete({
       where: { id: roomId },
       include: {
-        players: true, // Incluir jugadores después de eliminar la sala
-        owner: true,   // Incluir propietario después de eliminar la sala
+        players: true,
+        owner: true,
       },
     });
 

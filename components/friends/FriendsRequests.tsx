@@ -1,4 +1,4 @@
-import { User, UserFriendship } from "@/types";
+import { GameInvitation, GameUser, User, UserFriendship } from "@/types";
 import { Check, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { socket } from "@/lib/socket";
@@ -7,12 +7,16 @@ import { useSession } from "next-auth/react";
 export default function FriendsRequests() {
   // Session
   const { data: session } = useSession();
+  // Requests
   const [incomingRequests, setIncomingRequests] = useState<UserFriendship[]>(
     []
   );
   const [outgoingRequests, setOutgoingRequests] = useState<UserFriendship[]>(
     []
   );
+
+  // Invitaciones
+  const [invitations, setInvitations] = useState<GameInvitation[]>([]);
 
   useEffect(() => {
     const handleRequestSent = (data: UserFriendship) => {
@@ -35,6 +39,10 @@ export default function FriendsRequests() {
       }
     };
 
+    const handleGameInvitation = (data: GameInvitation) => {
+      setInvitations((prevInvitations) => [...prevInvitations, data]);
+    };
+
     const handleRequestAccepted = (data: UserFriendship) => {
       if (data.requesterId === session?.user?.id) {
         setOutgoingRequests((prev) => prev.filter((r) => r.id !== data.id));
@@ -46,12 +54,14 @@ export default function FriendsRequests() {
     };
 
     socket.on("requestSent", handleRequestSent);
+    socket.on("gameInvited", handleGameInvitation);
     socket.on("requestCanceled", handleRequestAccepted);
     socket.on("requestAccepted", handleRequestAccepted);
     socket.on("requestRejected", handleRequestAccepted);
 
     return () => {
       socket.off("requestSent", handleRequestSent);
+      socket.off("gameInvited", handleGameInvitation);
       socket.off("requestCanceled", handleRequestAccepted);
       socket.off("requestAccepted", handleRequestAccepted);
       socket.off("requestRejected", handleRequestAccepted);
@@ -79,6 +89,17 @@ export default function FriendsRequests() {
       }
     };
 
+    const fetchInvitations = async () => {
+      try {
+        const res = await fetch("/api/users/get-invitations");
+        const data = await res.json();
+        setInvitations(data);
+      } catch (err) {
+        console.error("Error al obtener invitaciones:", err);
+      }
+    };
+
+    fetchInvitations();
     fetchIncomingRequests();
     fetchOutgoingRequests();
   }, []);
@@ -136,8 +157,105 @@ export default function FriendsRequests() {
     }
   };
 
+  const handleAcceptInvitation = async (invitationId: string) => {
+    if (!session?.user?.id) return;
+
+    try {
+      const res = await fetch("/api/rooms/accept-invitation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ invitationId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert("Error al aceptar invitación");
+        return;
+      }
+
+      let gameUser: GameUser = {
+        id: session.user.id,
+        user: session.user as User,
+        userId: session.user.id,
+        game: data,
+        gameId: data.id,
+      };
+
+      setInvitations((prevInvitations) =>
+        prevInvitations.filter((i) => i.id !== invitationId)
+      );
+      socket.emit("acceptGameInvitation", gameUser);
+    } catch (error) {
+      console.error("Error al aceptar invitación:", error);
+    }
+  };
+
+  const handleRejectInvitation = async (invitationId: string) => {
+    try {
+      const res = await fetch("/api/rooms/reject-invitation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ invitationId }),
+      });
+
+      if (!res.ok) {
+        alert("Error al rechazar invitación");
+        return;
+      }
+
+      setInvitations((prevInvitations) =>
+        prevInvitations.filter((i) => i.id !== invitationId)
+      );
+    } catch (error) {
+      console.error("Error al rechazar invitación:", error);
+    }
+  };
+
   return (
     <div className='flex flex-col gap-2'>
+      {invitations.length > 0 && (
+        <h2 className='text-md bg-[var(--color-gold)] text-white px-4 py-2 rounded-lg text-center shadow-sm'>
+          Invitaciones de juego pendientes
+        </h2>
+      )}
+
+      {invitations.length > 0 && (
+        <div className='flex flex-col gap-2 overflow-scroll scrollbar-none mb-8 max-h-[25%]'>
+          {invitations.map((invitation) => (
+            <div
+              key={invitation.id}
+              className='flex items-center justify-between gap-2 bg-white py-2 px-4 rounded-lg shadow-sm'
+            >
+              <div className='flex items-center gap-2'>
+                <img
+                  src={invitation.sender.image || "/default-avatar.png"}
+                  alt='Avatar'
+                  className='h-10 w-10 rounded-full'
+                />
+                <p className='text-sm'>
+                  {invitation.sender.name} te ha invitado a jugar
+                </p>
+              </div>
+              <div className='flex gap-2'>
+                <X
+                  onClick={() => handleRejectInvitation(invitation.id)}
+                  className='ml-auto cursor-pointer text-[var(--color-red)] hover:text-[var(--color-red)]/80'
+                />
+                <Check
+                  onClick={() => handleAcceptInvitation(invitation.id)}
+                  className='ml-auto cursor-pointer text-[var(--color-green)] hover:text-[var(--color-green)]/80'
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {incomingRequests.length > 0 && (
         <h2 className='text-md bg-[var(--color-gold)] text-white px-4 py-2 rounded-lg text-center shadow-sm'>
           Peticiones de amistad pendientes

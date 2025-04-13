@@ -15,7 +15,7 @@ export async function GET(req: Request) {
           { email: { contains: query, mode: "insensitive" } },
         ],
       },
-      select: { id: true, name: true },
+      select: { id: true, name: true, image: true },
     });
     
     return NextResponse.json(users);

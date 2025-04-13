@@ -2,7 +2,7 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import {prisma} from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     const room = await prisma.game.findUnique({
       where: { id: roomId },
       include: {
-        players: true, // Incluimos los jugadores en la consulta
+        players: true,
       },
     });
 
@@ -25,31 +25,69 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Sala no encontrada" }, { status: 404 });
     }
 
-    // Verifica si el usuario ya está en la sala
-    const userInRoom = room.players.find((player) => player.userId === userId);
-    if (userInRoom) {
-      return NextResponse.json({ error: "El usuario ya está en la sala" }, { status: 400 });
-    }
-
-    // Verifica si la sala no ha alcanzado el límite de jugadores
-    if (room.players.length >= room.maxPlayers) {
-      return NextResponse.json({ error: "La sala está llena" }, { status: 400 });
-    }
-
-    // Agregar al usuario a la sala
-    await prisma.gameUser.create({
-      data: {
-        gameId: roomId,
-        userId,
+    // Verifica si ya existe una invitación pendiente para ese usuario en esa sala
+    const existingInvitation = await prisma.gameInvitation.findUnique({
+      where: {
+        gameId_receiverId: {
+          gameId: roomId,
+          receiverId: userId,
+        },
       },
     });
 
-    // Emitir un evento de WebSocket para notificar a los demás usuarios que un nuevo usuario ha sido invitado
-    // socket.emit("userInvited", { roomId, userId });
+    if (existingInvitation) {
+      return NextResponse.json(
+        { error: "El usuario ya fue invitado a esta sala" },
+        { status: 400 }
+      );
+    }
 
-    return NextResponse.json({ success: true });
+    // Verifica si el usuario ya es un jugador de la sala
+    const isPlayerInRoom = room.players.some((p) => p.userId === userId);
+    
+    if (isPlayerInRoom) {
+      return NextResponse.json({ error: "El usuario ya es un jugador de la sala" }, { status: 400 });
+    }
+
+    // Crear la invitación
+    const invitation = await prisma.gameInvitation.create({
+      data: {
+        gameId: roomId,
+        senderId: session.user.id,
+        receiverId: userId,
+      },
+      include: {
+        receiver: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+        sender: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+        game: {
+          select: {
+            id: true,
+            name: true,
+            invitations: {
+              select: {
+                id: true,
+                receiverId: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return NextResponse.json(invitation, { status: 201 });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Error procesando la invitación" }, { status: 500 });
+    return NextResponse.json({ error: "Error creando la invitación" }, { status: 500 });
   }
 }

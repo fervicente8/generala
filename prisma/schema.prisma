@@ -25,6 +25,8 @@ model User {
   games     GameUser[]
   friendships UserFriendship[] @relation("UserFriendships")
   friendOf    UserFriendship[] @relation("FriendOf")
+  sentInvitations     GameInvitation[] @relation("InvitationSender")
+  receivedInvitations GameInvitation[] @relation("InvitationReceiver")
   ownedGames   Game[]       @relation("GameOwner") 
 }
 
@@ -74,6 +76,7 @@ model Game {
   password     String?   
   ownerId      String
   owner        User        @relation("GameOwner", fields: [ownerId], references: [id])
+  invitations  GameInvitation[]
 }
 
 // Junction table for the many-to-many relationship between Users and Games
@@ -85,4 +88,18 @@ model GameUser {
   gameId  String
 
   @@unique([userId, gameId]) 
+}
+
+model GameInvitation {
+  id         String   @id @default(uuid())
+  gameId     String
+  senderId   String
+  receiverId String
+  createdAt  DateTime @default(now())
+
+  game     Game @relation(fields: [gameId], references: [id])
+  sender   User @relation("InvitationSender", fields: [senderId], references: [id])
+  receiver User @relation("InvitationReceiver", fields: [receiverId], references: [id])
+
+  @@unique([gameId, receiverId]) // evita duplicados
 }

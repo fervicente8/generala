@@ -61,10 +61,6 @@ export default function MainMenu() {
     };
 
     const handleDeleteRoom = (data: Game) => {
-      console.log(activeRoom?.id);
-
-      console.log(data.id);
-
       if (activeRoom?.id === data.id) {
         setActiveRoom(null);
       } else {
@@ -79,9 +75,6 @@ export default function MainMenu() {
     };
 
     const handleUserLeft = (data: any) => {
-      console.log(data.game.players);
-      console.log(session?.user?.id);
-
       if (
         data.game.players.find(
           (player: any) => player.userId === session?.user?.id
@@ -146,6 +139,11 @@ export default function MainMenu() {
 
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
+      socket.emit("userOnline", {
+        id: session.user.id,
+        name: session.user.name,
+      });
+
       setIsLoadingFriends(true);
       setIsLoadingRooms(true);
 
@@ -362,6 +360,8 @@ export default function MainMenu() {
         gameId: data.id,
       };
 
+      setActiveRoom(null);
+
       socket.emit("leaveGame", gameUser);
     } catch (error) {
       alert("Error de conexión");
@@ -423,6 +423,7 @@ export default function MainMenu() {
                             user={user}
                             setFriendSearch={setFriendSearch}
                             setFriendResults={setFriendResults}
+                            activeRoom={activeRoom ? activeRoom : undefined}
                           />
                         </motion.li>
                       ))}
@@ -483,7 +484,7 @@ export default function MainMenu() {
       </aside>
 
       {/* Contenido principal */}
-      <main className='flex-1 p-6 md:p-15 overflow-y-scroll scrollbar-none'>
+      <main className='relative flex-1 p-6 md:p-15 overflow-y-scroll scrollbar-none'>
         <div className='w-full mx-auto'>
           <h1 className='text-4xl font-extrabold mb-4 text-[var(--color-beige)] drop-shadow-md'>
             Bienvenido, {session.user?.name}
@@ -651,7 +652,7 @@ export default function MainMenu() {
         </div>
 
         {activeRoom && (
-          <div className='fixed bottom-0 left-0 w-full bg-blue-500 text-white p-4 flex justify-between items-center'>
+          <div className='absolute bottom-2 left-[1%] w-[98%] bg-blue-500 text-white p-4 flex justify-between items-center rounded-lg'>
             <div className='flex gap-16 items-center'>
               <div>
                 <h3 className='text-lg font-bold'>{activeRoom.name}</h3>

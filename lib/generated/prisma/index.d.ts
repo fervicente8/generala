@@ -38,6 +38,11 @@ export type Game = $Result.DefaultSelection<Prisma.$GamePayload>
  * 
  */
 export type GameUser = $Result.DefaultSelection<Prisma.$GameUserPayload>
+/**
+ * Model GameInvitation
+ * 
+ */
+export type GameInvitation = $Result.DefaultSelection<Prisma.$GameInvitationPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -213,6 +218,16 @@ export class PrismaClient<
     * ```
     */
   get gameUser(): Prisma.GameUserDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.gameInvitation`: Exposes CRUD operations for the **GameInvitation** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more GameInvitations
+    * const gameInvitations = await prisma.gameInvitation.findMany()
+    * ```
+    */
+  get gameInvitation(): Prisma.GameInvitationDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -657,7 +672,8 @@ export namespace Prisma {
     UserFriendship: 'UserFriendship',
     UserStats: 'UserStats',
     Game: 'Game',
-    GameUser: 'GameUser'
+    GameUser: 'GameUser',
+    GameInvitation: 'GameInvitation'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -676,7 +692,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "userFriendship" | "userStats" | "game" | "gameUser"
+      modelProps: "user" | "userFriendship" | "userStats" | "game" | "gameUser" | "gameInvitation"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1050,6 +1066,80 @@ export namespace Prisma {
           }
         }
       }
+      GameInvitation: {
+        payload: Prisma.$GameInvitationPayload<ExtArgs>
+        fields: Prisma.GameInvitationFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.GameInvitationFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GameInvitationPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.GameInvitationFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GameInvitationPayload>
+          }
+          findFirst: {
+            args: Prisma.GameInvitationFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GameInvitationPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.GameInvitationFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GameInvitationPayload>
+          }
+          findMany: {
+            args: Prisma.GameInvitationFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GameInvitationPayload>[]
+          }
+          create: {
+            args: Prisma.GameInvitationCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GameInvitationPayload>
+          }
+          createMany: {
+            args: Prisma.GameInvitationCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.GameInvitationCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GameInvitationPayload>[]
+          }
+          delete: {
+            args: Prisma.GameInvitationDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GameInvitationPayload>
+          }
+          update: {
+            args: Prisma.GameInvitationUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GameInvitationPayload>
+          }
+          deleteMany: {
+            args: Prisma.GameInvitationDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.GameInvitationUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.GameInvitationUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GameInvitationPayload>[]
+          }
+          upsert: {
+            args: Prisma.GameInvitationUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GameInvitationPayload>
+          }
+          aggregate: {
+            args: Prisma.GameInvitationAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateGameInvitation>
+          }
+          groupBy: {
+            args: Prisma.GameInvitationGroupByArgs<ExtArgs>
+            result: $Utils.Optional<GameInvitationGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.GameInvitationCountArgs<ExtArgs>
+            result: $Utils.Optional<GameInvitationCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1139,6 +1229,7 @@ export namespace Prisma {
     userStats?: UserStatsOmit
     game?: GameOmit
     gameUser?: GameUserOmit
+    gameInvitation?: GameInvitationOmit
   }
 
   /* Types for Logging */
@@ -1236,6 +1327,8 @@ export namespace Prisma {
     games: number
     friendships: number
     friendOf: number
+    sentInvitations: number
+    receivedInvitations: number
     ownedGames: number
   }
 
@@ -1243,6 +1336,8 @@ export namespace Prisma {
     games?: boolean | UserCountOutputTypeCountGamesArgs
     friendships?: boolean | UserCountOutputTypeCountFriendshipsArgs
     friendOf?: boolean | UserCountOutputTypeCountFriendOfArgs
+    sentInvitations?: boolean | UserCountOutputTypeCountSentInvitationsArgs
+    receivedInvitations?: boolean | UserCountOutputTypeCountReceivedInvitationsArgs
     ownedGames?: boolean | UserCountOutputTypeCountOwnedGamesArgs
   }
 
@@ -1281,6 +1376,20 @@ export namespace Prisma {
   /**
    * UserCountOutputType without action
    */
+  export type UserCountOutputTypeCountSentInvitationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GameInvitationWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountReceivedInvitationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GameInvitationWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
   export type UserCountOutputTypeCountOwnedGamesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: GameWhereInput
   }
@@ -1292,10 +1401,12 @@ export namespace Prisma {
 
   export type GameCountOutputType = {
     players: number
+    invitations: number
   }
 
   export type GameCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     players?: boolean | GameCountOutputTypeCountPlayersArgs
+    invitations?: boolean | GameCountOutputTypeCountInvitationsArgs
   }
 
   // Custom InputTypes
@@ -1314,6 +1425,13 @@ export namespace Prisma {
    */
   export type GameCountOutputTypeCountPlayersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: GameUserWhereInput
+  }
+
+  /**
+   * GameCountOutputType without action
+   */
+  export type GameCountOutputTypeCountInvitationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GameInvitationWhereInput
   }
 
 
@@ -1497,6 +1615,8 @@ export namespace Prisma {
     games?: boolean | User$gamesArgs<ExtArgs>
     friendships?: boolean | User$friendshipsArgs<ExtArgs>
     friendOf?: boolean | User$friendOfArgs<ExtArgs>
+    sentInvitations?: boolean | User$sentInvitationsArgs<ExtArgs>
+    receivedInvitations?: boolean | User$receivedInvitationsArgs<ExtArgs>
     ownedGames?: boolean | User$ownedGamesArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
@@ -1534,6 +1654,8 @@ export namespace Prisma {
     games?: boolean | User$gamesArgs<ExtArgs>
     friendships?: boolean | User$friendshipsArgs<ExtArgs>
     friendOf?: boolean | User$friendOfArgs<ExtArgs>
+    sentInvitations?: boolean | User$sentInvitationsArgs<ExtArgs>
+    receivedInvitations?: boolean | User$receivedInvitationsArgs<ExtArgs>
     ownedGames?: boolean | User$ownedGamesArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -1547,6 +1669,8 @@ export namespace Prisma {
       games: Prisma.$GameUserPayload<ExtArgs>[]
       friendships: Prisma.$UserFriendshipPayload<ExtArgs>[]
       friendOf: Prisma.$UserFriendshipPayload<ExtArgs>[]
+      sentInvitations: Prisma.$GameInvitationPayload<ExtArgs>[]
+      receivedInvitations: Prisma.$GameInvitationPayload<ExtArgs>[]
       ownedGames: Prisma.$GamePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -1954,6 +2078,8 @@ export namespace Prisma {
     games<T extends User$gamesArgs<ExtArgs> = {}>(args?: Subset<T, User$gamesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GameUserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     friendships<T extends User$friendshipsArgs<ExtArgs> = {}>(args?: Subset<T, User$friendshipsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserFriendshipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     friendOf<T extends User$friendOfArgs<ExtArgs> = {}>(args?: Subset<T, User$friendOfArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserFriendshipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    sentInvitations<T extends User$sentInvitationsArgs<ExtArgs> = {}>(args?: Subset<T, User$sentInvitationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GameInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    receivedInvitations<T extends User$receivedInvitationsArgs<ExtArgs> = {}>(args?: Subset<T, User$receivedInvitationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GameInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     ownedGames<T extends User$ownedGamesArgs<ExtArgs> = {}>(args?: Subset<T, User$ownedGamesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GamePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2466,6 +2592,54 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: UserFriendshipScalarFieldEnum | UserFriendshipScalarFieldEnum[]
+  }
+
+  /**
+   * User.sentInvitations
+   */
+  export type User$sentInvitationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameInvitation
+     */
+    select?: GameInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameInvitation
+     */
+    omit?: GameInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GameInvitationInclude<ExtArgs> | null
+    where?: GameInvitationWhereInput
+    orderBy?: GameInvitationOrderByWithRelationInput | GameInvitationOrderByWithRelationInput[]
+    cursor?: GameInvitationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: GameInvitationScalarFieldEnum | GameInvitationScalarFieldEnum[]
+  }
+
+  /**
+   * User.receivedInvitations
+   */
+  export type User$receivedInvitationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameInvitation
+     */
+    select?: GameInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameInvitation
+     */
+    omit?: GameInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GameInvitationInclude<ExtArgs> | null
+    where?: GameInvitationWhereInput
+    orderBy?: GameInvitationOrderByWithRelationInput | GameInvitationOrderByWithRelationInput[]
+    cursor?: GameInvitationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: GameInvitationScalarFieldEnum | GameInvitationScalarFieldEnum[]
   }
 
   /**
@@ -5138,6 +5312,7 @@ export namespace Prisma {
     ownerId?: boolean
     players?: boolean | Game$playersArgs<ExtArgs>
     owner?: boolean | UserDefaultArgs<ExtArgs>
+    invitations?: boolean | Game$invitationsArgs<ExtArgs>
     _count?: boolean | GameCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["game"]>
 
@@ -5186,6 +5361,7 @@ export namespace Prisma {
   export type GameInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     players?: boolean | Game$playersArgs<ExtArgs>
     owner?: boolean | UserDefaultArgs<ExtArgs>
+    invitations?: boolean | Game$invitationsArgs<ExtArgs>
     _count?: boolean | GameCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type GameIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5200,6 +5376,7 @@ export namespace Prisma {
     objects: {
       players: Prisma.$GameUserPayload<ExtArgs>[]
       owner: Prisma.$UserPayload<ExtArgs>
+      invitations: Prisma.$GameInvitationPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -5608,6 +5785,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     players<T extends Game$playersArgs<ExtArgs> = {}>(args?: Subset<T, Game$playersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GameUserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     owner<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    invitations<T extends Game$invitationsArgs<ExtArgs> = {}>(args?: Subset<T, Game$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GameInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6064,6 +6242,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: GameUserScalarFieldEnum | GameUserScalarFieldEnum[]
+  }
+
+  /**
+   * Game.invitations
+   */
+  export type Game$invitationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameInvitation
+     */
+    select?: GameInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameInvitation
+     */
+    omit?: GameInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GameInvitationInclude<ExtArgs> | null
+    where?: GameInvitationWhereInput
+    orderBy?: GameInvitationOrderByWithRelationInput | GameInvitationOrderByWithRelationInput[]
+    cursor?: GameInvitationWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: GameInvitationScalarFieldEnum | GameInvitationScalarFieldEnum[]
   }
 
   /**
@@ -7126,6 +7328,1080 @@ export namespace Prisma {
 
 
   /**
+   * Model GameInvitation
+   */
+
+  export type AggregateGameInvitation = {
+    _count: GameInvitationCountAggregateOutputType | null
+    _min: GameInvitationMinAggregateOutputType | null
+    _max: GameInvitationMaxAggregateOutputType | null
+  }
+
+  export type GameInvitationMinAggregateOutputType = {
+    id: string | null
+    gameId: string | null
+    senderId: string | null
+    receiverId: string | null
+    createdAt: Date | null
+  }
+
+  export type GameInvitationMaxAggregateOutputType = {
+    id: string | null
+    gameId: string | null
+    senderId: string | null
+    receiverId: string | null
+    createdAt: Date | null
+  }
+
+  export type GameInvitationCountAggregateOutputType = {
+    id: number
+    gameId: number
+    senderId: number
+    receiverId: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type GameInvitationMinAggregateInputType = {
+    id?: true
+    gameId?: true
+    senderId?: true
+    receiverId?: true
+    createdAt?: true
+  }
+
+  export type GameInvitationMaxAggregateInputType = {
+    id?: true
+    gameId?: true
+    senderId?: true
+    receiverId?: true
+    createdAt?: true
+  }
+
+  export type GameInvitationCountAggregateInputType = {
+    id?: true
+    gameId?: true
+    senderId?: true
+    receiverId?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type GameInvitationAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GameInvitation to aggregate.
+     */
+    where?: GameInvitationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GameInvitations to fetch.
+     */
+    orderBy?: GameInvitationOrderByWithRelationInput | GameInvitationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: GameInvitationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GameInvitations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GameInvitations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned GameInvitations
+    **/
+    _count?: true | GameInvitationCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: GameInvitationMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: GameInvitationMaxAggregateInputType
+  }
+
+  export type GetGameInvitationAggregateType<T extends GameInvitationAggregateArgs> = {
+        [P in keyof T & keyof AggregateGameInvitation]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateGameInvitation[P]>
+      : GetScalarType<T[P], AggregateGameInvitation[P]>
+  }
+
+
+
+
+  export type GameInvitationGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GameInvitationWhereInput
+    orderBy?: GameInvitationOrderByWithAggregationInput | GameInvitationOrderByWithAggregationInput[]
+    by: GameInvitationScalarFieldEnum[] | GameInvitationScalarFieldEnum
+    having?: GameInvitationScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: GameInvitationCountAggregateInputType | true
+    _min?: GameInvitationMinAggregateInputType
+    _max?: GameInvitationMaxAggregateInputType
+  }
+
+  export type GameInvitationGroupByOutputType = {
+    id: string
+    gameId: string
+    senderId: string
+    receiverId: string
+    createdAt: Date
+    _count: GameInvitationCountAggregateOutputType | null
+    _min: GameInvitationMinAggregateOutputType | null
+    _max: GameInvitationMaxAggregateOutputType | null
+  }
+
+  type GetGameInvitationGroupByPayload<T extends GameInvitationGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<GameInvitationGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof GameInvitationGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], GameInvitationGroupByOutputType[P]>
+            : GetScalarType<T[P], GameInvitationGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type GameInvitationSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    gameId?: boolean
+    senderId?: boolean
+    receiverId?: boolean
+    createdAt?: boolean
+    game?: boolean | GameDefaultArgs<ExtArgs>
+    sender?: boolean | UserDefaultArgs<ExtArgs>
+    receiver?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["gameInvitation"]>
+
+  export type GameInvitationSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    gameId?: boolean
+    senderId?: boolean
+    receiverId?: boolean
+    createdAt?: boolean
+    game?: boolean | GameDefaultArgs<ExtArgs>
+    sender?: boolean | UserDefaultArgs<ExtArgs>
+    receiver?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["gameInvitation"]>
+
+  export type GameInvitationSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    gameId?: boolean
+    senderId?: boolean
+    receiverId?: boolean
+    createdAt?: boolean
+    game?: boolean | GameDefaultArgs<ExtArgs>
+    sender?: boolean | UserDefaultArgs<ExtArgs>
+    receiver?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["gameInvitation"]>
+
+  export type GameInvitationSelectScalar = {
+    id?: boolean
+    gameId?: boolean
+    senderId?: boolean
+    receiverId?: boolean
+    createdAt?: boolean
+  }
+
+  export type GameInvitationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "gameId" | "senderId" | "receiverId" | "createdAt", ExtArgs["result"]["gameInvitation"]>
+  export type GameInvitationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    game?: boolean | GameDefaultArgs<ExtArgs>
+    sender?: boolean | UserDefaultArgs<ExtArgs>
+    receiver?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type GameInvitationIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    game?: boolean | GameDefaultArgs<ExtArgs>
+    sender?: boolean | UserDefaultArgs<ExtArgs>
+    receiver?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type GameInvitationIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    game?: boolean | GameDefaultArgs<ExtArgs>
+    sender?: boolean | UserDefaultArgs<ExtArgs>
+    receiver?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $GameInvitationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "GameInvitation"
+    objects: {
+      game: Prisma.$GamePayload<ExtArgs>
+      sender: Prisma.$UserPayload<ExtArgs>
+      receiver: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      gameId: string
+      senderId: string
+      receiverId: string
+      createdAt: Date
+    }, ExtArgs["result"]["gameInvitation"]>
+    composites: {}
+  }
+
+  type GameInvitationGetPayload<S extends boolean | null | undefined | GameInvitationDefaultArgs> = $Result.GetResult<Prisma.$GameInvitationPayload, S>
+
+  type GameInvitationCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<GameInvitationFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: GameInvitationCountAggregateInputType | true
+    }
+
+  export interface GameInvitationDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['GameInvitation'], meta: { name: 'GameInvitation' } }
+    /**
+     * Find zero or one GameInvitation that matches the filter.
+     * @param {GameInvitationFindUniqueArgs} args - Arguments to find a GameInvitation
+     * @example
+     * // Get one GameInvitation
+     * const gameInvitation = await prisma.gameInvitation.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends GameInvitationFindUniqueArgs>(args: SelectSubset<T, GameInvitationFindUniqueArgs<ExtArgs>>): Prisma__GameInvitationClient<$Result.GetResult<Prisma.$GameInvitationPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one GameInvitation that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {GameInvitationFindUniqueOrThrowArgs} args - Arguments to find a GameInvitation
+     * @example
+     * // Get one GameInvitation
+     * const gameInvitation = await prisma.gameInvitation.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends GameInvitationFindUniqueOrThrowArgs>(args: SelectSubset<T, GameInvitationFindUniqueOrThrowArgs<ExtArgs>>): Prisma__GameInvitationClient<$Result.GetResult<Prisma.$GameInvitationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GameInvitation that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GameInvitationFindFirstArgs} args - Arguments to find a GameInvitation
+     * @example
+     * // Get one GameInvitation
+     * const gameInvitation = await prisma.gameInvitation.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends GameInvitationFindFirstArgs>(args?: SelectSubset<T, GameInvitationFindFirstArgs<ExtArgs>>): Prisma__GameInvitationClient<$Result.GetResult<Prisma.$GameInvitationPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GameInvitation that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GameInvitationFindFirstOrThrowArgs} args - Arguments to find a GameInvitation
+     * @example
+     * // Get one GameInvitation
+     * const gameInvitation = await prisma.gameInvitation.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends GameInvitationFindFirstOrThrowArgs>(args?: SelectSubset<T, GameInvitationFindFirstOrThrowArgs<ExtArgs>>): Prisma__GameInvitationClient<$Result.GetResult<Prisma.$GameInvitationPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more GameInvitations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GameInvitationFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all GameInvitations
+     * const gameInvitations = await prisma.gameInvitation.findMany()
+     * 
+     * // Get first 10 GameInvitations
+     * const gameInvitations = await prisma.gameInvitation.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const gameInvitationWithIdOnly = await prisma.gameInvitation.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends GameInvitationFindManyArgs>(args?: SelectSubset<T, GameInvitationFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GameInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a GameInvitation.
+     * @param {GameInvitationCreateArgs} args - Arguments to create a GameInvitation.
+     * @example
+     * // Create one GameInvitation
+     * const GameInvitation = await prisma.gameInvitation.create({
+     *   data: {
+     *     // ... data to create a GameInvitation
+     *   }
+     * })
+     * 
+     */
+    create<T extends GameInvitationCreateArgs>(args: SelectSubset<T, GameInvitationCreateArgs<ExtArgs>>): Prisma__GameInvitationClient<$Result.GetResult<Prisma.$GameInvitationPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many GameInvitations.
+     * @param {GameInvitationCreateManyArgs} args - Arguments to create many GameInvitations.
+     * @example
+     * // Create many GameInvitations
+     * const gameInvitation = await prisma.gameInvitation.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends GameInvitationCreateManyArgs>(args?: SelectSubset<T, GameInvitationCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many GameInvitations and returns the data saved in the database.
+     * @param {GameInvitationCreateManyAndReturnArgs} args - Arguments to create many GameInvitations.
+     * @example
+     * // Create many GameInvitations
+     * const gameInvitation = await prisma.gameInvitation.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many GameInvitations and only return the `id`
+     * const gameInvitationWithIdOnly = await prisma.gameInvitation.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends GameInvitationCreateManyAndReturnArgs>(args?: SelectSubset<T, GameInvitationCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GameInvitationPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a GameInvitation.
+     * @param {GameInvitationDeleteArgs} args - Arguments to delete one GameInvitation.
+     * @example
+     * // Delete one GameInvitation
+     * const GameInvitation = await prisma.gameInvitation.delete({
+     *   where: {
+     *     // ... filter to delete one GameInvitation
+     *   }
+     * })
+     * 
+     */
+    delete<T extends GameInvitationDeleteArgs>(args: SelectSubset<T, GameInvitationDeleteArgs<ExtArgs>>): Prisma__GameInvitationClient<$Result.GetResult<Prisma.$GameInvitationPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one GameInvitation.
+     * @param {GameInvitationUpdateArgs} args - Arguments to update one GameInvitation.
+     * @example
+     * // Update one GameInvitation
+     * const gameInvitation = await prisma.gameInvitation.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends GameInvitationUpdateArgs>(args: SelectSubset<T, GameInvitationUpdateArgs<ExtArgs>>): Prisma__GameInvitationClient<$Result.GetResult<Prisma.$GameInvitationPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more GameInvitations.
+     * @param {GameInvitationDeleteManyArgs} args - Arguments to filter GameInvitations to delete.
+     * @example
+     * // Delete a few GameInvitations
+     * const { count } = await prisma.gameInvitation.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends GameInvitationDeleteManyArgs>(args?: SelectSubset<T, GameInvitationDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GameInvitations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GameInvitationUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many GameInvitations
+     * const gameInvitation = await prisma.gameInvitation.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends GameInvitationUpdateManyArgs>(args: SelectSubset<T, GameInvitationUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GameInvitations and returns the data updated in the database.
+     * @param {GameInvitationUpdateManyAndReturnArgs} args - Arguments to update many GameInvitations.
+     * @example
+     * // Update many GameInvitations
+     * const gameInvitation = await prisma.gameInvitation.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more GameInvitations and only return the `id`
+     * const gameInvitationWithIdOnly = await prisma.gameInvitation.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends GameInvitationUpdateManyAndReturnArgs>(args: SelectSubset<T, GameInvitationUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GameInvitationPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one GameInvitation.
+     * @param {GameInvitationUpsertArgs} args - Arguments to update or create a GameInvitation.
+     * @example
+     * // Update or create a GameInvitation
+     * const gameInvitation = await prisma.gameInvitation.upsert({
+     *   create: {
+     *     // ... data to create a GameInvitation
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the GameInvitation we want to update
+     *   }
+     * })
+     */
+    upsert<T extends GameInvitationUpsertArgs>(args: SelectSubset<T, GameInvitationUpsertArgs<ExtArgs>>): Prisma__GameInvitationClient<$Result.GetResult<Prisma.$GameInvitationPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of GameInvitations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GameInvitationCountArgs} args - Arguments to filter GameInvitations to count.
+     * @example
+     * // Count the number of GameInvitations
+     * const count = await prisma.gameInvitation.count({
+     *   where: {
+     *     // ... the filter for the GameInvitations we want to count
+     *   }
+     * })
+    **/
+    count<T extends GameInvitationCountArgs>(
+      args?: Subset<T, GameInvitationCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], GameInvitationCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a GameInvitation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GameInvitationAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends GameInvitationAggregateArgs>(args: Subset<T, GameInvitationAggregateArgs>): Prisma.PrismaPromise<GetGameInvitationAggregateType<T>>
+
+    /**
+     * Group by GameInvitation.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GameInvitationGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GameInvitationGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GameInvitationGroupByArgs['orderBy'] }
+        : { orderBy?: GameInvitationGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GameInvitationGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetGameInvitationGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the GameInvitation model
+   */
+  readonly fields: GameInvitationFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for GameInvitation.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__GameInvitationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    game<T extends GameDefaultArgs<ExtArgs> = {}>(args?: Subset<T, GameDefaultArgs<ExtArgs>>): Prisma__GameClient<$Result.GetResult<Prisma.$GamePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    sender<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    receiver<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the GameInvitation model
+   */
+  interface GameInvitationFieldRefs {
+    readonly id: FieldRef<"GameInvitation", 'String'>
+    readonly gameId: FieldRef<"GameInvitation", 'String'>
+    readonly senderId: FieldRef<"GameInvitation", 'String'>
+    readonly receiverId: FieldRef<"GameInvitation", 'String'>
+    readonly createdAt: FieldRef<"GameInvitation", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * GameInvitation findUnique
+   */
+  export type GameInvitationFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameInvitation
+     */
+    select?: GameInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameInvitation
+     */
+    omit?: GameInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GameInvitationInclude<ExtArgs> | null
+    /**
+     * Filter, which GameInvitation to fetch.
+     */
+    where: GameInvitationWhereUniqueInput
+  }
+
+  /**
+   * GameInvitation findUniqueOrThrow
+   */
+  export type GameInvitationFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameInvitation
+     */
+    select?: GameInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameInvitation
+     */
+    omit?: GameInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GameInvitationInclude<ExtArgs> | null
+    /**
+     * Filter, which GameInvitation to fetch.
+     */
+    where: GameInvitationWhereUniqueInput
+  }
+
+  /**
+   * GameInvitation findFirst
+   */
+  export type GameInvitationFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameInvitation
+     */
+    select?: GameInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameInvitation
+     */
+    omit?: GameInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GameInvitationInclude<ExtArgs> | null
+    /**
+     * Filter, which GameInvitation to fetch.
+     */
+    where?: GameInvitationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GameInvitations to fetch.
+     */
+    orderBy?: GameInvitationOrderByWithRelationInput | GameInvitationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GameInvitations.
+     */
+    cursor?: GameInvitationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GameInvitations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GameInvitations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GameInvitations.
+     */
+    distinct?: GameInvitationScalarFieldEnum | GameInvitationScalarFieldEnum[]
+  }
+
+  /**
+   * GameInvitation findFirstOrThrow
+   */
+  export type GameInvitationFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameInvitation
+     */
+    select?: GameInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameInvitation
+     */
+    omit?: GameInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GameInvitationInclude<ExtArgs> | null
+    /**
+     * Filter, which GameInvitation to fetch.
+     */
+    where?: GameInvitationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GameInvitations to fetch.
+     */
+    orderBy?: GameInvitationOrderByWithRelationInput | GameInvitationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GameInvitations.
+     */
+    cursor?: GameInvitationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GameInvitations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GameInvitations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GameInvitations.
+     */
+    distinct?: GameInvitationScalarFieldEnum | GameInvitationScalarFieldEnum[]
+  }
+
+  /**
+   * GameInvitation findMany
+   */
+  export type GameInvitationFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameInvitation
+     */
+    select?: GameInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameInvitation
+     */
+    omit?: GameInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GameInvitationInclude<ExtArgs> | null
+    /**
+     * Filter, which GameInvitations to fetch.
+     */
+    where?: GameInvitationWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GameInvitations to fetch.
+     */
+    orderBy?: GameInvitationOrderByWithRelationInput | GameInvitationOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing GameInvitations.
+     */
+    cursor?: GameInvitationWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GameInvitations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GameInvitations.
+     */
+    skip?: number
+    distinct?: GameInvitationScalarFieldEnum | GameInvitationScalarFieldEnum[]
+  }
+
+  /**
+   * GameInvitation create
+   */
+  export type GameInvitationCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameInvitation
+     */
+    select?: GameInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameInvitation
+     */
+    omit?: GameInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GameInvitationInclude<ExtArgs> | null
+    /**
+     * The data needed to create a GameInvitation.
+     */
+    data: XOR<GameInvitationCreateInput, GameInvitationUncheckedCreateInput>
+  }
+
+  /**
+   * GameInvitation createMany
+   */
+  export type GameInvitationCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many GameInvitations.
+     */
+    data: GameInvitationCreateManyInput | GameInvitationCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * GameInvitation createManyAndReturn
+   */
+  export type GameInvitationCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameInvitation
+     */
+    select?: GameInvitationSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameInvitation
+     */
+    omit?: GameInvitationOmit<ExtArgs> | null
+    /**
+     * The data used to create many GameInvitations.
+     */
+    data: GameInvitationCreateManyInput | GameInvitationCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GameInvitationIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * GameInvitation update
+   */
+  export type GameInvitationUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameInvitation
+     */
+    select?: GameInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameInvitation
+     */
+    omit?: GameInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GameInvitationInclude<ExtArgs> | null
+    /**
+     * The data needed to update a GameInvitation.
+     */
+    data: XOR<GameInvitationUpdateInput, GameInvitationUncheckedUpdateInput>
+    /**
+     * Choose, which GameInvitation to update.
+     */
+    where: GameInvitationWhereUniqueInput
+  }
+
+  /**
+   * GameInvitation updateMany
+   */
+  export type GameInvitationUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update GameInvitations.
+     */
+    data: XOR<GameInvitationUpdateManyMutationInput, GameInvitationUncheckedUpdateManyInput>
+    /**
+     * Filter which GameInvitations to update
+     */
+    where?: GameInvitationWhereInput
+    /**
+     * Limit how many GameInvitations to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * GameInvitation updateManyAndReturn
+   */
+  export type GameInvitationUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameInvitation
+     */
+    select?: GameInvitationSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameInvitation
+     */
+    omit?: GameInvitationOmit<ExtArgs> | null
+    /**
+     * The data used to update GameInvitations.
+     */
+    data: XOR<GameInvitationUpdateManyMutationInput, GameInvitationUncheckedUpdateManyInput>
+    /**
+     * Filter which GameInvitations to update
+     */
+    where?: GameInvitationWhereInput
+    /**
+     * Limit how many GameInvitations to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GameInvitationIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * GameInvitation upsert
+   */
+  export type GameInvitationUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameInvitation
+     */
+    select?: GameInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameInvitation
+     */
+    omit?: GameInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GameInvitationInclude<ExtArgs> | null
+    /**
+     * The filter to search for the GameInvitation to update in case it exists.
+     */
+    where: GameInvitationWhereUniqueInput
+    /**
+     * In case the GameInvitation found by the `where` argument doesn't exist, create a new GameInvitation with this data.
+     */
+    create: XOR<GameInvitationCreateInput, GameInvitationUncheckedCreateInput>
+    /**
+     * In case the GameInvitation was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<GameInvitationUpdateInput, GameInvitationUncheckedUpdateInput>
+  }
+
+  /**
+   * GameInvitation delete
+   */
+  export type GameInvitationDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameInvitation
+     */
+    select?: GameInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameInvitation
+     */
+    omit?: GameInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GameInvitationInclude<ExtArgs> | null
+    /**
+     * Filter which GameInvitation to delete.
+     */
+    where: GameInvitationWhereUniqueInput
+  }
+
+  /**
+   * GameInvitation deleteMany
+   */
+  export type GameInvitationDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GameInvitations to delete
+     */
+    where?: GameInvitationWhereInput
+    /**
+     * Limit how many GameInvitations to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * GameInvitation without action
+   */
+  export type GameInvitationDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GameInvitation
+     */
+    select?: GameInvitationSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GameInvitation
+     */
+    omit?: GameInvitationOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: GameInvitationInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -7209,6 +8485,17 @@ export namespace Prisma {
   };
 
   export type GameUserScalarFieldEnum = (typeof GameUserScalarFieldEnum)[keyof typeof GameUserScalarFieldEnum]
+
+
+  export const GameInvitationScalarFieldEnum: {
+    id: 'id',
+    gameId: 'gameId',
+    senderId: 'senderId',
+    receiverId: 'receiverId',
+    createdAt: 'createdAt'
+  };
+
+  export type GameInvitationScalarFieldEnum = (typeof GameInvitationScalarFieldEnum)[keyof typeof GameInvitationScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -7313,6 +8600,8 @@ export namespace Prisma {
     games?: GameUserListRelationFilter
     friendships?: UserFriendshipListRelationFilter
     friendOf?: UserFriendshipListRelationFilter
+    sentInvitations?: GameInvitationListRelationFilter
+    receivedInvitations?: GameInvitationListRelationFilter
     ownedGames?: GameListRelationFilter
   }
 
@@ -7327,6 +8616,8 @@ export namespace Prisma {
     games?: GameUserOrderByRelationAggregateInput
     friendships?: UserFriendshipOrderByRelationAggregateInput
     friendOf?: UserFriendshipOrderByRelationAggregateInput
+    sentInvitations?: GameInvitationOrderByRelationAggregateInput
+    receivedInvitations?: GameInvitationOrderByRelationAggregateInput
     ownedGames?: GameOrderByRelationAggregateInput
   }
 
@@ -7344,6 +8635,8 @@ export namespace Prisma {
     games?: GameUserListRelationFilter
     friendships?: UserFriendshipListRelationFilter
     friendOf?: UserFriendshipListRelationFilter
+    sentInvitations?: GameInvitationListRelationFilter
+    receivedInvitations?: GameInvitationListRelationFilter
     ownedGames?: GameListRelationFilter
   }, "id" | "googleId" | "email">
 
@@ -7568,6 +8861,7 @@ export namespace Prisma {
     ownerId?: StringFilter<"Game"> | string
     players?: GameUserListRelationFilter
     owner?: XOR<UserScalarRelationFilter, UserWhereInput>
+    invitations?: GameInvitationListRelationFilter
   }
 
   export type GameOrderByWithRelationInput = {
@@ -7583,6 +8877,7 @@ export namespace Prisma {
     ownerId?: SortOrder
     players?: GameUserOrderByRelationAggregateInput
     owner?: UserOrderByWithRelationInput
+    invitations?: GameInvitationOrderByRelationAggregateInput
   }
 
   export type GameWhereUniqueInput = Prisma.AtLeast<{
@@ -7601,6 +8896,7 @@ export namespace Prisma {
     ownerId?: StringFilter<"Game"> | string
     players?: GameUserListRelationFilter
     owner?: XOR<UserScalarRelationFilter, UserWhereInput>
+    invitations?: GameInvitationListRelationFilter
   }, "id" | "name">
 
   export type GameOrderByWithAggregationInput = {
@@ -7686,6 +8982,68 @@ export namespace Prisma {
     gameId?: StringWithAggregatesFilter<"GameUser"> | string
   }
 
+  export type GameInvitationWhereInput = {
+    AND?: GameInvitationWhereInput | GameInvitationWhereInput[]
+    OR?: GameInvitationWhereInput[]
+    NOT?: GameInvitationWhereInput | GameInvitationWhereInput[]
+    id?: StringFilter<"GameInvitation"> | string
+    gameId?: StringFilter<"GameInvitation"> | string
+    senderId?: StringFilter<"GameInvitation"> | string
+    receiverId?: StringFilter<"GameInvitation"> | string
+    createdAt?: DateTimeFilter<"GameInvitation"> | Date | string
+    game?: XOR<GameScalarRelationFilter, GameWhereInput>
+    sender?: XOR<UserScalarRelationFilter, UserWhereInput>
+    receiver?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type GameInvitationOrderByWithRelationInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    senderId?: SortOrder
+    receiverId?: SortOrder
+    createdAt?: SortOrder
+    game?: GameOrderByWithRelationInput
+    sender?: UserOrderByWithRelationInput
+    receiver?: UserOrderByWithRelationInput
+  }
+
+  export type GameInvitationWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    gameId_receiverId?: GameInvitationGameIdReceiverIdCompoundUniqueInput
+    AND?: GameInvitationWhereInput | GameInvitationWhereInput[]
+    OR?: GameInvitationWhereInput[]
+    NOT?: GameInvitationWhereInput | GameInvitationWhereInput[]
+    gameId?: StringFilter<"GameInvitation"> | string
+    senderId?: StringFilter<"GameInvitation"> | string
+    receiverId?: StringFilter<"GameInvitation"> | string
+    createdAt?: DateTimeFilter<"GameInvitation"> | Date | string
+    game?: XOR<GameScalarRelationFilter, GameWhereInput>
+    sender?: XOR<UserScalarRelationFilter, UserWhereInput>
+    receiver?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id" | "gameId_receiverId">
+
+  export type GameInvitationOrderByWithAggregationInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    senderId?: SortOrder
+    receiverId?: SortOrder
+    createdAt?: SortOrder
+    _count?: GameInvitationCountOrderByAggregateInput
+    _max?: GameInvitationMaxOrderByAggregateInput
+    _min?: GameInvitationMinOrderByAggregateInput
+  }
+
+  export type GameInvitationScalarWhereWithAggregatesInput = {
+    AND?: GameInvitationScalarWhereWithAggregatesInput | GameInvitationScalarWhereWithAggregatesInput[]
+    OR?: GameInvitationScalarWhereWithAggregatesInput[]
+    NOT?: GameInvitationScalarWhereWithAggregatesInput | GameInvitationScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"GameInvitation"> | string
+    gameId?: StringWithAggregatesFilter<"GameInvitation"> | string
+    senderId?: StringWithAggregatesFilter<"GameInvitation"> | string
+    receiverId?: StringWithAggregatesFilter<"GameInvitation"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"GameInvitation"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     googleId: string
@@ -7697,6 +9055,8 @@ export namespace Prisma {
     games?: GameUserCreateNestedManyWithoutUserInput
     friendships?: UserFriendshipCreateNestedManyWithoutRequesterInput
     friendOf?: UserFriendshipCreateNestedManyWithoutReceiverInput
+    sentInvitations?: GameInvitationCreateNestedManyWithoutSenderInput
+    receivedInvitations?: GameInvitationCreateNestedManyWithoutReceiverInput
     ownedGames?: GameCreateNestedManyWithoutOwnerInput
   }
 
@@ -7711,6 +9071,8 @@ export namespace Prisma {
     games?: GameUserUncheckedCreateNestedManyWithoutUserInput
     friendships?: UserFriendshipUncheckedCreateNestedManyWithoutRequesterInput
     friendOf?: UserFriendshipUncheckedCreateNestedManyWithoutReceiverInput
+    sentInvitations?: GameInvitationUncheckedCreateNestedManyWithoutSenderInput
+    receivedInvitations?: GameInvitationUncheckedCreateNestedManyWithoutReceiverInput
     ownedGames?: GameUncheckedCreateNestedManyWithoutOwnerInput
   }
 
@@ -7725,6 +9087,8 @@ export namespace Prisma {
     games?: GameUserUpdateManyWithoutUserNestedInput
     friendships?: UserFriendshipUpdateManyWithoutRequesterNestedInput
     friendOf?: UserFriendshipUpdateManyWithoutReceiverNestedInput
+    sentInvitations?: GameInvitationUpdateManyWithoutSenderNestedInput
+    receivedInvitations?: GameInvitationUpdateManyWithoutReceiverNestedInput
     ownedGames?: GameUpdateManyWithoutOwnerNestedInput
   }
 
@@ -7739,6 +9103,8 @@ export namespace Prisma {
     games?: GameUserUncheckedUpdateManyWithoutUserNestedInput
     friendships?: UserFriendshipUncheckedUpdateManyWithoutRequesterNestedInput
     friendOf?: UserFriendshipUncheckedUpdateManyWithoutReceiverNestedInput
+    sentInvitations?: GameInvitationUncheckedUpdateManyWithoutSenderNestedInput
+    receivedInvitations?: GameInvitationUncheckedUpdateManyWithoutReceiverNestedInput
     ownedGames?: GameUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
@@ -7981,6 +9347,7 @@ export namespace Prisma {
     password?: string | null
     players?: GameUserCreateNestedManyWithoutGameInput
     owner: UserCreateNestedOneWithoutOwnedGamesInput
+    invitations?: GameInvitationCreateNestedManyWithoutGameInput
   }
 
   export type GameUncheckedCreateInput = {
@@ -7995,6 +9362,7 @@ export namespace Prisma {
     password?: string | null
     ownerId: string
     players?: GameUserUncheckedCreateNestedManyWithoutGameInput
+    invitations?: GameInvitationUncheckedCreateNestedManyWithoutGameInput
   }
 
   export type GameUpdateInput = {
@@ -8009,6 +9377,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     players?: GameUserUpdateManyWithoutGameNestedInput
     owner?: UserUpdateOneRequiredWithoutOwnedGamesNestedInput
+    invitations?: GameInvitationUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateInput = {
@@ -8023,6 +9392,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     ownerId?: StringFieldUpdateOperationsInput | string
     players?: GameUserUncheckedUpdateManyWithoutGameNestedInput
+    invitations?: GameInvitationUncheckedUpdateManyWithoutGameNestedInput
   }
 
   export type GameCreateManyInput = {
@@ -8103,6 +9473,59 @@ export namespace Prisma {
     gameId?: StringFieldUpdateOperationsInput | string
   }
 
+  export type GameInvitationCreateInput = {
+    id?: string
+    createdAt?: Date | string
+    game: GameCreateNestedOneWithoutInvitationsInput
+    sender: UserCreateNestedOneWithoutSentInvitationsInput
+    receiver: UserCreateNestedOneWithoutReceivedInvitationsInput
+  }
+
+  export type GameInvitationUncheckedCreateInput = {
+    id?: string
+    gameId: string
+    senderId: string
+    receiverId: string
+    createdAt?: Date | string
+  }
+
+  export type GameInvitationUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    game?: GameUpdateOneRequiredWithoutInvitationsNestedInput
+    sender?: UserUpdateOneRequiredWithoutSentInvitationsNestedInput
+    receiver?: UserUpdateOneRequiredWithoutReceivedInvitationsNestedInput
+  }
+
+  export type GameInvitationUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    gameId?: StringFieldUpdateOperationsInput | string
+    senderId?: StringFieldUpdateOperationsInput | string
+    receiverId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GameInvitationCreateManyInput = {
+    id?: string
+    gameId: string
+    senderId: string
+    receiverId: string
+    createdAt?: Date | string
+  }
+
+  export type GameInvitationUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GameInvitationUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    gameId?: StringFieldUpdateOperationsInput | string
+    senderId?: StringFieldUpdateOperationsInput | string
+    receiverId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -8150,6 +9573,12 @@ export namespace Prisma {
     none?: UserFriendshipWhereInput
   }
 
+  export type GameInvitationListRelationFilter = {
+    every?: GameInvitationWhereInput
+    some?: GameInvitationWhereInput
+    none?: GameInvitationWhereInput
+  }
+
   export type GameListRelationFilter = {
     every?: GameWhereInput
     some?: GameWhereInput
@@ -8166,6 +9595,10 @@ export namespace Prisma {
   }
 
   export type UserFriendshipOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type GameInvitationOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -8577,6 +10010,35 @@ export namespace Prisma {
     gameId?: SortOrder
   }
 
+  export type GameInvitationGameIdReceiverIdCompoundUniqueInput = {
+    gameId: string
+    receiverId: string
+  }
+
+  export type GameInvitationCountOrderByAggregateInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    senderId?: SortOrder
+    receiverId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type GameInvitationMaxOrderByAggregateInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    senderId?: SortOrder
+    receiverId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type GameInvitationMinOrderByAggregateInput = {
+    id?: SortOrder
+    gameId?: SortOrder
+    senderId?: SortOrder
+    receiverId?: SortOrder
+    createdAt?: SortOrder
+  }
+
   export type UserStatsCreateNestedOneWithoutUserInput = {
     create?: XOR<UserStatsCreateWithoutUserInput, UserStatsUncheckedCreateWithoutUserInput>
     connectOrCreate?: UserStatsCreateOrConnectWithoutUserInput
@@ -8602,6 +10064,20 @@ export namespace Prisma {
     connectOrCreate?: UserFriendshipCreateOrConnectWithoutReceiverInput | UserFriendshipCreateOrConnectWithoutReceiverInput[]
     createMany?: UserFriendshipCreateManyReceiverInputEnvelope
     connect?: UserFriendshipWhereUniqueInput | UserFriendshipWhereUniqueInput[]
+  }
+
+  export type GameInvitationCreateNestedManyWithoutSenderInput = {
+    create?: XOR<GameInvitationCreateWithoutSenderInput, GameInvitationUncheckedCreateWithoutSenderInput> | GameInvitationCreateWithoutSenderInput[] | GameInvitationUncheckedCreateWithoutSenderInput[]
+    connectOrCreate?: GameInvitationCreateOrConnectWithoutSenderInput | GameInvitationCreateOrConnectWithoutSenderInput[]
+    createMany?: GameInvitationCreateManySenderInputEnvelope
+    connect?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+  }
+
+  export type GameInvitationCreateNestedManyWithoutReceiverInput = {
+    create?: XOR<GameInvitationCreateWithoutReceiverInput, GameInvitationUncheckedCreateWithoutReceiverInput> | GameInvitationCreateWithoutReceiverInput[] | GameInvitationUncheckedCreateWithoutReceiverInput[]
+    connectOrCreate?: GameInvitationCreateOrConnectWithoutReceiverInput | GameInvitationCreateOrConnectWithoutReceiverInput[]
+    createMany?: GameInvitationCreateManyReceiverInputEnvelope
+    connect?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
   }
 
   export type GameCreateNestedManyWithoutOwnerInput = {
@@ -8636,6 +10112,20 @@ export namespace Prisma {
     connectOrCreate?: UserFriendshipCreateOrConnectWithoutReceiverInput | UserFriendshipCreateOrConnectWithoutReceiverInput[]
     createMany?: UserFriendshipCreateManyReceiverInputEnvelope
     connect?: UserFriendshipWhereUniqueInput | UserFriendshipWhereUniqueInput[]
+  }
+
+  export type GameInvitationUncheckedCreateNestedManyWithoutSenderInput = {
+    create?: XOR<GameInvitationCreateWithoutSenderInput, GameInvitationUncheckedCreateWithoutSenderInput> | GameInvitationCreateWithoutSenderInput[] | GameInvitationUncheckedCreateWithoutSenderInput[]
+    connectOrCreate?: GameInvitationCreateOrConnectWithoutSenderInput | GameInvitationCreateOrConnectWithoutSenderInput[]
+    createMany?: GameInvitationCreateManySenderInputEnvelope
+    connect?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+  }
+
+  export type GameInvitationUncheckedCreateNestedManyWithoutReceiverInput = {
+    create?: XOR<GameInvitationCreateWithoutReceiverInput, GameInvitationUncheckedCreateWithoutReceiverInput> | GameInvitationCreateWithoutReceiverInput[] | GameInvitationUncheckedCreateWithoutReceiverInput[]
+    connectOrCreate?: GameInvitationCreateOrConnectWithoutReceiverInput | GameInvitationCreateOrConnectWithoutReceiverInput[]
+    createMany?: GameInvitationCreateManyReceiverInputEnvelope
+    connect?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
   }
 
   export type GameUncheckedCreateNestedManyWithoutOwnerInput = {
@@ -8705,6 +10195,34 @@ export namespace Prisma {
     deleteMany?: UserFriendshipScalarWhereInput | UserFriendshipScalarWhereInput[]
   }
 
+  export type GameInvitationUpdateManyWithoutSenderNestedInput = {
+    create?: XOR<GameInvitationCreateWithoutSenderInput, GameInvitationUncheckedCreateWithoutSenderInput> | GameInvitationCreateWithoutSenderInput[] | GameInvitationUncheckedCreateWithoutSenderInput[]
+    connectOrCreate?: GameInvitationCreateOrConnectWithoutSenderInput | GameInvitationCreateOrConnectWithoutSenderInput[]
+    upsert?: GameInvitationUpsertWithWhereUniqueWithoutSenderInput | GameInvitationUpsertWithWhereUniqueWithoutSenderInput[]
+    createMany?: GameInvitationCreateManySenderInputEnvelope
+    set?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    disconnect?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    delete?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    connect?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    update?: GameInvitationUpdateWithWhereUniqueWithoutSenderInput | GameInvitationUpdateWithWhereUniqueWithoutSenderInput[]
+    updateMany?: GameInvitationUpdateManyWithWhereWithoutSenderInput | GameInvitationUpdateManyWithWhereWithoutSenderInput[]
+    deleteMany?: GameInvitationScalarWhereInput | GameInvitationScalarWhereInput[]
+  }
+
+  export type GameInvitationUpdateManyWithoutReceiverNestedInput = {
+    create?: XOR<GameInvitationCreateWithoutReceiverInput, GameInvitationUncheckedCreateWithoutReceiverInput> | GameInvitationCreateWithoutReceiverInput[] | GameInvitationUncheckedCreateWithoutReceiverInput[]
+    connectOrCreate?: GameInvitationCreateOrConnectWithoutReceiverInput | GameInvitationCreateOrConnectWithoutReceiverInput[]
+    upsert?: GameInvitationUpsertWithWhereUniqueWithoutReceiverInput | GameInvitationUpsertWithWhereUniqueWithoutReceiverInput[]
+    createMany?: GameInvitationCreateManyReceiverInputEnvelope
+    set?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    disconnect?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    delete?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    connect?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    update?: GameInvitationUpdateWithWhereUniqueWithoutReceiverInput | GameInvitationUpdateWithWhereUniqueWithoutReceiverInput[]
+    updateMany?: GameInvitationUpdateManyWithWhereWithoutReceiverInput | GameInvitationUpdateManyWithWhereWithoutReceiverInput[]
+    deleteMany?: GameInvitationScalarWhereInput | GameInvitationScalarWhereInput[]
+  }
+
   export type GameUpdateManyWithoutOwnerNestedInput = {
     create?: XOR<GameCreateWithoutOwnerInput, GameUncheckedCreateWithoutOwnerInput> | GameCreateWithoutOwnerInput[] | GameUncheckedCreateWithoutOwnerInput[]
     connectOrCreate?: GameCreateOrConnectWithoutOwnerInput | GameCreateOrConnectWithoutOwnerInput[]
@@ -8769,6 +10287,34 @@ export namespace Prisma {
     update?: UserFriendshipUpdateWithWhereUniqueWithoutReceiverInput | UserFriendshipUpdateWithWhereUniqueWithoutReceiverInput[]
     updateMany?: UserFriendshipUpdateManyWithWhereWithoutReceiverInput | UserFriendshipUpdateManyWithWhereWithoutReceiverInput[]
     deleteMany?: UserFriendshipScalarWhereInput | UserFriendshipScalarWhereInput[]
+  }
+
+  export type GameInvitationUncheckedUpdateManyWithoutSenderNestedInput = {
+    create?: XOR<GameInvitationCreateWithoutSenderInput, GameInvitationUncheckedCreateWithoutSenderInput> | GameInvitationCreateWithoutSenderInput[] | GameInvitationUncheckedCreateWithoutSenderInput[]
+    connectOrCreate?: GameInvitationCreateOrConnectWithoutSenderInput | GameInvitationCreateOrConnectWithoutSenderInput[]
+    upsert?: GameInvitationUpsertWithWhereUniqueWithoutSenderInput | GameInvitationUpsertWithWhereUniqueWithoutSenderInput[]
+    createMany?: GameInvitationCreateManySenderInputEnvelope
+    set?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    disconnect?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    delete?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    connect?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    update?: GameInvitationUpdateWithWhereUniqueWithoutSenderInput | GameInvitationUpdateWithWhereUniqueWithoutSenderInput[]
+    updateMany?: GameInvitationUpdateManyWithWhereWithoutSenderInput | GameInvitationUpdateManyWithWhereWithoutSenderInput[]
+    deleteMany?: GameInvitationScalarWhereInput | GameInvitationScalarWhereInput[]
+  }
+
+  export type GameInvitationUncheckedUpdateManyWithoutReceiverNestedInput = {
+    create?: XOR<GameInvitationCreateWithoutReceiverInput, GameInvitationUncheckedCreateWithoutReceiverInput> | GameInvitationCreateWithoutReceiverInput[] | GameInvitationUncheckedCreateWithoutReceiverInput[]
+    connectOrCreate?: GameInvitationCreateOrConnectWithoutReceiverInput | GameInvitationCreateOrConnectWithoutReceiverInput[]
+    upsert?: GameInvitationUpsertWithWhereUniqueWithoutReceiverInput | GameInvitationUpsertWithWhereUniqueWithoutReceiverInput[]
+    createMany?: GameInvitationCreateManyReceiverInputEnvelope
+    set?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    disconnect?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    delete?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    connect?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    update?: GameInvitationUpdateWithWhereUniqueWithoutReceiverInput | GameInvitationUpdateWithWhereUniqueWithoutReceiverInput[]
+    updateMany?: GameInvitationUpdateManyWithWhereWithoutReceiverInput | GameInvitationUpdateManyWithWhereWithoutReceiverInput[]
+    deleteMany?: GameInvitationScalarWhereInput | GameInvitationScalarWhereInput[]
   }
 
   export type GameUncheckedUpdateManyWithoutOwnerNestedInput = {
@@ -8864,11 +10410,25 @@ export namespace Prisma {
     connect?: UserWhereUniqueInput
   }
 
+  export type GameInvitationCreateNestedManyWithoutGameInput = {
+    create?: XOR<GameInvitationCreateWithoutGameInput, GameInvitationUncheckedCreateWithoutGameInput> | GameInvitationCreateWithoutGameInput[] | GameInvitationUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: GameInvitationCreateOrConnectWithoutGameInput | GameInvitationCreateOrConnectWithoutGameInput[]
+    createMany?: GameInvitationCreateManyGameInputEnvelope
+    connect?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+  }
+
   export type GameUserUncheckedCreateNestedManyWithoutGameInput = {
     create?: XOR<GameUserCreateWithoutGameInput, GameUserUncheckedCreateWithoutGameInput> | GameUserCreateWithoutGameInput[] | GameUserUncheckedCreateWithoutGameInput[]
     connectOrCreate?: GameUserCreateOrConnectWithoutGameInput | GameUserCreateOrConnectWithoutGameInput[]
     createMany?: GameUserCreateManyGameInputEnvelope
     connect?: GameUserWhereUniqueInput | GameUserWhereUniqueInput[]
+  }
+
+  export type GameInvitationUncheckedCreateNestedManyWithoutGameInput = {
+    create?: XOR<GameInvitationCreateWithoutGameInput, GameInvitationUncheckedCreateWithoutGameInput> | GameInvitationCreateWithoutGameInput[] | GameInvitationUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: GameInvitationCreateOrConnectWithoutGameInput | GameInvitationCreateOrConnectWithoutGameInput[]
+    createMany?: GameInvitationCreateManyGameInputEnvelope
+    connect?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
   }
 
   export type NullableIntFieldUpdateOperationsInput = {
@@ -8901,6 +10461,20 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutOwnedGamesInput, UserUpdateWithoutOwnedGamesInput>, UserUncheckedUpdateWithoutOwnedGamesInput>
   }
 
+  export type GameInvitationUpdateManyWithoutGameNestedInput = {
+    create?: XOR<GameInvitationCreateWithoutGameInput, GameInvitationUncheckedCreateWithoutGameInput> | GameInvitationCreateWithoutGameInput[] | GameInvitationUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: GameInvitationCreateOrConnectWithoutGameInput | GameInvitationCreateOrConnectWithoutGameInput[]
+    upsert?: GameInvitationUpsertWithWhereUniqueWithoutGameInput | GameInvitationUpsertWithWhereUniqueWithoutGameInput[]
+    createMany?: GameInvitationCreateManyGameInputEnvelope
+    set?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    disconnect?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    delete?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    connect?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    update?: GameInvitationUpdateWithWhereUniqueWithoutGameInput | GameInvitationUpdateWithWhereUniqueWithoutGameInput[]
+    updateMany?: GameInvitationUpdateManyWithWhereWithoutGameInput | GameInvitationUpdateManyWithWhereWithoutGameInput[]
+    deleteMany?: GameInvitationScalarWhereInput | GameInvitationScalarWhereInput[]
+  }
+
   export type GameUserUncheckedUpdateManyWithoutGameNestedInput = {
     create?: XOR<GameUserCreateWithoutGameInput, GameUserUncheckedCreateWithoutGameInput> | GameUserCreateWithoutGameInput[] | GameUserUncheckedCreateWithoutGameInput[]
     connectOrCreate?: GameUserCreateOrConnectWithoutGameInput | GameUserCreateOrConnectWithoutGameInput[]
@@ -8913,6 +10487,20 @@ export namespace Prisma {
     update?: GameUserUpdateWithWhereUniqueWithoutGameInput | GameUserUpdateWithWhereUniqueWithoutGameInput[]
     updateMany?: GameUserUpdateManyWithWhereWithoutGameInput | GameUserUpdateManyWithWhereWithoutGameInput[]
     deleteMany?: GameUserScalarWhereInput | GameUserScalarWhereInput[]
+  }
+
+  export type GameInvitationUncheckedUpdateManyWithoutGameNestedInput = {
+    create?: XOR<GameInvitationCreateWithoutGameInput, GameInvitationUncheckedCreateWithoutGameInput> | GameInvitationCreateWithoutGameInput[] | GameInvitationUncheckedCreateWithoutGameInput[]
+    connectOrCreate?: GameInvitationCreateOrConnectWithoutGameInput | GameInvitationCreateOrConnectWithoutGameInput[]
+    upsert?: GameInvitationUpsertWithWhereUniqueWithoutGameInput | GameInvitationUpsertWithWhereUniqueWithoutGameInput[]
+    createMany?: GameInvitationCreateManyGameInputEnvelope
+    set?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    disconnect?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    delete?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    connect?: GameInvitationWhereUniqueInput | GameInvitationWhereUniqueInput[]
+    update?: GameInvitationUpdateWithWhereUniqueWithoutGameInput | GameInvitationUpdateWithWhereUniqueWithoutGameInput[]
+    updateMany?: GameInvitationUpdateManyWithWhereWithoutGameInput | GameInvitationUpdateManyWithWhereWithoutGameInput[]
+    deleteMany?: GameInvitationScalarWhereInput | GameInvitationScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutGamesInput = {
@@ -8941,6 +10529,48 @@ export namespace Prisma {
     upsert?: GameUpsertWithoutPlayersInput
     connect?: GameWhereUniqueInput
     update?: XOR<XOR<GameUpdateToOneWithWhereWithoutPlayersInput, GameUpdateWithoutPlayersInput>, GameUncheckedUpdateWithoutPlayersInput>
+  }
+
+  export type GameCreateNestedOneWithoutInvitationsInput = {
+    create?: XOR<GameCreateWithoutInvitationsInput, GameUncheckedCreateWithoutInvitationsInput>
+    connectOrCreate?: GameCreateOrConnectWithoutInvitationsInput
+    connect?: GameWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutSentInvitationsInput = {
+    create?: XOR<UserCreateWithoutSentInvitationsInput, UserUncheckedCreateWithoutSentInvitationsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutSentInvitationsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutReceivedInvitationsInput = {
+    create?: XOR<UserCreateWithoutReceivedInvitationsInput, UserUncheckedCreateWithoutReceivedInvitationsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutReceivedInvitationsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type GameUpdateOneRequiredWithoutInvitationsNestedInput = {
+    create?: XOR<GameCreateWithoutInvitationsInput, GameUncheckedCreateWithoutInvitationsInput>
+    connectOrCreate?: GameCreateOrConnectWithoutInvitationsInput
+    upsert?: GameUpsertWithoutInvitationsInput
+    connect?: GameWhereUniqueInput
+    update?: XOR<XOR<GameUpdateToOneWithWhereWithoutInvitationsInput, GameUpdateWithoutInvitationsInput>, GameUncheckedUpdateWithoutInvitationsInput>
+  }
+
+  export type UserUpdateOneRequiredWithoutSentInvitationsNestedInput = {
+    create?: XOR<UserCreateWithoutSentInvitationsInput, UserUncheckedCreateWithoutSentInvitationsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutSentInvitationsInput
+    upsert?: UserUpsertWithoutSentInvitationsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutSentInvitationsInput, UserUpdateWithoutSentInvitationsInput>, UserUncheckedUpdateWithoutSentInvitationsInput>
+  }
+
+  export type UserUpdateOneRequiredWithoutReceivedInvitationsNestedInput = {
+    create?: XOR<UserCreateWithoutReceivedInvitationsInput, UserUncheckedCreateWithoutReceivedInvitationsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutReceivedInvitationsInput
+    upsert?: UserUpsertWithoutReceivedInvitationsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutReceivedInvitationsInput, UserUpdateWithoutReceivedInvitationsInput>, UserUncheckedUpdateWithoutReceivedInvitationsInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -9262,6 +10892,54 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type GameInvitationCreateWithoutSenderInput = {
+    id?: string
+    createdAt?: Date | string
+    game: GameCreateNestedOneWithoutInvitationsInput
+    receiver: UserCreateNestedOneWithoutReceivedInvitationsInput
+  }
+
+  export type GameInvitationUncheckedCreateWithoutSenderInput = {
+    id?: string
+    gameId: string
+    receiverId: string
+    createdAt?: Date | string
+  }
+
+  export type GameInvitationCreateOrConnectWithoutSenderInput = {
+    where: GameInvitationWhereUniqueInput
+    create: XOR<GameInvitationCreateWithoutSenderInput, GameInvitationUncheckedCreateWithoutSenderInput>
+  }
+
+  export type GameInvitationCreateManySenderInputEnvelope = {
+    data: GameInvitationCreateManySenderInput | GameInvitationCreateManySenderInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type GameInvitationCreateWithoutReceiverInput = {
+    id?: string
+    createdAt?: Date | string
+    game: GameCreateNestedOneWithoutInvitationsInput
+    sender: UserCreateNestedOneWithoutSentInvitationsInput
+  }
+
+  export type GameInvitationUncheckedCreateWithoutReceiverInput = {
+    id?: string
+    gameId: string
+    senderId: string
+    createdAt?: Date | string
+  }
+
+  export type GameInvitationCreateOrConnectWithoutReceiverInput = {
+    where: GameInvitationWhereUniqueInput
+    create: XOR<GameInvitationCreateWithoutReceiverInput, GameInvitationUncheckedCreateWithoutReceiverInput>
+  }
+
+  export type GameInvitationCreateManyReceiverInputEnvelope = {
+    data: GameInvitationCreateManyReceiverInput | GameInvitationCreateManyReceiverInput[]
+    skipDuplicates?: boolean
+  }
+
   export type GameCreateWithoutOwnerInput = {
     id?: string
     createdAt?: Date | string
@@ -9273,6 +10951,7 @@ export namespace Prisma {
     turnTimeout?: number | null
     password?: string | null
     players?: GameUserCreateNestedManyWithoutGameInput
+    invitations?: GameInvitationCreateNestedManyWithoutGameInput
   }
 
   export type GameUncheckedCreateWithoutOwnerInput = {
@@ -9286,6 +10965,7 @@ export namespace Prisma {
     turnTimeout?: number | null
     password?: string | null
     players?: GameUserUncheckedCreateNestedManyWithoutGameInput
+    invitations?: GameInvitationUncheckedCreateNestedManyWithoutGameInput
   }
 
   export type GameCreateOrConnectWithoutOwnerInput = {
@@ -9416,6 +11096,49 @@ export namespace Prisma {
     data: XOR<UserFriendshipUpdateManyMutationInput, UserFriendshipUncheckedUpdateManyWithoutReceiverInput>
   }
 
+  export type GameInvitationUpsertWithWhereUniqueWithoutSenderInput = {
+    where: GameInvitationWhereUniqueInput
+    update: XOR<GameInvitationUpdateWithoutSenderInput, GameInvitationUncheckedUpdateWithoutSenderInput>
+    create: XOR<GameInvitationCreateWithoutSenderInput, GameInvitationUncheckedCreateWithoutSenderInput>
+  }
+
+  export type GameInvitationUpdateWithWhereUniqueWithoutSenderInput = {
+    where: GameInvitationWhereUniqueInput
+    data: XOR<GameInvitationUpdateWithoutSenderInput, GameInvitationUncheckedUpdateWithoutSenderInput>
+  }
+
+  export type GameInvitationUpdateManyWithWhereWithoutSenderInput = {
+    where: GameInvitationScalarWhereInput
+    data: XOR<GameInvitationUpdateManyMutationInput, GameInvitationUncheckedUpdateManyWithoutSenderInput>
+  }
+
+  export type GameInvitationScalarWhereInput = {
+    AND?: GameInvitationScalarWhereInput | GameInvitationScalarWhereInput[]
+    OR?: GameInvitationScalarWhereInput[]
+    NOT?: GameInvitationScalarWhereInput | GameInvitationScalarWhereInput[]
+    id?: StringFilter<"GameInvitation"> | string
+    gameId?: StringFilter<"GameInvitation"> | string
+    senderId?: StringFilter<"GameInvitation"> | string
+    receiverId?: StringFilter<"GameInvitation"> | string
+    createdAt?: DateTimeFilter<"GameInvitation"> | Date | string
+  }
+
+  export type GameInvitationUpsertWithWhereUniqueWithoutReceiverInput = {
+    where: GameInvitationWhereUniqueInput
+    update: XOR<GameInvitationUpdateWithoutReceiverInput, GameInvitationUncheckedUpdateWithoutReceiverInput>
+    create: XOR<GameInvitationCreateWithoutReceiverInput, GameInvitationUncheckedCreateWithoutReceiverInput>
+  }
+
+  export type GameInvitationUpdateWithWhereUniqueWithoutReceiverInput = {
+    where: GameInvitationWhereUniqueInput
+    data: XOR<GameInvitationUpdateWithoutReceiverInput, GameInvitationUncheckedUpdateWithoutReceiverInput>
+  }
+
+  export type GameInvitationUpdateManyWithWhereWithoutReceiverInput = {
+    where: GameInvitationScalarWhereInput
+    data: XOR<GameInvitationUpdateManyMutationInput, GameInvitationUncheckedUpdateManyWithoutReceiverInput>
+  }
+
   export type GameUpsertWithWhereUniqueWithoutOwnerInput = {
     where: GameWhereUniqueInput
     update: XOR<GameUpdateWithoutOwnerInput, GameUncheckedUpdateWithoutOwnerInput>
@@ -9458,6 +11181,8 @@ export namespace Prisma {
     stats?: UserStatsCreateNestedOneWithoutUserInput
     games?: GameUserCreateNestedManyWithoutUserInput
     friendOf?: UserFriendshipCreateNestedManyWithoutReceiverInput
+    sentInvitations?: GameInvitationCreateNestedManyWithoutSenderInput
+    receivedInvitations?: GameInvitationCreateNestedManyWithoutReceiverInput
     ownedGames?: GameCreateNestedManyWithoutOwnerInput
   }
 
@@ -9471,6 +11196,8 @@ export namespace Prisma {
     stats?: UserStatsUncheckedCreateNestedOneWithoutUserInput
     games?: GameUserUncheckedCreateNestedManyWithoutUserInput
     friendOf?: UserFriendshipUncheckedCreateNestedManyWithoutReceiverInput
+    sentInvitations?: GameInvitationUncheckedCreateNestedManyWithoutSenderInput
+    receivedInvitations?: GameInvitationUncheckedCreateNestedManyWithoutReceiverInput
     ownedGames?: GameUncheckedCreateNestedManyWithoutOwnerInput
   }
 
@@ -9489,6 +11216,8 @@ export namespace Prisma {
     stats?: UserStatsCreateNestedOneWithoutUserInput
     games?: GameUserCreateNestedManyWithoutUserInput
     friendships?: UserFriendshipCreateNestedManyWithoutRequesterInput
+    sentInvitations?: GameInvitationCreateNestedManyWithoutSenderInput
+    receivedInvitations?: GameInvitationCreateNestedManyWithoutReceiverInput
     ownedGames?: GameCreateNestedManyWithoutOwnerInput
   }
 
@@ -9502,6 +11231,8 @@ export namespace Prisma {
     stats?: UserStatsUncheckedCreateNestedOneWithoutUserInput
     games?: GameUserUncheckedCreateNestedManyWithoutUserInput
     friendships?: UserFriendshipUncheckedCreateNestedManyWithoutRequesterInput
+    sentInvitations?: GameInvitationUncheckedCreateNestedManyWithoutSenderInput
+    receivedInvitations?: GameInvitationUncheckedCreateNestedManyWithoutReceiverInput
     ownedGames?: GameUncheckedCreateNestedManyWithoutOwnerInput
   }
 
@@ -9531,6 +11262,8 @@ export namespace Prisma {
     stats?: UserStatsUpdateOneWithoutUserNestedInput
     games?: GameUserUpdateManyWithoutUserNestedInput
     friendOf?: UserFriendshipUpdateManyWithoutReceiverNestedInput
+    sentInvitations?: GameInvitationUpdateManyWithoutSenderNestedInput
+    receivedInvitations?: GameInvitationUpdateManyWithoutReceiverNestedInput
     ownedGames?: GameUpdateManyWithoutOwnerNestedInput
   }
 
@@ -9544,6 +11277,8 @@ export namespace Prisma {
     stats?: UserStatsUncheckedUpdateOneWithoutUserNestedInput
     games?: GameUserUncheckedUpdateManyWithoutUserNestedInput
     friendOf?: UserFriendshipUncheckedUpdateManyWithoutReceiverNestedInput
+    sentInvitations?: GameInvitationUncheckedUpdateManyWithoutSenderNestedInput
+    receivedInvitations?: GameInvitationUncheckedUpdateManyWithoutReceiverNestedInput
     ownedGames?: GameUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
@@ -9568,6 +11303,8 @@ export namespace Prisma {
     stats?: UserStatsUpdateOneWithoutUserNestedInput
     games?: GameUserUpdateManyWithoutUserNestedInput
     friendships?: UserFriendshipUpdateManyWithoutRequesterNestedInput
+    sentInvitations?: GameInvitationUpdateManyWithoutSenderNestedInput
+    receivedInvitations?: GameInvitationUpdateManyWithoutReceiverNestedInput
     ownedGames?: GameUpdateManyWithoutOwnerNestedInput
   }
 
@@ -9581,6 +11318,8 @@ export namespace Prisma {
     stats?: UserStatsUncheckedUpdateOneWithoutUserNestedInput
     games?: GameUserUncheckedUpdateManyWithoutUserNestedInput
     friendships?: UserFriendshipUncheckedUpdateManyWithoutRequesterNestedInput
+    sentInvitations?: GameInvitationUncheckedUpdateManyWithoutSenderNestedInput
+    receivedInvitations?: GameInvitationUncheckedUpdateManyWithoutReceiverNestedInput
     ownedGames?: GameUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
@@ -9594,6 +11333,8 @@ export namespace Prisma {
     games?: GameUserCreateNestedManyWithoutUserInput
     friendships?: UserFriendshipCreateNestedManyWithoutRequesterInput
     friendOf?: UserFriendshipCreateNestedManyWithoutReceiverInput
+    sentInvitations?: GameInvitationCreateNestedManyWithoutSenderInput
+    receivedInvitations?: GameInvitationCreateNestedManyWithoutReceiverInput
     ownedGames?: GameCreateNestedManyWithoutOwnerInput
   }
 
@@ -9607,6 +11348,8 @@ export namespace Prisma {
     games?: GameUserUncheckedCreateNestedManyWithoutUserInput
     friendships?: UserFriendshipUncheckedCreateNestedManyWithoutRequesterInput
     friendOf?: UserFriendshipUncheckedCreateNestedManyWithoutReceiverInput
+    sentInvitations?: GameInvitationUncheckedCreateNestedManyWithoutSenderInput
+    receivedInvitations?: GameInvitationUncheckedCreateNestedManyWithoutReceiverInput
     ownedGames?: GameUncheckedCreateNestedManyWithoutOwnerInput
   }
 
@@ -9636,6 +11379,8 @@ export namespace Prisma {
     games?: GameUserUpdateManyWithoutUserNestedInput
     friendships?: UserFriendshipUpdateManyWithoutRequesterNestedInput
     friendOf?: UserFriendshipUpdateManyWithoutReceiverNestedInput
+    sentInvitations?: GameInvitationUpdateManyWithoutSenderNestedInput
+    receivedInvitations?: GameInvitationUpdateManyWithoutReceiverNestedInput
     ownedGames?: GameUpdateManyWithoutOwnerNestedInput
   }
 
@@ -9649,6 +11394,8 @@ export namespace Prisma {
     games?: GameUserUncheckedUpdateManyWithoutUserNestedInput
     friendships?: UserFriendshipUncheckedUpdateManyWithoutRequesterNestedInput
     friendOf?: UserFriendshipUncheckedUpdateManyWithoutReceiverNestedInput
+    sentInvitations?: GameInvitationUncheckedUpdateManyWithoutSenderNestedInput
+    receivedInvitations?: GameInvitationUncheckedUpdateManyWithoutReceiverNestedInput
     ownedGames?: GameUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
@@ -9683,6 +11430,8 @@ export namespace Prisma {
     games?: GameUserCreateNestedManyWithoutUserInput
     friendships?: UserFriendshipCreateNestedManyWithoutRequesterInput
     friendOf?: UserFriendshipCreateNestedManyWithoutReceiverInput
+    sentInvitations?: GameInvitationCreateNestedManyWithoutSenderInput
+    receivedInvitations?: GameInvitationCreateNestedManyWithoutReceiverInput
   }
 
   export type UserUncheckedCreateWithoutOwnedGamesInput = {
@@ -9696,11 +11445,37 @@ export namespace Prisma {
     games?: GameUserUncheckedCreateNestedManyWithoutUserInput
     friendships?: UserFriendshipUncheckedCreateNestedManyWithoutRequesterInput
     friendOf?: UserFriendshipUncheckedCreateNestedManyWithoutReceiverInput
+    sentInvitations?: GameInvitationUncheckedCreateNestedManyWithoutSenderInput
+    receivedInvitations?: GameInvitationUncheckedCreateNestedManyWithoutReceiverInput
   }
 
   export type UserCreateOrConnectWithoutOwnedGamesInput = {
     where: UserWhereUniqueInput
     create: XOR<UserCreateWithoutOwnedGamesInput, UserUncheckedCreateWithoutOwnedGamesInput>
+  }
+
+  export type GameInvitationCreateWithoutGameInput = {
+    id?: string
+    createdAt?: Date | string
+    sender: UserCreateNestedOneWithoutSentInvitationsInput
+    receiver: UserCreateNestedOneWithoutReceivedInvitationsInput
+  }
+
+  export type GameInvitationUncheckedCreateWithoutGameInput = {
+    id?: string
+    senderId: string
+    receiverId: string
+    createdAt?: Date | string
+  }
+
+  export type GameInvitationCreateOrConnectWithoutGameInput = {
+    where: GameInvitationWhereUniqueInput
+    create: XOR<GameInvitationCreateWithoutGameInput, GameInvitationUncheckedCreateWithoutGameInput>
+  }
+
+  export type GameInvitationCreateManyGameInputEnvelope = {
+    data: GameInvitationCreateManyGameInput | GameInvitationCreateManyGameInput[]
+    skipDuplicates?: boolean
   }
 
   export type GameUserUpsertWithWhereUniqueWithoutGameInput = {
@@ -9741,6 +11516,8 @@ export namespace Prisma {
     games?: GameUserUpdateManyWithoutUserNestedInput
     friendships?: UserFriendshipUpdateManyWithoutRequesterNestedInput
     friendOf?: UserFriendshipUpdateManyWithoutReceiverNestedInput
+    sentInvitations?: GameInvitationUpdateManyWithoutSenderNestedInput
+    receivedInvitations?: GameInvitationUpdateManyWithoutReceiverNestedInput
   }
 
   export type UserUncheckedUpdateWithoutOwnedGamesInput = {
@@ -9754,6 +11531,24 @@ export namespace Prisma {
     games?: GameUserUncheckedUpdateManyWithoutUserNestedInput
     friendships?: UserFriendshipUncheckedUpdateManyWithoutRequesterNestedInput
     friendOf?: UserFriendshipUncheckedUpdateManyWithoutReceiverNestedInput
+    sentInvitations?: GameInvitationUncheckedUpdateManyWithoutSenderNestedInput
+    receivedInvitations?: GameInvitationUncheckedUpdateManyWithoutReceiverNestedInput
+  }
+
+  export type GameInvitationUpsertWithWhereUniqueWithoutGameInput = {
+    where: GameInvitationWhereUniqueInput
+    update: XOR<GameInvitationUpdateWithoutGameInput, GameInvitationUncheckedUpdateWithoutGameInput>
+    create: XOR<GameInvitationCreateWithoutGameInput, GameInvitationUncheckedCreateWithoutGameInput>
+  }
+
+  export type GameInvitationUpdateWithWhereUniqueWithoutGameInput = {
+    where: GameInvitationWhereUniqueInput
+    data: XOR<GameInvitationUpdateWithoutGameInput, GameInvitationUncheckedUpdateWithoutGameInput>
+  }
+
+  export type GameInvitationUpdateManyWithWhereWithoutGameInput = {
+    where: GameInvitationScalarWhereInput
+    data: XOR<GameInvitationUpdateManyMutationInput, GameInvitationUncheckedUpdateManyWithoutGameInput>
   }
 
   export type UserCreateWithoutGamesInput = {
@@ -9766,6 +11561,8 @@ export namespace Prisma {
     stats?: UserStatsCreateNestedOneWithoutUserInput
     friendships?: UserFriendshipCreateNestedManyWithoutRequesterInput
     friendOf?: UserFriendshipCreateNestedManyWithoutReceiverInput
+    sentInvitations?: GameInvitationCreateNestedManyWithoutSenderInput
+    receivedInvitations?: GameInvitationCreateNestedManyWithoutReceiverInput
     ownedGames?: GameCreateNestedManyWithoutOwnerInput
   }
 
@@ -9779,6 +11576,8 @@ export namespace Prisma {
     stats?: UserStatsUncheckedCreateNestedOneWithoutUserInput
     friendships?: UserFriendshipUncheckedCreateNestedManyWithoutRequesterInput
     friendOf?: UserFriendshipUncheckedCreateNestedManyWithoutReceiverInput
+    sentInvitations?: GameInvitationUncheckedCreateNestedManyWithoutSenderInput
+    receivedInvitations?: GameInvitationUncheckedCreateNestedManyWithoutReceiverInput
     ownedGames?: GameUncheckedCreateNestedManyWithoutOwnerInput
   }
 
@@ -9798,6 +11597,7 @@ export namespace Prisma {
     turnTimeout?: number | null
     password?: string | null
     owner: UserCreateNestedOneWithoutOwnedGamesInput
+    invitations?: GameInvitationCreateNestedManyWithoutGameInput
   }
 
   export type GameUncheckedCreateWithoutPlayersInput = {
@@ -9811,6 +11611,7 @@ export namespace Prisma {
     turnTimeout?: number | null
     password?: string | null
     ownerId: string
+    invitations?: GameInvitationUncheckedCreateNestedManyWithoutGameInput
   }
 
   export type GameCreateOrConnectWithoutPlayersInput = {
@@ -9839,6 +11640,8 @@ export namespace Prisma {
     stats?: UserStatsUpdateOneWithoutUserNestedInput
     friendships?: UserFriendshipUpdateManyWithoutRequesterNestedInput
     friendOf?: UserFriendshipUpdateManyWithoutReceiverNestedInput
+    sentInvitations?: GameInvitationUpdateManyWithoutSenderNestedInput
+    receivedInvitations?: GameInvitationUpdateManyWithoutReceiverNestedInput
     ownedGames?: GameUpdateManyWithoutOwnerNestedInput
   }
 
@@ -9852,6 +11655,8 @@ export namespace Prisma {
     stats?: UserStatsUncheckedUpdateOneWithoutUserNestedInput
     friendships?: UserFriendshipUncheckedUpdateManyWithoutRequesterNestedInput
     friendOf?: UserFriendshipUncheckedUpdateManyWithoutReceiverNestedInput
+    sentInvitations?: GameInvitationUncheckedUpdateManyWithoutSenderNestedInput
+    receivedInvitations?: GameInvitationUncheckedUpdateManyWithoutReceiverNestedInput
     ownedGames?: GameUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
@@ -9877,6 +11682,7 @@ export namespace Prisma {
     turnTimeout?: NullableIntFieldUpdateOperationsInput | number | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     owner?: UserUpdateOneRequiredWithoutOwnedGamesNestedInput
+    invitations?: GameInvitationUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateWithoutPlayersInput = {
@@ -9890,6 +11696,231 @@ export namespace Prisma {
     turnTimeout?: NullableIntFieldUpdateOperationsInput | number | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     ownerId?: StringFieldUpdateOperationsInput | string
+    invitations?: GameInvitationUncheckedUpdateManyWithoutGameNestedInput
+  }
+
+  export type GameCreateWithoutInvitationsInput = {
+    id?: string
+    createdAt?: Date | string
+    status: string
+    name: string
+    winnerId?: string | null
+    maxPlayers?: number
+    minPlayers?: number
+    turnTimeout?: number | null
+    password?: string | null
+    players?: GameUserCreateNestedManyWithoutGameInput
+    owner: UserCreateNestedOneWithoutOwnedGamesInput
+  }
+
+  export type GameUncheckedCreateWithoutInvitationsInput = {
+    id?: string
+    createdAt?: Date | string
+    status: string
+    name: string
+    winnerId?: string | null
+    maxPlayers?: number
+    minPlayers?: number
+    turnTimeout?: number | null
+    password?: string | null
+    ownerId: string
+    players?: GameUserUncheckedCreateNestedManyWithoutGameInput
+  }
+
+  export type GameCreateOrConnectWithoutInvitationsInput = {
+    where: GameWhereUniqueInput
+    create: XOR<GameCreateWithoutInvitationsInput, GameUncheckedCreateWithoutInvitationsInput>
+  }
+
+  export type UserCreateWithoutSentInvitationsInput = {
+    id?: string
+    googleId: string
+    name: string
+    email: string
+    password?: string | null
+    image?: string | null
+    stats?: UserStatsCreateNestedOneWithoutUserInput
+    games?: GameUserCreateNestedManyWithoutUserInput
+    friendships?: UserFriendshipCreateNestedManyWithoutRequesterInput
+    friendOf?: UserFriendshipCreateNestedManyWithoutReceiverInput
+    receivedInvitations?: GameInvitationCreateNestedManyWithoutReceiverInput
+    ownedGames?: GameCreateNestedManyWithoutOwnerInput
+  }
+
+  export type UserUncheckedCreateWithoutSentInvitationsInput = {
+    id?: string
+    googleId: string
+    name: string
+    email: string
+    password?: string | null
+    image?: string | null
+    stats?: UserStatsUncheckedCreateNestedOneWithoutUserInput
+    games?: GameUserUncheckedCreateNestedManyWithoutUserInput
+    friendships?: UserFriendshipUncheckedCreateNestedManyWithoutRequesterInput
+    friendOf?: UserFriendshipUncheckedCreateNestedManyWithoutReceiverInput
+    receivedInvitations?: GameInvitationUncheckedCreateNestedManyWithoutReceiverInput
+    ownedGames?: GameUncheckedCreateNestedManyWithoutOwnerInput
+  }
+
+  export type UserCreateOrConnectWithoutSentInvitationsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutSentInvitationsInput, UserUncheckedCreateWithoutSentInvitationsInput>
+  }
+
+  export type UserCreateWithoutReceivedInvitationsInput = {
+    id?: string
+    googleId: string
+    name: string
+    email: string
+    password?: string | null
+    image?: string | null
+    stats?: UserStatsCreateNestedOneWithoutUserInput
+    games?: GameUserCreateNestedManyWithoutUserInput
+    friendships?: UserFriendshipCreateNestedManyWithoutRequesterInput
+    friendOf?: UserFriendshipCreateNestedManyWithoutReceiverInput
+    sentInvitations?: GameInvitationCreateNestedManyWithoutSenderInput
+    ownedGames?: GameCreateNestedManyWithoutOwnerInput
+  }
+
+  export type UserUncheckedCreateWithoutReceivedInvitationsInput = {
+    id?: string
+    googleId: string
+    name: string
+    email: string
+    password?: string | null
+    image?: string | null
+    stats?: UserStatsUncheckedCreateNestedOneWithoutUserInput
+    games?: GameUserUncheckedCreateNestedManyWithoutUserInput
+    friendships?: UserFriendshipUncheckedCreateNestedManyWithoutRequesterInput
+    friendOf?: UserFriendshipUncheckedCreateNestedManyWithoutReceiverInput
+    sentInvitations?: GameInvitationUncheckedCreateNestedManyWithoutSenderInput
+    ownedGames?: GameUncheckedCreateNestedManyWithoutOwnerInput
+  }
+
+  export type UserCreateOrConnectWithoutReceivedInvitationsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutReceivedInvitationsInput, UserUncheckedCreateWithoutReceivedInvitationsInput>
+  }
+
+  export type GameUpsertWithoutInvitationsInput = {
+    update: XOR<GameUpdateWithoutInvitationsInput, GameUncheckedUpdateWithoutInvitationsInput>
+    create: XOR<GameCreateWithoutInvitationsInput, GameUncheckedCreateWithoutInvitationsInput>
+    where?: GameWhereInput
+  }
+
+  export type GameUpdateToOneWithWhereWithoutInvitationsInput = {
+    where?: GameWhereInput
+    data: XOR<GameUpdateWithoutInvitationsInput, GameUncheckedUpdateWithoutInvitationsInput>
+  }
+
+  export type GameUpdateWithoutInvitationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    winnerId?: NullableStringFieldUpdateOperationsInput | string | null
+    maxPlayers?: IntFieldUpdateOperationsInput | number
+    minPlayers?: IntFieldUpdateOperationsInput | number
+    turnTimeout?: NullableIntFieldUpdateOperationsInput | number | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    players?: GameUserUpdateManyWithoutGameNestedInput
+    owner?: UserUpdateOneRequiredWithoutOwnedGamesNestedInput
+  }
+
+  export type GameUncheckedUpdateWithoutInvitationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    winnerId?: NullableStringFieldUpdateOperationsInput | string | null
+    maxPlayers?: IntFieldUpdateOperationsInput | number
+    minPlayers?: IntFieldUpdateOperationsInput | number
+    turnTimeout?: NullableIntFieldUpdateOperationsInput | number | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerId?: StringFieldUpdateOperationsInput | string
+    players?: GameUserUncheckedUpdateManyWithoutGameNestedInput
+  }
+
+  export type UserUpsertWithoutSentInvitationsInput = {
+    update: XOR<UserUpdateWithoutSentInvitationsInput, UserUncheckedUpdateWithoutSentInvitationsInput>
+    create: XOR<UserCreateWithoutSentInvitationsInput, UserUncheckedCreateWithoutSentInvitationsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutSentInvitationsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutSentInvitationsInput, UserUncheckedUpdateWithoutSentInvitationsInput>
+  }
+
+  export type UserUpdateWithoutSentInvitationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    googleId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    stats?: UserStatsUpdateOneWithoutUserNestedInput
+    games?: GameUserUpdateManyWithoutUserNestedInput
+    friendships?: UserFriendshipUpdateManyWithoutRequesterNestedInput
+    friendOf?: UserFriendshipUpdateManyWithoutReceiverNestedInput
+    receivedInvitations?: GameInvitationUpdateManyWithoutReceiverNestedInput
+    ownedGames?: GameUpdateManyWithoutOwnerNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutSentInvitationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    googleId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    stats?: UserStatsUncheckedUpdateOneWithoutUserNestedInput
+    games?: GameUserUncheckedUpdateManyWithoutUserNestedInput
+    friendships?: UserFriendshipUncheckedUpdateManyWithoutRequesterNestedInput
+    friendOf?: UserFriendshipUncheckedUpdateManyWithoutReceiverNestedInput
+    receivedInvitations?: GameInvitationUncheckedUpdateManyWithoutReceiverNestedInput
+    ownedGames?: GameUncheckedUpdateManyWithoutOwnerNestedInput
+  }
+
+  export type UserUpsertWithoutReceivedInvitationsInput = {
+    update: XOR<UserUpdateWithoutReceivedInvitationsInput, UserUncheckedUpdateWithoutReceivedInvitationsInput>
+    create: XOR<UserCreateWithoutReceivedInvitationsInput, UserUncheckedCreateWithoutReceivedInvitationsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutReceivedInvitationsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutReceivedInvitationsInput, UserUncheckedUpdateWithoutReceivedInvitationsInput>
+  }
+
+  export type UserUpdateWithoutReceivedInvitationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    googleId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    stats?: UserStatsUpdateOneWithoutUserNestedInput
+    games?: GameUserUpdateManyWithoutUserNestedInput
+    friendships?: UserFriendshipUpdateManyWithoutRequesterNestedInput
+    friendOf?: UserFriendshipUpdateManyWithoutReceiverNestedInput
+    sentInvitations?: GameInvitationUpdateManyWithoutSenderNestedInput
+    ownedGames?: GameUpdateManyWithoutOwnerNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutReceivedInvitationsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    googleId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    stats?: UserStatsUncheckedUpdateOneWithoutUserNestedInput
+    games?: GameUserUncheckedUpdateManyWithoutUserNestedInput
+    friendships?: UserFriendshipUncheckedUpdateManyWithoutRequesterNestedInput
+    friendOf?: UserFriendshipUncheckedUpdateManyWithoutReceiverNestedInput
+    sentInvitations?: GameInvitationUncheckedUpdateManyWithoutSenderNestedInput
+    ownedGames?: GameUncheckedUpdateManyWithoutOwnerNestedInput
   }
 
   export type GameUserCreateManyUserInput = {
@@ -9911,6 +11942,20 @@ export namespace Prisma {
     status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type GameInvitationCreateManySenderInput = {
+    id?: string
+    gameId: string
+    receiverId: string
+    createdAt?: Date | string
+  }
+
+  export type GameInvitationCreateManyReceiverInput = {
+    id?: string
+    gameId: string
+    senderId: string
+    createdAt?: Date | string
   }
 
   export type GameCreateManyOwnerInput = {
@@ -9988,6 +12033,48 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type GameInvitationUpdateWithoutSenderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    game?: GameUpdateOneRequiredWithoutInvitationsNestedInput
+    receiver?: UserUpdateOneRequiredWithoutReceivedInvitationsNestedInput
+  }
+
+  export type GameInvitationUncheckedUpdateWithoutSenderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    gameId?: StringFieldUpdateOperationsInput | string
+    receiverId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GameInvitationUncheckedUpdateManyWithoutSenderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    gameId?: StringFieldUpdateOperationsInput | string
+    receiverId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GameInvitationUpdateWithoutReceiverInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    game?: GameUpdateOneRequiredWithoutInvitationsNestedInput
+    sender?: UserUpdateOneRequiredWithoutSentInvitationsNestedInput
+  }
+
+  export type GameInvitationUncheckedUpdateWithoutReceiverInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    gameId?: StringFieldUpdateOperationsInput | string
+    senderId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GameInvitationUncheckedUpdateManyWithoutReceiverInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    gameId?: StringFieldUpdateOperationsInput | string
+    senderId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type GameUpdateWithoutOwnerInput = {
     id?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -9999,6 +12086,7 @@ export namespace Prisma {
     turnTimeout?: NullableIntFieldUpdateOperationsInput | number | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     players?: GameUserUpdateManyWithoutGameNestedInput
+    invitations?: GameInvitationUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateWithoutOwnerInput = {
@@ -10012,6 +12100,7 @@ export namespace Prisma {
     turnTimeout?: NullableIntFieldUpdateOperationsInput | number | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     players?: GameUserUncheckedUpdateManyWithoutGameNestedInput
+    invitations?: GameInvitationUncheckedUpdateManyWithoutGameNestedInput
   }
 
   export type GameUncheckedUpdateManyWithoutOwnerInput = {
@@ -10031,6 +12120,13 @@ export namespace Prisma {
     userId: string
   }
 
+  export type GameInvitationCreateManyGameInput = {
+    id?: string
+    senderId: string
+    receiverId: string
+    createdAt?: Date | string
+  }
+
   export type GameUserUpdateWithoutGameInput = {
     id?: StringFieldUpdateOperationsInput | string
     user?: UserUpdateOneRequiredWithoutGamesNestedInput
@@ -10044,6 +12140,27 @@ export namespace Prisma {
   export type GameUserUncheckedUpdateManyWithoutGameInput = {
     id?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type GameInvitationUpdateWithoutGameInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sender?: UserUpdateOneRequiredWithoutSentInvitationsNestedInput
+    receiver?: UserUpdateOneRequiredWithoutReceivedInvitationsNestedInput
+  }
+
+  export type GameInvitationUncheckedUpdateWithoutGameInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    senderId?: StringFieldUpdateOperationsInput | string
+    receiverId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GameInvitationUncheckedUpdateManyWithoutGameInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    senderId?: StringFieldUpdateOperationsInput | string
+    receiverId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 
