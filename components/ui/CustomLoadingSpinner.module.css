@@ -1,0 +1,196 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.dice {
+  position: relative;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  animation: spin-3d 4s linear infinite;
+}
+
+.dice.sm {
+  width: 16px;
+  height: 16px;
+}
+
+.dice.md {
+  width: 32px;
+  height: 32px;
+}
+
+.dice.lg {
+  width: 48px;
+  height: 48px;
+}
+
+.face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: white; /* Dado blanco */
+  border: 1px solid rgba(0, 0, 0, 0.1); /* Borde sutil */
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05); /* Reflejo interno reducido */
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  box-sizing: border-box;
+}
+
+.dice.sm .face {
+  padding: 1px; /* Menos padding para sm */
+  gap: 1px; /* Menos gap para sm */
+}
+
+.dice.md .face {
+  padding: 2px;
+  gap: 2px;
+}
+
+.dice.lg .face {
+  padding: 3px;
+  gap: 3px;
+}
+
+.dot {
+  background-color: black; /* Puntos negros */
+  border-radius: 50%;
+  opacity: 0; /* Ocultos por defecto */
+}
+
+.dice.sm .dot {
+  width: 3px; /* Puntos más pequeños para sm */
+  height: 3px;
+  margin: auto; /* Centrar en la celda */
+}
+
+.dice.md .dot {
+  width: 5px;
+  height: 5px;
+  margin: auto;
+}
+
+.dice.lg .dot {
+  width: 7px;
+  height: 7px;
+  margin: auto;
+}
+
+/* Posicionamiento de las caras */
+.face.front {
+  transform: translateZ(var(--half-size));
+}
+
+.face.back {
+  transform: translateZ(calc(-1 * var(--half-size))) rotateY(180deg);
+}
+
+.face.right {
+  transform: translateX(var(--half-size)) rotateY(90deg);
+}
+
+.face.left {
+  transform: translateX(calc(-1 * var(--half-size))) rotateY(-90deg);
+}
+
+.face.top {
+  transform: translateY(calc(-1 * var(--half-size))) rotateX(90deg);
+}
+
+.face.bottom {
+  transform: translateY(var(--half-size)) rotateX(-90deg);
+}
+
+/* Configuración de puntos para cada cara */
+.face.front .dot:nth-child(5) {
+  opacity: 1; /* Cara 1: 1 punto en el centro */
+}
+
+.face.back .dot:nth-child(1),
+.face.back .dot:nth-child(3),
+.face.back .dot:nth-child(4),
+.face.back .dot:nth-child(6),
+.face.back .dot:nth-child(7),
+.face.back .dot:nth-child(9) {
+  opacity: 1; /* Cara 6: 6 puntos (dos columnas) */
+}
+
+.face.right .dot:nth-child(1),
+.face.right .dot:nth-child(5),
+.face.right .dot:nth-child(9) {
+  opacity: 1; /* Cara 3: 3 puntos en diagonal */
+}
+
+.face.left .dot:nth-child(1),
+.face.left .dot:nth-child(3),
+.face.left .dot:nth-child(7),
+.face.left .dot:nth-child(9) {
+  opacity: 1; /* Cara 4: 4 puntos en las esquinas */
+}
+
+.face.top .dot:nth-child(1),
+.face.top .dot:nth-child(3),
+.face.top .dot:nth-child(5),
+.face.top .dot:nth-child(7),
+.face.top .dot:nth-child(9) {
+  opacity: 1; /* Cara 5: 5 puntos (esquinas + centro) */
+}
+
+.face.bottom .dot:nth-child(1),
+.face.bottom .dot:nth-child(9) {
+  opacity: 1; /* Cara 2: 2 puntos en esquinas opuestas */
+}
+
+.text.sm {
+  font-size: 0.65rem;
+  margin-top: 10px;
+}
+
+.text.md {
+  font-size: 1rem;
+  margin-top: 20px;
+  letter-spacing: 1px;
+}
+
+.text.lg {
+  font-size: 1.25rem;
+  margin-top: 30px;
+}
+
+/* Animaciones */
+@keyframes spin-3d {
+  0% {
+    transform: rotateX(0deg) rotateY(0deg);
+  }
+  100% {
+    transform: rotateX(360deg) rotateY(360deg);
+  }
+}
+
+@keyframes spin-3d-slow {
+  0% {
+    transform: rotateX(0deg) rotateY(0deg);
+  }
+  100% {
+    transform: rotateX(360deg) rotateY(360deg);
+  }
+}
+
+@keyframes spin-3d-fast {
+  0% {
+    transform: rotateX(0deg) rotateY(0deg);
+  }
+  100% {
+    transform: rotateX(720deg) rotateY(720deg);
+  }
+}
+
+.spin-slow {
+  animation: spin-3d-slow 6s linear infinite;
+}
+
+.spin-fast {
+  animation: spin-3d-fast 2s linear infinite;
+}

@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  googleId  String    @unique
+  name      String
+  email     String    @unique
+  password  String?   
+  image     String? 
+  stats     UserStats?
+  games     GameUser[]
+  friendships UserFriendship[] @relation("UserFriendships")
+  friendOf    UserFriendship[] @relation("FriendOf")
+  ownedGames   Game[]       @relation("GameOwner") 
+}
+
+model UserFriendship {
+  id          String    @id @default(uuid())
+  requesterId String
+  receiverId  String
+  status      String    @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  requester   User      @relation("UserFriendships", fields: [requesterId], references: [id])
+  receiver    User      @relation("FriendOf", fields: [receiverId], references: [id])
+  @@unique([requesterId, receiverId])
+}
+
+model UserStats {
+  id              String  @id @default(uuid())
+  user            User    @relation(fields: [userId], references: [id])
+  userId          String  @unique
+  gamesPlayed     Int     @default(0)
+  gamesWon        Int     @default(0)
+  gamesLost       Int     @default(0)
+  highestScore    Int     @default(0)
+  generalaServed  Int     @default(0)
+  straights       Int     @default(0)
+  fullHouses      Int     @default(0)
+  pokers          Int     @default(0)
+  generalas       Int     @default(0)
+  averageScore    Float   @default(0.0)
+  winRate         Float   @default(0.0)
+  totalTimePlayed Int     @default(0) // In seconds
+  lastGameDate    DateTime?
+  elo             Int     @default(0)
+  eloChange       Int     @default(0) 
+}
+
+model Game {
+  id           String      @id @default(uuid())
+  createdAt    DateTime    @default(now())
+  status       String   
+  name         String      @unique   
+  players      GameUser[]
+  winnerId     String?          
+  maxPlayers   Int         @default(5)
+  minPlayers   Int         @default(2)
+  turnTimeout  Int?        
+  password     String?   
+  ownerId      String
+  owner        User        @relation("GameOwner", fields: [ownerId], references: [id])
+}
+
+// Junction table for the many-to-many relationship between Users and Games
+model GameUser {
+   id      String @id @default(uuid())
+  user    User   @relation(fields: [userId], references: [id])
+  userId  String
+  game    Game   @relation(fields: [gameId], references: [id])
+  gameId  String
+
+  @@unique([userId, gameId]) 
+}

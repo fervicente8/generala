@@ -11,12 +11,18 @@ export default function Login() {
   const { data: session, status } = useSession();
 
   useEffect(() => {
-    if (status === "authenticated" && session?.user) {
-      // Guarda los datos del usuario en localStorage
-      localStorage.setItem("user", JSON.stringify(session.user));
+    if (typeof window === "undefined") return;
 
-      // Redirige al menú principal
-      router.push("/menu");
+    if (status === "authenticated" && session?.user) {
+      try {
+        localStorage.setItem("user", JSON.stringify(session.user));
+        router.push("/");
+      } catch (error) {
+        console.error(
+          "Error saving user to localStorage or redirecting:",
+          error
+        );
+      }
     }
   }, [status, session, router]);
 
