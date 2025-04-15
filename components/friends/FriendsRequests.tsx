@@ -171,6 +171,14 @@ export default function FriendsRequests() {
 
       const data = await res.json();
 
+      if (res.status === 404 || res.status === 400) {
+        alert(data.error || "Error al aceptar invitación");
+        setInvitations((prevInvitations) =>
+          prevInvitations.filter((i) => i.id !== invitationId)
+        );
+        return;
+      }
+
       if (!res.ok) {
         alert("Error al aceptar invitación");
         return;
@@ -203,6 +211,13 @@ export default function FriendsRequests() {
         body: JSON.stringify({ invitationId }),
       });
 
+      if (res.status === 404) {
+        setInvitations((prevInvitations) =>
+          prevInvitations.filter((i) => i.id !== invitationId)
+        );
+        return;
+      }
+
       if (!res.ok) {
         alert("Error al rechazar invitación");
         return;
@@ -233,9 +248,16 @@ export default function FriendsRequests() {
             >
               <div className='flex items-center gap-2'>
                 <img
-                  src={invitation.sender.image || "/default-avatar.png"}
+                  src={
+                    invitation.sender.image
+                      ? invitation.sender.image
+                      : "/default-avatar.png"
+                  }
                   alt='Avatar'
                   className='h-10 w-10 rounded-full'
+                  onError={(e) => {
+                    e.currentTarget.src = "/default-avatar.png";
+                  }}
                 />
                 <p className='text-sm'>
                   {invitation.sender.name} te ha invitado a jugar
@@ -271,9 +293,16 @@ export default function FriendsRequests() {
             >
               <div className='flex items-center gap-2'>
                 <img
-                  src={request.requester.image || "/default-avatar.png"}
+                  src={
+                    request.requester.image
+                      ? request.requester.image
+                      : "/default-avatar.png"
+                  }
                   alt='Avatar'
                   className='h-10 w-10 rounded-full'
+                  onError={(e) => {
+                    e.currentTarget.src = "/default-avatar.png";
+                  }}
                 />
                 <p>{request.requester.name}</p>
               </div>
@@ -306,9 +335,16 @@ export default function FriendsRequests() {
               className='flex items-center gap-2 bg-white py-2 px-4 rounded-lg shadow-sm'
             >
               <img
-                src={request.receiver.image || "/default-avatar.png"}
+                src={
+                  request.receiver.image
+                    ? request.receiver.image
+                    : "/default-avatar.png"
+                }
                 alt='Avatar'
                 className='h-10 w-10 rounded-full'
+                onError={(e) => {
+                  e.currentTarget.src = "/default-avatar.png";
+                }}
               />
               <p>{request.receiver.name}</p>
               <button

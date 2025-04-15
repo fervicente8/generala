@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { CirclePlus, CircleX, MailCheck, SendHorizonal } from "lucide-react";
 import CustomLoadingSpinner from "../ui/CustomLoadingSpinner";
 import { socket } from "@/lib/socket";
+import { useSession } from "next-auth/react";
 
 interface Props {
   sessionUser: User;
@@ -19,6 +20,8 @@ export default function FriendCard({
   setFriendSearch,
   setFriendResults,
 }: Props) {
+  // Session
+  const { data: session } = useSession();
   const [loadingIsFriend, setLoadingIsFriend] = useState(true);
   const [isFriend, setIsFriend] = useState(false);
   const [invitationSent, setInvitationSent] = useState(false);
@@ -27,23 +30,29 @@ export default function FriendCard({
   const [isOnline, setIsOnline] = useState(false);
 
   useEffect(() => {
-    const handleUpdateOnlineUsers = (onlineUserIds: string[]) => {
-      const isCurrentlyOnline = onlineUserIds.includes(user.id);
-      setIsOnline(isCurrentlyOnline);
-      console.log("Is online?", isCurrentlyOnline); // Log del nuevo estado
+    if (!session) return;
+
+    const handleUserOnline = (onlineUserIds: string[]) => {
+      console.log("Online users:", onlineUserIds);
+
+      if (onlineUserIds.includes(user.id)) {
+        setIsOnline(true);
+      } else {
+        setIsOnline(false);
+      }
     };
 
-    socket.on("updateOnlineUsers", handleUpdateOnlineUsers);
+    socket.emit("userOnline", {
+      id: session.user.id,
+      name: session.user.name,
+    });
+
+    socket.on("updateOnlineUsers", handleUserOnline);
 
     return () => {
-      socket.off("updateOnlineUsers", handleUpdateOnlineUsers);
+      socket.off("updateOnlineUsers", handleUserOnline);
     };
-  }, [user.id]);
-  console.log("por fuera", isOnline);
-
-  useEffect(() => {
-    console.log("por fuera", isOnline);
-  }, [isOnline]);
+  }, [user.id, session]);
 
   const checkIfRequestSent = async (receiverId: string) => {
     setLoadingFriendRequest(true);
@@ -161,13 +170,18 @@ export default function FriendCard({
       <div className='flex items-center gap-2'>
         <div className='relative'>
           <img
-            src={user.image || "/default-avatar.png"}
+            src={user.image ? user.image : "/default-avatar.png"}
             alt='Avatar'
             className='w-12 h-12 rounded-full'
+            onError={(e) => {
+              e.currentTarget.src = "/default-avatar.png";
+            }}
           />
-          {isOnline && (
-            <div className='absolute bottom-[2px] right-[2px] w-[14px] h-[14px] bg-[var(--color-green)] rounded-full'></div>
-          )}
+          <div
+            className={`absolute bottom-[2px] right-[2px] w-[14px] h-[14px] ${
+              isOnline ? "bg-[var(--color-green)]" : "bg-[var(--color-red)]"
+            } rounded-full border-1 border-white`}
+          ></div>
         </div>
         <h3 className='text-[16px] font-semibold'>{user.name}</h3>
       </div>

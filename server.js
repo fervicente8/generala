@@ -18,6 +18,11 @@ app.prepare().then(() => {
 
     socket.on("userOnline", (user) => {
       onlineUsers.set(user.id, { name: user.name, socketId: socket.id });
+
+      // Enviar la lista de usuarios al cliente recién conectado
+      socket.emit("updateOnlineUsers", Array.from(onlineUsers.keys()));
+
+      // Notificar a todos los demás clientes
       io.emit("updateOnlineUsers", Array.from(onlineUsers.keys()));
     });
 

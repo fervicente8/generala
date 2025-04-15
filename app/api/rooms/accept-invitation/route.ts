@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     if (!invitation || invitation.receiverId !== session.user.id) {
       return NextResponse.json({ error: "Invitación no válida" }, { status: 404 });
     }
-
+    
     // Obtener la sala para verificar el límite de jugadores
     const game = await prisma.game.findUnique({
       where: { id: invitation.gameId },
@@ -37,6 +37,10 @@ export async function POST(req: Request) {
 
     if (!game) {
       return NextResponse.json({ error: "La sala no existe" }, { status: 404 });
+    }
+
+    if(game.status !== "waiting") {
+      return NextResponse.json({ error: "La sala ya ha comenzado" }, { status: 400 });
     }
 
     if (game.players.length >= game.maxPlayers) {

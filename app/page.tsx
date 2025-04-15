@@ -52,6 +52,29 @@ export default function MainMenu() {
   }, []);
 
   useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      setIsLoadingFriends(true);
+      setIsLoadingRooms(true);
+
+      fetch(`/api/friends?userId=${session.user.id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setFriends(data || []);
+          setIsLoadingFriends(false);
+        })
+        .catch(() => setIsLoadingFriends(false));
+
+      fetch("/api/rooms")
+        .then((res) => res.json())
+        .then((data) => {
+          setRooms(data || []);
+          setIsLoadingRooms(false);
+        })
+        .catch(() => setIsLoadingRooms(false));
+    }
+  }, [status, session, activeRoom]);
+
+  useEffect(() => {
     const handleCreateRoom = (data: Game) => {
       if (data.ownerId === session?.user?.id) {
         setActiveRoom(data);
@@ -110,9 +133,6 @@ export default function MainMenu() {
       }
     };
 
-    socket.on("connect", () => {});
-    socket.on("disconnect", () => {});
-
     socket.on("gameCreated", handleCreateRoom);
     socket.on("gameDeleted", handleDeleteRoom);
 
@@ -123,9 +143,6 @@ export default function MainMenu() {
     socket.on("friendRemoved", handleRemoveFriend);
 
     return () => {
-      socket.off("connect", () => {});
-      socket.off("disconnect", () => {});
-
       socket.off("gameCreated", handleCreateRoom);
       socket.off("gameDeleted", handleDeleteRoom);
 
@@ -136,34 +153,6 @@ export default function MainMenu() {
       socket.off("friendRemoved", handleRemoveFriend);
     };
   }, [session, activeRoom?.id]);
-
-  useEffect(() => {
-    if (status === "authenticated" && session?.user) {
-      socket.emit("userOnline", {
-        id: session.user.id,
-        name: session.user.name,
-      });
-
-      setIsLoadingFriends(true);
-      setIsLoadingRooms(true);
-
-      fetch(`/api/friends?userId=${session.user.id}`)
-        .then((res) => res.json())
-        .then((data) => {
-          setFriends(data || []);
-          setIsLoadingFriends(false);
-        })
-        .catch(() => setIsLoadingFriends(false));
-
-      fetch("/api/rooms")
-        .then((res) => res.json())
-        .then((data) => {
-          setRooms(data || []);
-          setIsLoadingRooms(false);
-        })
-        .catch(() => setIsLoadingRooms(false));
-    }
-  }, [status, session, activeRoom]);
 
   useEffect(() => {
     const fetchActiveRoom = async () => {
@@ -516,9 +505,16 @@ export default function MainMenu() {
                     {activeRoom.players.map((player) => (
                       <img
                         key={player.id}
-                        src={player.user.image || "/default-avatar.png"}
+                        src={
+                          player.user.image
+                            ? player.user.image
+                            : "/default-avatar.png"
+                        }
                         alt='Foto de perfil'
                         className='w-15 h-15 rounded-full'
+                        onError={(e) => {
+                          e.currentTarget.src = "/default-avatar.png";
+                        }}
                       />
                     ))}
                   </div>
@@ -611,7 +607,11 @@ export default function MainMenu() {
                           >
                             {/* Imagen del propietario */}
                             <img
-                              src={room?.owner?.image || "/default-avatar.png"}
+                              src={
+                                room.owner.image
+                                  ? room.owner.image
+                                  : "/default-avatar.png"
+                              }
                               alt='Imagen del propietario'
                               className='w-10 h-10 rounded-full mr-4'
                               onError={(e) => {
@@ -669,9 +669,16 @@ export default function MainMenu() {
                     className='flex flex-col gap-2 items-center justify-content-center bg-white p-4 rounded-lg'
                   >
                     <img
-                      src={player.user.image || "/default-avatar.png"}
+                      src={
+                        player.user.image
+                          ? player.user.image
+                          : "/default-avatar.png"
+                      }
                       alt='Foto de perfil'
                       className='w-15 h-15 rounded-full'
+                      onError={(e) => {
+                        e.currentTarget.src = "/default-avatar.png";
+                      }}
                     />
                     <span className=' font-bold text-[var(--color-black)]'>
                       {player.user.name}
