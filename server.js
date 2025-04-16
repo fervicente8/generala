@@ -172,6 +172,37 @@ app.prepare().then(() => {
         }
       });
     });
+
+    socket.on("kickPlayer", (data) => {
+      const players = data.game.players;
+
+      players.forEach((gameUser) => {
+        const playerId = gameUser.user.id;
+        const playerSocketId = onlineUsers.get(playerId)?.socketId;
+
+        if (playerSocketId) {
+          io.to(playerSocketId).emit("playerKicked", data);
+        }
+
+        const leaverSocketId = onlineUsers.get(data.kickedPlayerId)?.socketId;
+        if (leaverSocketId) {
+          io.to(leaverSocketId).emit("playerKicked", data);
+        }
+      });
+    });
+
+    socket.on("startGame", (data) => {
+      const players = data.game.players;
+
+      players.forEach((gameUser) => {
+        const playerId = gameUser.user.id;
+        const playerSocketId = onlineUsers.get(playerId)?.socketId;
+
+        if (playerSocketId) {
+          io.to(playerSocketId).emit("gameStarted", data);
+        }
+      });
+    });
   });
 
   httpServer

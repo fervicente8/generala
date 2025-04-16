@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { CirclePlus, CircleX, MailCheck, SendHorizonal } from "lucide-react";
 import CustomLoadingSpinner from "../ui/CustomLoadingSpinner";
 import { socket } from "@/lib/socket";
-import { useSession } from "next-auth/react";
+import { useAlert } from "../ui/CustomAlert";
 
 interface Props {
   sessionUser: User;
@@ -11,6 +11,7 @@ interface Props {
   activeRoom?: Game;
   setFriendSearch?: (userId: string) => void;
   setFriendResults?: (users: User[]) => void;
+  onlineUserIds?: string[];
 }
 
 export default function FriendCard({
@@ -19,22 +20,20 @@ export default function FriendCard({
   activeRoom,
   setFriendSearch,
   setFriendResults,
+  onlineUserIds,
 }: Props) {
-  // Session
-  const { data: session } = useSession();
+  // Estados del componente
   const [loadingIsFriend, setLoadingIsFriend] = useState(true);
   const [isFriend, setIsFriend] = useState(false);
   const [invitationSent, setInvitationSent] = useState(false);
   const [loadingFriendRequest, setLoadingFriendRequest] = useState(true);
   const [friendRequestSent, setFriendRequestSent] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
+  // Alerta
+  const { showAlert } = useAlert();
 
   useEffect(() => {
-    if (!session) return;
-
     const handleUserOnline = (onlineUserIds: string[]) => {
-      console.log("Online users:", onlineUserIds);
-
       if (onlineUserIds.includes(user.id)) {
         setIsOnline(true);
       } else {
@@ -42,17 +41,10 @@ export default function FriendCard({
       }
     };
 
-    socket.emit("userOnline", {
-      id: session.user.id,
-      name: session.user.name,
-    });
-
-    socket.on("updateOnlineUsers", handleUserOnline);
-
-    return () => {
-      socket.off("updateOnlineUsers", handleUserOnline);
-    };
-  }, [user.id, session]);
+    if (onlineUserIds) {
+      handleUserOnline(onlineUserIds);
+    }
+  }, [onlineUserIds]);
 
   const checkIfRequestSent = async (receiverId: string) => {
     setLoadingFriendRequest(true);
@@ -100,11 +92,19 @@ export default function FriendCard({
       const data = await res.json();
 
       if (!res.ok) {
-        alert("No se pudo enviar la solicitud de amistad");
+        showAlert({
+          type: "error",
+          message: data.error || "Error de conexión",
+        });
         return;
       }
 
       socket.emit("friendRequest", data);
+
+      showAlert({
+        type: "success",
+        message: "Solicitud de amistad enviada con éxito",
+      });
 
       setFriendRequestSent(true);
       setFriendResults && setFriendResults([]);
@@ -125,11 +125,19 @@ export default function FriendCard({
       const data = await res.json();
 
       if (!res.ok) {
-        alert("No se pudo eliminar el amigo");
+        showAlert({
+          type: "error",
+          message: data.error || "Error de conexión",
+        });
         return;
       }
 
       setIsFriend(false);
+
+      showAlert({
+        type: "success",
+        message: "Amigo eliminado con éxito",
+      });
 
       socket.emit("removeFriend", data);
     } catch (err) {
@@ -152,9 +160,17 @@ export default function FriendCard({
       const data = await res.json();
 
       if (!res.ok) {
-        alert(`Error al invitar a la sala: ${data.error}`);
+        showAlert({
+          type: "error",
+          message: data.error || "Error de conexión",
+        });
         return;
       }
+
+      showAlert({
+        type: "success",
+        message: `Invitación enviada a ${user.name}`,
+      });
 
       socket.emit("inviteGame", data);
     } catch (error) {
@@ -163,7 +179,6 @@ export default function FriendCard({
       setInvitationSent(true);
     }
   };
-  console.log(user.image);
 
   return (
     <div className='flex items-center justify-between gap-2 select-none'>

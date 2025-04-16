@@ -23,15 +23,6 @@ function SocketManager() {
     };
   }, []);
 
-  useEffect(() => {
-    if (socket.connected && session?.user) {
-      socket.emit("userOnline", {
-        id: session.user.id,
-        name: session.user.name,
-      });
-    }
-  }, [session]);
-
   return null;
 }
 

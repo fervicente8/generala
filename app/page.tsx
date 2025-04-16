@@ -10,6 +10,7 @@ import CustomLoadingSpinner from "@/components/ui/CustomLoadingSpinner";
 import { socket } from "@/lib/socket";
 import FriendCard from "@/components/friends/FriendCard";
 import FriendsRequests from "@/components/friends/FriendsRequests";
+import { useAlert } from "@/components/ui/CustomAlert";
 
 export default function MainMenu() {
   // Session
@@ -43,6 +44,10 @@ export default function MainMenu() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   // Sala activa
   const [activeRoom, setActiveRoom] = useState<Game | null>(null);
+  // Usuarios activos
+  const [onlineUserIds, setOnlineUserIds] = useState<string[]>([]);
+  // Alerta
+  const { showAlert } = useAlert();
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -75,6 +80,8 @@ export default function MainMenu() {
   }, [status, session, activeRoom]);
 
   useEffect(() => {
+    if (!session || !session.user) return;
+
     const handleCreateRoom = (data: Game) => {
       if (data.ownerId === session?.user?.id) {
         setActiveRoom(data);
@@ -86,6 +93,7 @@ export default function MainMenu() {
     const handleDeleteRoom = (data: Game) => {
       if (activeRoom?.id === data.id) {
         setActiveRoom(null);
+        showAlert({ type: "success", message: "Sala eliminada" });
       } else {
         setRooms((prevRooms) =>
           prevRooms.filter((room) => room.id !== data.id)
@@ -95,6 +103,10 @@ export default function MainMenu() {
 
     const handleUserJoined = (data: any) => {
       setActiveRoom(data.game);
+      showAlert({
+        type: "success",
+        message: `El jugador ${data.user.name} se ha unido a la sala`,
+      });
     };
 
     const handleUserLeft = (data: any) => {
@@ -104,19 +116,36 @@ export default function MainMenu() {
         )
       ) {
         setActiveRoom(data.game);
+        showAlert({
+          type: "success",
+          message: `Un jugador se ha ido de la sala`,
+        });
       } else {
         setActiveRoom(null);
+        showAlert({
+          type: "success",
+          message: `Has salido de la sala`,
+        });
       }
     };
 
-    const handleRequestAccepted = (data: UserFriendship) => {
+    const handleUserKicked = (data: any) => {
       if (
-        data.receiverId === session?.user?.id ||
-        data.requesterId === session?.user?.id
+        data.game.players.find(
+          (player: any) => player.userId === session?.user?.id
+        )
       ) {
-        let updatedFriends = friends;
-        updatedFriends.push(data);
-        setFriends(updatedFriends);
+        setActiveRoom(data.game);
+        showAlert({
+          type: "success",
+          message: `Un jugador ha sido expulsado de la sala`,
+        });
+      } else {
+        setActiveRoom(null);
+        showAlert({
+          type: "success",
+          message: `Te han expulsado de la sala`,
+        });
       }
     };
 
@@ -138,9 +167,18 @@ export default function MainMenu() {
 
     socket.on("userJoined", handleUserJoined);
     socket.on("userLeft", handleUserLeft);
+    socket.on("playerKicked", handleUserKicked);
 
-    socket.on("requestAccepted", handleRequestAccepted);
     socket.on("friendRemoved", handleRemoveFriend);
+
+    socket.emit("userOnline", {
+      id: session.user.id,
+      name: session.user.name,
+    });
+
+    socket.on("updateOnlineUsers", (data: string[]) => {
+      setOnlineUserIds(data);
+    });
 
     return () => {
       socket.off("gameCreated", handleCreateRoom);
@@ -148,9 +186,11 @@ export default function MainMenu() {
 
       socket.off("userJoined", handleUserJoined);
       socket.off("userLeft", handleUserLeft);
+      socket.off("playerKicked", handleUserKicked);
 
-      socket.off("requestAccepted", handleRequestAccepted);
       socket.off("friendRemoved", handleRemoveFriend);
+
+      socket.off("updateOnlineUsers", (data: string[]) => {});
     };
   }, [session, activeRoom?.id]);
 
@@ -248,7 +288,10 @@ export default function MainMenu() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.error || "Error desconocido al crear la sala");
+        showAlert({
+          type: "error",
+          message: data.error || "Error de conexión",
+        });
         return;
       }
 
@@ -262,7 +305,7 @@ export default function MainMenu() {
         password: "",
       });
     } catch (error) {
-      alert("Error de conexión con el servidor.");
+      showAlert({ type: "error", message: "Error al crear la sala" });
     } finally {
       setIsCreatingRoom(false);
     }
@@ -282,7 +325,7 @@ export default function MainMenu() {
 
       socket.emit("deleteGame", data);
     } catch (error) {
-      alert("No se pudo eliminar la sala");
+      showAlert({ type: "error", message: "Error al eliminar la sala" });
     }
   };
 
@@ -303,7 +346,10 @@ export default function MainMenu() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.error || "No se pudo unir a la sala");
+        showAlert({
+          type: "error",
+          message: data.error || "Error de conexión",
+        });
         return;
       }
 
@@ -317,7 +363,7 @@ export default function MainMenu() {
 
       socket.emit("joinGame", gameUser);
     } catch (error) {
-      alert("Error de conexión con el servidor");
+      showAlert({ type: "error", message: "Error de conexión" });
     }
   };
 
@@ -337,7 +383,10 @@ export default function MainMenu() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.error || "Error al salir de la sala");
+        showAlert({
+          type: "error",
+          message: data.error || "Error de conexión",
+        });
         return;
       }
 
@@ -353,7 +402,34 @@ export default function MainMenu() {
 
       socket.emit("leaveGame", gameUser);
     } catch (error) {
-      alert("Error de conexión");
+      showAlert({ type: "error", message: "Error de conexión" });
+    }
+  };
+
+  const handleKickPlayer = async (gameId: string, playerId: string) => {
+    try {
+      const res = await fetch("/api/rooms/kick-player", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          roomId: gameId,
+          playerId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        showAlert({
+          type: "error",
+          message: data.error || "Error de conexión",
+        });
+        return;
+      }
+
+      socket.emit("kickPlayer", { game: data, kickedPlayerId: playerId });
+    } catch (error) {
+      showAlert({ type: "error", message: "Error de conexión" });
     }
   };
 
@@ -413,6 +489,7 @@ export default function MainMenu() {
                             setFriendSearch={setFriendSearch}
                             setFriendResults={setFriendResults}
                             activeRoom={activeRoom ? activeRoom : undefined}
+                            onlineUserIds={onlineUserIds}
                           />
                         </motion.li>
                       ))}
@@ -459,6 +536,7 @@ export default function MainMenu() {
                               : friend.receiver
                           }
                           activeRoom={activeRoom ? activeRoom : undefined}
+                          onlineUserIds={onlineUserIds}
                         />
                       </motion.li>
                     ))}
@@ -468,7 +546,7 @@ export default function MainMenu() {
           </div>
         )}
         <div className='absolute bottom-2 w-[90%] left-1/2 transform -translate-x-1/2'>
-          <FriendsRequests />
+          <FriendsRequests friends={friends} setFriends={setFriends} />
         </div>
       </aside>
 
@@ -666,7 +744,7 @@ export default function MainMenu() {
                 {activeRoom?.players?.map((player) => (
                   <div
                     key={player.id}
-                    className='flex flex-col gap-2 items-center justify-content-center bg-white p-4 rounded-lg'
+                    className='relative flex flex-col gap-2 items-center justify-content-center bg-white p-4 rounded-lg'
                   >
                     <img
                       src={
@@ -683,6 +761,15 @@ export default function MainMenu() {
                     <span className=' font-bold text-[var(--color-black)]'>
                       {player.user.name}
                     </span>
+                    {session.user.id === activeRoom.ownerId &&
+                      player.user.id !== session?.user?.id && (
+                        <X
+                          className='absolute top-1 right-1 h-5 w-5 text-[var(--color-red)] cursor-pointer hover:text-[var(--color-red)]/80 transition-colors duration-200'
+                          onClick={() =>
+                            handleKickPlayer(activeRoom.id, player.userId)
+                          }
+                        />
+                      )}
                   </div>
                 ))}
               </div>

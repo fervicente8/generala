@@ -3,33 +3,30 @@ import { Check, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { socket } from "@/lib/socket";
 import { useSession } from "next-auth/react";
+import { useAlert } from "../ui/CustomAlert";
 
-export default function FriendsRequests() {
+interface Props {
+  friends: UserFriendship[];
+  setFriends: (friends: UserFriendship[]) => void;
+}
+
+export default function FriendsRequests({ friends, setFriends }: Props) {
   // Session
   const { data: session } = useSession();
   // Requests
   const [incomingRequests, setIncomingRequests] = useState<UserFriendship[]>(
     []
   );
-  const [outgoingRequests, setOutgoingRequests] = useState<UserFriendship[]>(
-    []
-  );
+  // Alerta
+  const { showAlert } = useAlert();
 
   // Invitaciones
   const [invitations, setInvitations] = useState<GameInvitation[]>([]);
 
   useEffect(() => {
     const handleRequestSent = (data: UserFriendship) => {
-      if (data.requester.id === session?.user?.id) {
-        setOutgoingRequests((prev) => {
-          if (!prev.some((r) => r.id === data.id)) {
-            return [...prev, data];
-          }
-          return prev;
-        });
-      }
-
       if (data.receiver.id === session?.user?.id) {
+        showAlert({ type: "success", message: "Has recibido una solicitud" });
         setIncomingRequests((prev) => {
           if (!prev.some((r) => r.id === data.id)) {
             return [...prev, data];
@@ -41,30 +38,44 @@ export default function FriendsRequests() {
 
     const handleGameInvitation = (data: GameInvitation) => {
       setInvitations((prevInvitations) => [...prevInvitations, data]);
+      showAlert({
+        type: "success",
+        message: "Has recibido una invitación a una partida",
+      });
     };
 
     const handleRequestAccepted = (data: UserFriendship) => {
-      if (data.requesterId === session?.user?.id) {
-        setOutgoingRequests((prev) => prev.filter((r) => r.id !== data.id));
+      if (
+        data.receiverId === session?.user?.id ||
+        data.requesterId === session?.user?.id
+      ) {
+        setIncomingRequests((prev) => prev.filter((r) => r.id !== data.id));
+        let updatedFriends = friends;
+        updatedFriends.push(data);
+        setFriends(updatedFriends);
+        showAlert({ type: "success", message: "Solicitud aceptada" });
       }
+    };
 
-      if (data.receiverId === session?.user?.id) {
+    const handleRequestRejected = (data: UserFriendship) => {
+      if (
+        data.receiverId === session?.user?.id ||
+        data.requesterId === session?.user?.id
+      ) {
         setIncomingRequests((prev) => prev.filter((r) => r.id !== data.id));
       }
     };
 
     socket.on("requestSent", handleRequestSent);
     socket.on("gameInvited", handleGameInvitation);
-    socket.on("requestCanceled", handleRequestAccepted);
     socket.on("requestAccepted", handleRequestAccepted);
-    socket.on("requestRejected", handleRequestAccepted);
+    socket.on("requestRejected", handleRequestRejected);
 
     return () => {
       socket.off("requestSent", handleRequestSent);
       socket.off("gameInvited", handleGameInvitation);
-      socket.off("requestCanceled", handleRequestAccepted);
       socket.off("requestAccepted", handleRequestAccepted);
-      socket.off("requestRejected", handleRequestAccepted);
+      socket.off("requestRejected", handleRequestRejected);
     };
   }, [session]);
 
@@ -74,16 +85,6 @@ export default function FriendsRequests() {
         const res = await fetch("/api/friends/incoming");
         const data = await res.json();
         setIncomingRequests(data);
-      } catch (err) {
-        console.error("Error al obtener peticiones de amistad:", err);
-      }
-    };
-
-    const fetchOutgoingRequests = async () => {
-      try {
-        const res = await fetch("/api/friends/outgoing");
-        const data = await res.json();
-        setOutgoingRequests(data);
       } catch (err) {
         console.error("Error al obtener peticiones de amistad:", err);
       }
@@ -101,7 +102,6 @@ export default function FriendsRequests() {
 
     fetchInvitations();
     fetchIncomingRequests();
-    fetchOutgoingRequests();
   }, []);
 
   const handleRequestResponse = async (
@@ -120,40 +120,24 @@ export default function FriendsRequests() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert("Error al aceptar/rechazar solicitud");
+        showAlert({
+          type: "error",
+          message: data.error || "Error de conexión",
+        });
         return;
       }
 
       if (action === "ACCEPTED") {
         socket.emit("acceptFriendRequest", data);
       } else {
+        showAlert({
+          type: "success",
+          message: "Solicitud rechazada con éxito",
+        });
         socket.emit("rejectFriendRequest", data);
       }
     } catch (error) {
       console.error("Error al aceptar/rechazar:", error);
-    }
-  };
-
-  const handleCancelRequest = async (friendId: string) => {
-    try {
-      const res = await fetch("/api/friends/request", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ friendId }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert("Error al cancelar solicitud");
-        return;
-      }
-
-      socket.emit("cancelFriendRequest", data);
-    } catch (error) {
-      console.error("Error al cancelar:", error);
     }
   };
 
@@ -172,7 +156,10 @@ export default function FriendsRequests() {
       const data = await res.json();
 
       if (res.status === 404 || res.status === 400) {
-        alert(data.error || "Error al aceptar invitación");
+        showAlert({
+          type: "error",
+          message: data.error || "Error de conexión",
+        });
         setInvitations((prevInvitations) =>
           prevInvitations.filter((i) => i.id !== invitationId)
         );
@@ -180,7 +167,10 @@ export default function FriendsRequests() {
       }
 
       if (!res.ok) {
-        alert("Error al aceptar invitación");
+        showAlert({
+          type: "error",
+          message: data.error || "Error de conexión",
+        });
         return;
       }
 
@@ -219,9 +209,11 @@ export default function FriendsRequests() {
       }
 
       if (!res.ok) {
-        alert("Error al rechazar invitación");
+        showAlert({ type: "error", message: "Error al rechazar invitación" });
         return;
       }
+
+      showAlert({ type: "success", message: "Invitación rechazada con éxito" });
 
       setInvitations((prevInvitations) =>
         prevInvitations.filter((i) => i.id !== invitationId)
@@ -316,43 +308,6 @@ export default function FriendsRequests() {
                   className='ml-auto cursor-pointer text-[var(--color-green)] hover:text-[var(--color-green)]/80'
                 />
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {outgoingRequests.length > 0 && (
-        <h2 className='text-md bg-[var(--color-gold)] text-white px-4 py-2 rounded-lg text-center shadow-sm'>
-          Peticiones de amistad enviadas
-        </h2>
-      )}
-
-      {outgoingRequests.length > 0 && (
-        <div className='flex flex-col gap-2 overflow-scroll scrollbar-none mb-8 max-h-[25%]'>
-          {outgoingRequests.map((request) => (
-            <div
-              key={request.id}
-              className='flex items-center gap-2 bg-white py-2 px-4 rounded-lg shadow-sm'
-            >
-              <img
-                src={
-                  request.receiver.image
-                    ? request.receiver.image
-                    : "/default-avatar.png"
-                }
-                alt='Avatar'
-                className='h-10 w-10 rounded-full'
-                onError={(e) => {
-                  e.currentTarget.src = "/default-avatar.png";
-                }}
-              />
-              <p>{request.receiver.name}</p>
-              <button
-                className='ml-auto rounded-lg bg-[var(--color-gold)] px-4 py-2 text-white hover:bg-[var(--color-gold)]/80 text-sm cursor-pointer'
-                onClick={() => handleCancelRequest(request.receiverId)}
-              >
-                Cancelar
-              </button>
             </div>
           ))}
         </div>

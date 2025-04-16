@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import SessionProviderWrapper from "./SessionProviderWrapper";
+import { AlertProvider } from "@/components/ui/CustomAlert";
 
 const playfair = Geist({
   variable: "--font-playfair",
@@ -45,7 +46,9 @@ export default function RootLayout({
   return (
     <html lang='es'>
       <body className={`${playfair.variable} antialiased`}>
-        <SessionProviderWrapper>{children}</SessionProviderWrapper>
+        <AlertProvider>
+          <SessionProviderWrapper>{children}</SessionProviderWrapper>
+        </AlertProvider>
       </body>
     </html>
   );
