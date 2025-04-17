@@ -5,7 +5,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { userId, gameId, password } = body;
-
+    
     if (!userId || !gameId) {
       return NextResponse.json({ error: "Faltan datos" }, { status: 400 });
     }

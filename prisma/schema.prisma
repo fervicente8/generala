@@ -90,18 +90,18 @@ model GameUser {
   game    Game   @relation(fields: [gameId], references: [id])
   gameId  String
 
-  ones        Int? @default(0)
-  twos        Int? @default(0)
-  threes      Int? @default(0)
-  fours       Int? @default(0)
-  fives       Int? @default(0)
-  sixes       Int? @default(0)
-  straight    Int? @default(0)
-  fullHouse   Int? @default(0)
-  poker       Int? @default(0)
-  generala    Int? @default(0)
-  double      Int? @default(0) // Doble generala, si la permitís
-  totalScore  Int? @default(0)
+  ones        Int?
+  twos        Int?
+  threes      Int?
+  fours       Int?
+  fives       Int?
+  sixes       Int?
+  straight    Int?
+  fullHouse   Int?
+  poker       Int?
+  generala    Int?
+  double      Int?
+  totalScore  Int?  @default(0)
 
   @@unique([userId, gameId]) 
 }

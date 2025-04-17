@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
   const { roomId, playerId } = await req.json();
-  console.log(playerId);
   
   try {
     // Eliminar al jugador específico del GameUser

@@ -5,13 +5,14 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId");
-    
+      
     if (!userId) {
       return NextResponse.json({ error: "Falta el ID del usuario" }, { status: 400 });
     }
 
     const activeRoom = await prisma.game.findFirst({
       where: {
+        status: { in: ["waiting", "in progress"] },  
         OR: [
           { ownerId: userId }, 
           { players: { some: { userId } } }, 

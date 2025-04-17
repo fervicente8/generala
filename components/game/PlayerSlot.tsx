@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { GameUser } from "@/types";
 import { getPlayerPositions } from "@/lib/utils";
+import { useSession } from "next-auth/react";
 
 interface PlayerSlotProps {
   player: GameUser;
@@ -22,6 +23,7 @@ export default function PlayerSlot({
   totalPlayers = 2,
   rollCount = 0,
 }: PlayerSlotProps) {
+  const { data: session } = useSession();
   const [timeLeft, setTimeLeft] = useState(timePerTurn);
   const positions = getPlayerPositions(totalPlayers);
 
@@ -55,7 +57,9 @@ export default function PlayerSlot({
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
     >
-      <span className='text-white font-semibold  mb-2'>{player.user.name}</span>
+      <span className='text-white font-semibold  mb-2'>
+        {player.user.name} {player.userId === session?.user?.id && "(Yo)"}
+      </span>
       <img
         src={player.user.image ? player.user.image : "/default-avatar.png"}
         alt='Foto de perfil'

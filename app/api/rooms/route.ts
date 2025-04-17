@@ -7,8 +7,9 @@ export async function GET(req: Request) {
 
   try {
     const rooms = await prisma.game.findMany({
-      where: name ? { name: { contains: name, mode: "insensitive" } } : {},
+      where: name ? { name: { contains: name, mode: "insensitive" }, status: "waiting" } : {},
       include: { players: true, owner: true },
+      orderBy: { createdAt: "desc" },
     });
 
     return NextResponse.json(rooms);

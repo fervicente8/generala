@@ -4,7 +4,7 @@ import { Game, GameUser, User, UserFriendship } from "@/types";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { LogOut, Search, X, LockIcon, Trash2 } from "lucide-react";
+import { LogOut, Search, X, LockIcon, Trash2, Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import CustomLoadingSpinner from "@/components/ui/CustomLoadingSpinner";
 import { socket } from "@/lib/socket";
@@ -26,6 +26,9 @@ export default function MainMenu() {
   const [friendSearch, setFriendSearch] = useState("");
   const [friendResults, setFriendResults] = useState<User[]>([]);
   const [isSearchingFriends, setIsSearchingFriends] = useState(false);
+  const [passwordModal, setPasswordModal] = useState<string | null>(null);
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   // Estados de creación de sala
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const [gameSettings, setGameSettings] = useState<{
@@ -72,7 +75,21 @@ export default function MainMenu() {
       fetch("/api/rooms")
         .then((res) => res.json())
         .then((data) => {
-          setRooms(data || []);
+          const roomsDataWithUpdatedPassword = data?.map((room: Game) => {
+            const { password, ...roomWithoutPassword } = room;
+
+            const updatedPassword = password
+              ? Math.random().toString(36).substring(2, 10)
+              : "";
+
+            const roomWithUpdatedPassword = {
+              ...roomWithoutPassword,
+              password: updatedPassword,
+            };
+
+            return roomWithUpdatedPassword;
+          });
+          setRooms(roomsDataWithUpdatedPassword || []);
           setIsLoadingRooms(false);
         })
         .catch(() => setIsLoadingRooms(false));
@@ -273,9 +290,25 @@ export default function MainMenu() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    let updatedName = name;
+    let updatedValue: string | number = value;
+    if (name === "roomName") {
+      updatedName = "name";
+    } else if (name === "minPlayers") {
+      updatedValue = Number(value);
+    } else if (name === "maxPlayers") {
+      updatedValue = Number(value);
+    } else if (name === "turnTimeoutAmount") {
+      updatedName = "turnTimeout";
+      updatedValue = Number(value);
+    } else if (name === "roomPassword") {
+      updatedName = "password";
+      updatedValue = value;
+    }
+
     setGameSettings((prev) => ({
       ...prev,
-      [name]: value,
+      [updatedName]: updatedValue,
     }));
   };
 
@@ -380,6 +413,7 @@ export default function MainMenu() {
 
       socket.emit("joinGame", gameUser);
     } catch (error) {
+      setPasswordModal(null);
       showAlert({ type: "error", message: "Error de conexión" });
     }
   };
@@ -699,13 +733,17 @@ export default function MainMenu() {
             </div>
             {isLoadingRooms || isCreatingRoom ? (
               <CustomLoadingSpinner />
-            ) : rooms.filter((room) => activeRoom?.id !== room.id).length ===
-              0 ? (
+            ) : rooms.filter(
+                (room) =>
+                  activeRoom?.id !== room.id && room.status === "waiting"
+              ).length === 0 ? (
               <p className='text-[var(--color-beige)]/70 italic'>
                 No hay salas disponibles.
               </p>
-            ) : rooms.filter((room) => room.name.includes(search)).length ===
-              0 ? (
+            ) : rooms.filter(
+                (room) =>
+                  room.name.includes(search) && room.status === "waiting"
+              ).length === 0 ? (
               <p className='text-[var(--color-beige)]/70 italic'>
                 No se encontraron salas con el nombre "{search}".
               </p>
@@ -717,7 +755,8 @@ export default function MainMenu() {
                       .filter(
                         (room) =>
                           room.name.includes(search) &&
-                          activeRoom?.id !== room.id
+                          activeRoom?.id !== room.id &&
+                          room.status === "waiting"
                       )
                       .map((room, index) =>
                         !room ? (
@@ -750,6 +789,8 @@ export default function MainMenu() {
                                   type: "error",
                                   message: "Ya estás en una sala",
                                 });
+                              } else if (room.password) {
+                                setPasswordModal(room.id);
                               } else if (
                                 room.players.length < room.maxPlayers
                               ) {
@@ -794,6 +835,43 @@ export default function MainMenu() {
                               <span className='absolute top-2 right-2 text-gray-500'>
                                 <LockIcon size={20} />
                               </span>
+                            )}
+
+                            {passwordModal === room.id && (
+                              <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.3 }}
+                                className='absolute top-0 left-0 w-full h-full bg-black/50 rounded-lg flex items-center justify-center cursor-default'
+                              >
+                                <motion.div
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  exit={{ scale: 0 }}
+                                  transition={{ duration: 0.3 }}
+                                  className='bg-white p-4 rounded-lg shadow-md'
+                                >
+                                  <h2 className='text-lg font-semibold mb-2'>
+                                    Ingrese la contraseña
+                                  </h2>
+                                  <input
+                                    type='password'
+                                    placeholder='Contraseña'
+                                    className='border border-gray-300 rounded-lg px-2 py-1 w-full mb-2'
+                                    value={password}
+                                    onChange={(e) =>
+                                      setPassword(e.target.value)
+                                    }
+                                  />
+                                  <button
+                                    className='bg-[var(--color-gold)] text-white px-4 py-2 rounded-lg hover:bg-[var(--color-gold)]/80 cursor-pointer'
+                                    onClick={() => joinRoom(room.id, password)}
+                                  >
+                                    Ingresar
+                                  </button>
+                                </motion.div>
+                              </motion.div>
                             )}
                           </motion.li>
                         )
@@ -894,71 +972,209 @@ export default function MainMenu() {
                 </button>
               </div>
 
-              <label className='block mb-2'>Nombre de la sala</label>
+              <label className='block mb-2' htmlFor='roomName'>
+                Nombre de la sala
+              </label>
               <input
+                autoComplete='off'
                 type='text'
-                name='name'
+                name='roomName'
+                id='roomName'
                 value={gameSettings.name}
                 onChange={handleChange}
                 className='w-full p-2 border rounded mb-3 border-[var(--color-black)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)] text-[var(--color-black)] transition-all duration-200'
                 placeholder={`Sala de ${session.user?.name}`}
                 required
-              />
-              <label className='block mb-2'>Jugadores mínimos</label>
-              <input
-                type='number'
-                name='minPlayers'
-                value={gameSettings.minPlayers}
-                onChange={handleChange}
-                className='w-full p-2 border rounded mb-3 border-[var(--color-black)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)] text-[var(--color-black)] transition-all duration-200'
-                min='2'
-                max={gameSettings.maxPlayers}
+                minLength={3}
+                maxLength={25}
               />
 
-              <label className='block mb-2'>Jugadores máximos</label>
-              <input
-                type='number'
-                name='maxPlayers'
-                value={gameSettings.maxPlayers}
-                onChange={handleChange}
-                className='w-full p-2 border rounded mb-3 border-[var(--color-black)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)] text-[var(--color-black)] transition-all duration-200'
-                min={gameSettings.minPlayers}
-                max='5'
-              />
+              <div className='flex justify-between items-center gap-5'>
+                <div className='w-1/2'>
+                  <label
+                    className='block mb-2 text-center'
+                    htmlFor='minPlayers'
+                  >
+                    Jugadores mínimos
+                  </label>
+                  <div className='flex items-center justify-between border rounded mb-3 border-[var(--color-black)]/20 w-full'>
+                    <button
+                      type='button'
+                      onClick={() =>
+                        handleChange({
+                          target: {
+                            name: "minPlayers",
+                            value: Math.max(
+                              (gameSettings.minPlayers || 2) - 1,
+                              2
+                            ),
+                          },
+                        } as any)
+                      }
+                      className='py-2 px-4 bg-[var(--color-gold)] hover:bg-[var(--color-gold)]/80 text-white rounded-l'
+                    >
+                      -
+                    </button>
+                    <p className='text-[var(--color-black)]'>
+                      {gameSettings.minPlayers}
+                    </p>
+                    <button
+                      type='button'
+                      onClick={() =>
+                        handleChange({
+                          target: {
+                            name: "minPlayers",
+                            value: Math.min(
+                              (gameSettings.minPlayers || 2) + 1,
+                              gameSettings.maxPlayers
+                            ),
+                          },
+                        } as any)
+                      }
+                      className='py-2 px-4 bg-[var(--color-gold)] hover:bg-[var(--color-gold)]/80 text-white rounded-r'
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
 
-              <label className='block mb-2'>¿Tiempo ilimitado por ronda?</label>
+                <div className='w-1/2'>
+                  <label
+                    className='block mb-2 text-center'
+                    htmlFor='maxPlayers'
+                  >
+                    Jugadores máximos
+                  </label>
+                  <div className='flex items-center justify-between border rounded mb-3 border-[var(--color-black)]/20 w-full'>
+                    <button
+                      type='button'
+                      onClick={() =>
+                        handleChange({
+                          target: {
+                            name: "maxPlayers",
+                            value: Math.max(
+                              (gameSettings.maxPlayers || 5) - 1,
+                              gameSettings.minPlayers
+                            ),
+                          },
+                        } as any)
+                      }
+                      className='py-2 px-4 bg-[var(--color-gold)] hover:bg-[var(--color-gold)]/80 text-white rounded-l'
+                    >
+                      -
+                    </button>
+                    <p className='text-[var(--color-black)]'>
+                      {gameSettings.maxPlayers}
+                    </p>
+                    <button
+                      type='button'
+                      onClick={() =>
+                        handleChange({
+                          target: {
+                            name: "maxPlayers",
+                            value: Math.min(
+                              (gameSettings.maxPlayers || 5) + 1,
+                              5
+                            ),
+                          },
+                        } as any)
+                      }
+                      className='py-2 px-4 bg-[var(--color-gold)] hover:bg-[var(--color-gold)]/80 text-white rounded-r'
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <label className='block mb-2' htmlFor='turnTimeout'>
+                ¿Tiempo ilimitado por ronda?
+              </label>
               <input
                 type='checkbox'
+                name='turnTimeout'
+                id='turnTimeout'
                 checked={gameSettings.turnTimeout === null}
                 onChange={handleCheckboxChange}
                 className='mb-3 ml-2 size-4'
               />
 
-              <label className='block mb-2'>Tiempo por turno (segundos)</label>
-              <input
-                type='number'
-                name='turnTimeout'
-                value={gameSettings.turnTimeout || ""}
-                onChange={handleChange}
-                className='w-full p-2 border rounded mb-3 border-[var(--color-black)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)] text-[var(--color-black)] transition-all duration-200'
-                min='10'
-                max='120'
-                disabled={gameSettings.turnTimeout === null}
-              />
+              {gameSettings.turnTimeout !== null && (
+                <>
+                  <label className='block mb-2' htmlFor='turnTimeoutAmount'>
+                    Tiempo por turno (segundos)
+                  </label>
+                  <div className='flex items-center justify-between border rounded mb-3 border-[var(--color-black)]/20 w-40'>
+                    <button
+                      type='button'
+                      onClick={() =>
+                        handleChange({
+                          target: {
+                            name: "turnTimeoutAmount",
+                            value: Math.max(
+                              (gameSettings.turnTimeout || 30) - 1,
+                              10
+                            ),
+                          },
+                        } as any)
+                      }
+                      className='py-2 px-4 bg-[var(--color-gold)] hover:bg-[var(--color-gold)]/80 text-white rounded-l'
+                    >
+                      -
+                    </button>
+                    <p className=' text-[var(--color-black)]'>
+                      {gameSettings.turnTimeout}
+                    </p>
+                    <button
+                      type='button'
+                      onClick={() =>
+                        handleChange({
+                          target: {
+                            name: "turnTimeoutAmount",
+                            value: Math.min(
+                              (gameSettings.turnTimeout || 30) + 1,
+                              120
+                            ),
+                          },
+                        } as any)
+                      }
+                      className='py-2 px-4 bg-[var(--color-gold)] hover:bg-[var(--color-gold)]/80 text-white rounded-r'
+                    >
+                      +
+                    </button>
+                  </div>
+                </>
+              )}
 
-              <label className='block mb-2'>Contraseña (opcional)</label>
-              <input
-                type='password'
-                name='password'
-                value={gameSettings.password}
-                onChange={handleChange}
-                className='w-full p-2 border rounded mb-3 border-[var(--color-black)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)] text-[var(--color-black)] transition-all duration-200'
-              />
+              <label className='block mb-2' htmlFor='roomPassword'>
+                Contraseña (opcional)
+              </label>
+              <div className='relative'>
+                <input
+                  autoComplete='off'
+                  type={showPassword ? "text" : "password"}
+                  name='roomPassword'
+                  id='roomPassword'
+                  value={gameSettings.password}
+                  onChange={handleChange}
+                  className='w-full p-2 border rounded mb-3 border-[var(--color-black)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)] text-[var(--color-black)] transition-all duration-200'
+                />
+                {showPassword ? (
+                  <Eye
+                    className='absolute top-[20%] right-2 cursor-pointer'
+                    onClick={() => setShowPassword(!showPassword)}
+                    size={20}
+                  />
+                ) : (
+                  <EyeOff
+                    className='absolute top-[20%] right-2 cursor-pointer'
+                    onClick={() => setShowPassword(!showPassword)}
+                    size={20}
+                  />
+                )}
+              </div>
 
-              <button
-                onClick={handleCreateRoom}
-                className='mt-4 w-full bg-[var(--color-gold)] hover:bg-[var(--color-gold)]/80 text-white py-2 px-4 rounded '
-              >
+              <button className='mt-4 w-full bg-[var(--color-gold)] hover:bg-[var(--color-gold)]/80 text-white py-2 px-4 rounded '>
                 Crear
               </button>
             </form>

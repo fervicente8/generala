@@ -229,6 +229,22 @@ app.prepare().then(() => {
       });
     });
 
+    socket.on("submitScore", (data) => {
+      const players = data.players;
+
+      players.forEach((gameUser) => {
+        const playerId = gameUser.id;
+        const playerSocketId = onlineUsers.get(playerId)?.socketId;
+
+        if (playerSocketId) {
+          io.to(playerSocketId).emit("scoreSubmitted", {
+            currentTurnId: data.currentTurnId,
+            updatedGameUserId: data.updatedGameUserId,
+            updatedValues: data.updatedValues
+          });
+        }
+      });
+    });
 
   });
 

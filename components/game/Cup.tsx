@@ -82,7 +82,9 @@ export default function Cup({
       onClick={() => {
         if (!sendingRoll) handleRoll();
       }}
-      className={`absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 p-4 transition select-none ${
+      className={`${
+        (!isMyTurn || rollCount >= 3) && "opacity-50"
+      } absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 p-4 transition select-none ${
         isMyTurn && rollCount < 3 && "cursor-pointer hover:scale-105"
       } ${
         (!isMyTurn || rollCount >= 3 || rollingLoading) && "pointer-events-none"
