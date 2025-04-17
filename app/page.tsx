@@ -180,6 +180,10 @@ export default function MainMenu() {
       setOnlineUserIds(data);
     });
 
+    socket.on("gameStarted", (data: string) => {
+      router.push(`/game/${data}`);
+    });
+
     return () => {
       socket.off("gameCreated", handleCreateRoom);
       socket.off("gameDeleted", handleDeleteRoom);
@@ -191,6 +195,8 @@ export default function MainMenu() {
       socket.off("friendRemoved", handleRemoveFriend);
 
       socket.off("updateOnlineUsers", (data: string[]) => {});
+
+      socket.off("gameStarted", (data: string) => {});
     };
   }, [session, activeRoom?.id]);
 
@@ -204,7 +210,18 @@ export default function MainMenu() {
         );
         const data = await res.json();
 
-        if (res.ok && data) {
+        if (!res.ok) {
+          showAlert({
+            type: "error",
+            message: data.error || "Error de conexión",
+          });
+        }
+
+        if (data.status === "finished") {
+          setActiveRoom(null);
+        } else if (data.status === "in_progress") {
+          router.push(`/game/${data.id}`);
+        } else {
           setActiveRoom(data);
         }
       } catch (error) {
@@ -433,7 +450,44 @@ export default function MainMenu() {
     }
   };
 
-  const startGame = (room: Game) => {};
+  const startGame = async (room: Game) => {
+    if (
+      activeRoom &&
+      (activeRoom?.players.length < room.minPlayers ||
+        activeRoom?.players.length < 2)
+    ) {
+      showAlert({
+        type: "error",
+        message: `La sala necesita al menos ${room.minPlayers} jugadores`,
+      });
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/rooms/start-game", {
+        method: "POST",
+        body: JSON.stringify({ roomId: room.id }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        showAlert({
+          type: "error",
+          message: data.error || "Error de conexión",
+        });
+        return;
+      }
+
+      // Emitimos por socket que el juego comenzó
+      socket.emit("startGame", data);
+    } catch (error) {
+      console.error("Error al iniciar el juego:", error);
+    }
+  };
 
   return (
     <div className='flex min-h-screen bg-[var(--color-green)] text-[var(--color-black)] overflow-hidden'>
@@ -680,8 +734,29 @@ export default function MainMenu() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                             transition={{ duration: 0.3 }}
-                            className='relative flex items-center p-4 bg-white rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-transform duration-200 cursor-pointer'
-                            onClick={() => joinRoom(room.id)}
+                            className={`relative flex items-center p-4 bg-white rounded-lg shadow-md  transition-transform duration-200 ${
+                              room.players.length >= room.maxPlayers
+                                ? "opacity-50 cursor-not-allowed"
+                                : "cursor-pointer hover:shadow-lg hover:scale-105"
+                            }`}
+                            onClick={() => {
+                              if (activeRoom?.id === room.id) {
+                                showAlert({
+                                  type: "error",
+                                  message: "Ya estas en esta sala",
+                                });
+                              } else if (activeRoom?.id) {
+                                showAlert({
+                                  type: "error",
+                                  message: "Ya estás en una sala",
+                                });
+                              } else if (
+                                room.players.length < room.maxPlayers
+                              ) {
+                                joinRoom(room.id);
+                              }
+                            }}
+                            style={{ cursor: "pointer" }}
                           >
                             {/* Imagen del propietario */}
                             <img

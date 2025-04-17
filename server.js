@@ -30,7 +30,6 @@ app.prepare().then(() => {
       for (const [userId, userData] of onlineUsers.entries()) {
         if (userData.socketId === socket.id) {
           onlineUsers.delete(userId);
-          console.log(`Usuario ${userId} desconectado`);
           break;
         }
       }
@@ -192,17 +191,45 @@ app.prepare().then(() => {
     });
 
     socket.on("startGame", (data) => {
-      const players = data.game.players;
+      const players = data.players;
 
       players.forEach((gameUser) => {
         const playerId = gameUser.user.id;
         const playerSocketId = onlineUsers.get(playerId)?.socketId;
 
         if (playerSocketId) {
-          io.to(playerSocketId).emit("gameStarted", data);
+          io.to(playerSocketId).emit("gameStarted", data.id);
         }
       });
     });
+
+    socket.on("endGame", (data) => {
+      const players = data.players;
+
+      players.forEach((gameUser) => {
+        const playerId = gameUser.user.id;
+        const playerSocketId = onlineUsers.get(playerId)?.socketId;
+
+        if (playerSocketId) {
+          io.to(playerSocketId).emit("gameEnded", data.id);
+        }
+      });
+    });
+
+    socket.on("rollDice", (data) => {
+      const players = data.players;
+
+      players.forEach((gameUser) => {
+        const playerId = gameUser.id;
+        const playerSocketId = onlineUsers.get(playerId)?.socketId;
+
+        if (playerSocketId) {
+          io.to(playerSocketId).emit("diceRolled", { diceValues: data.diceValues, rollCount: data.rollCount, dicesToReroll: data.dicesToReroll });
+        }
+      });
+    });
+
+
   });
 
   httpServer

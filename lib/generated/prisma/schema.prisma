@@ -65,19 +65,22 @@ model UserStats {
 }
 
 model Game {
-  id          String           @id @default(uuid())
-  createdAt   DateTime         @default(now())
-  status      String
-  name        String           @unique
-  players     GameUser[]
-  winnerId    String?
-  maxPlayers  Int              @default(5)
-  minPlayers  Int              @default(2)
-  turnTimeout Int?
-  password    String?
-  ownerId     String
-  owner       User             @relation("GameOwner", fields: [ownerId], references: [id])
-  invitations GameInvitation[]
+  id            String           @id @default(uuid())
+  createdAt     DateTime         @default(now())
+  status        String
+  name          String           @unique
+  players       GameUser[]
+  winnerId      String?
+  maxPlayers    Int              @default(5)
+  minPlayers    Int              @default(2)
+  turnTimeout   Int?
+  password      String?
+  ownerId       String
+  owner         User             @relation("GameOwner", fields: [ownerId], references: [id])
+  invitations   GameInvitation[]
+  currentTurnId String? // ID del usuario que tiene el turno
+  diceValues    Int[]            @default([]) // Últimos valores de los dados
+  rollCount     Int              @default(0)
 }
 
 // Junction table for the many-to-many relationship between Users and Games
@@ -87,6 +90,19 @@ model GameUser {
   userId String
   game   Game   @relation(fields: [gameId], references: [id])
   gameId String
+
+  ones       Int? @default(0)
+  twos       Int? @default(0)
+  threes     Int? @default(0)
+  fours      Int? @default(0)
+  fives      Int? @default(0)
+  sixes      Int? @default(0)
+  straight   Int? @default(0)
+  fullHouse  Int? @default(0)
+  poker      Int? @default(0)
+  generala   Int? @default(0)
+  double     Int? @default(0) // Doble generala, si la permitís
+  totalScore Int? @default(0)
 
   @@unique([userId, gameId])
 }

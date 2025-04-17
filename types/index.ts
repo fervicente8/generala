@@ -58,6 +58,9 @@ export interface Game {
     owner: User;
     ownerId: string; 
     invitations: GameInvitation[];
+    currentTurnId?: string;
+    diceValues: number[];
+    rollCount: number;
 }
 
 export interface GameUser {
@@ -66,6 +69,18 @@ export interface GameUser {
     userId: string;
     game: Game;  
     gameId: string;
+    ones?: number;
+    twos?: number;
+    threes?: number;
+    fours?: number;
+    fives?: number;
+    sixes?: number;
+    straight?: number;
+    fullHouse?: number;
+    poker?: number;
+    generala?: number;
+    double?: number;
+    totalScore?: number;
 }
 
 export interface GameInvitation {

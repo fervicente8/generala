@@ -12,7 +12,6 @@ export async function GET(req: NextRequest) {
 
     const activeRoom = await prisma.game.findFirst({
       where: {
-        status: "waiting",
         OR: [
           { ownerId: userId }, 
           { players: { some: { userId } } }, 
