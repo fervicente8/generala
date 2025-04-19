@@ -9,22 +9,18 @@ const eslintConfig = [
   ...compat.config({
     extends: ["next/core-web-vitals"],
     rules: {
-      // React hooks: Asegúrate de que todas las dependencias de useEffect estén correctamente configuradas
       "react-hooks/exhaustive-deps": ["warn", {
-        "additionalHooks": "(useCallback|useMemo)" // Agrega otros hooks que quieras monitorear
+        "additionalHooks": "(useCallback|useMemo)"
       }],
 
-      // Evitar el uso de comillas no escapadas
       "react/no-unescaped-entities": ["error", {
         "escape": {
           "quotes": true,
         }
       }],
 
-      // Advertencia para el uso de <img> en lugar de <Image />
       "@next/next/no-img-element": "warn",
 
-      // Evitar el uso condicional de hooks
       "react-hooks/rules-of-hooks": "error",
     },
   }),
