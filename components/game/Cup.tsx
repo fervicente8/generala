@@ -42,13 +42,14 @@ export default function Cup({
     });
 
     try {
-      if (rollCount > 0 && dicesToReroll.length === 0) {
-        setDicesToReroll([0, 1, 2, 3, 4]);
-      }
+      const dicesToSend =
+        rollCount > 0 && dicesToReroll.length === 0
+          ? [0, 1, 2, 3, 4]
+          : dicesToReroll;
 
       const res = await fetch(`/api/game/roll`, {
         method: "POST",
-        body: JSON.stringify({ gameId, dicesToReroll }),
+        body: JSON.stringify({ gameId, dicesToReroll: dicesToSend }),
       });
 
       const data = await res.json();
@@ -65,7 +66,7 @@ export default function Cup({
         players: gamePlayers.map((gameUser) => gameUser.user),
         diceValues: data.diceValues,
         rollCount: data.rollCount,
-        dicesToReroll,
+        dicesToReroll: dicesToSend,
       });
     } catch (error) {
       showAlert({
@@ -85,14 +86,14 @@ export default function Cup({
       className={`${
         (!isMyTurn || rollCount >= 3) && "opacity-50"
       } absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 p-4 transition select-none ${
-        isMyTurn && rollCount < 3 && "cursor-pointer hover:scale-105"
+        isMyTurn && rollCount < 3 && "cursor-pointer"
       } ${
         (!isMyTurn || rollCount >= 3 || rollingLoading) && "pointer-events-none"
       }`}
       whileTap={{ scale: 0.9 }}
       animate={controls}
     >
-      <motion.img src='/cup.png' alt='Cubilete' className='w-30 h-30' />
+      <motion.img src='/cup.png' alt='Cubilete' className='w-30 h-33' />
     </motion.div>
   );
 }

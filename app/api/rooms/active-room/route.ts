@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
     const activeRoom = await prisma.game.findFirst({
       where: {
-        status: { in: ["waiting", "in progress"] },  
+        status: { in: ["waiting", "in_progress"] },  
         OR: [
           { ownerId: userId }, 
           { players: { some: { userId } } }, 

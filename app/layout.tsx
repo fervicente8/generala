@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import "./globals.css";
 import SessionProviderWrapper from "./SessionProviderWrapper";
 import { AlertProvider } from "@/components/ui/CustomAlert";
 
-const playfair = Geist({
-  variable: "--font-playfair",
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
   subsets: ["latin"],
   weight: ["400", "700"],
 });
@@ -45,7 +45,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='es'>
-      <body className={`${playfair.variable} antialiased`}>
+      <body className={`${montserrat.variable} antialiased`}>
         <AlertProvider>
           <SessionProviderWrapper>{children}</SessionProviderWrapper>
         </AlertProvider>

@@ -46,28 +46,28 @@ export default function PlayerSlot({
 
   return (
     <motion.div
-      className={`absolute ${
+      className={`absolute w-50  ${
         positions[position % positions.length]
-      } flex flex-col items-center bg-white/20 backdrop-blur-md p-4 rounded-xl shadow-lg transition-all ${
+      } flex flex-col items-center bg-white/20 backdrop-blur-md px-4  rounded-xl shadow-lg transition-all ${
         isCurrentTurn
-          ? "ring-2 ring-[var(--color-gold)] scale-105 bg-white/30"
-          : ""
+          ? "ring-2 ring-[var(--color-gold)] scale-105 bg-white/30 py-4"
+          : "py-8"
       }`}
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
     >
-      <span className='text-white font-semibold  mb-2'>
+      <span className='text-white font-semibold mb-2 max-w-full truncate'>
         {player.user.name} {player.userId === session?.user?.id && "(Yo)"}
       </span>
       <img
         src={player.user.image ? player.user.image : "/default-avatar.png"}
         alt='Foto de perfil'
-        className='w-16 h-16 rounded-full'
+        className='w-16 h-16 rounded-full object-cover '
         onError={(e) => (e.currentTarget.src = "/default-avatar.png")}
       />
       {isCurrentTurn && timePerTurn > 0 && (
-        <span className='text-[var(--color-gold)] text-sm absolute bottom-1 right-1'>
+        <span className='text-[var(--color-gold)] text-sm absolute bottom-2 right-2'>
           {timeLeft}s
         </span>
       )}

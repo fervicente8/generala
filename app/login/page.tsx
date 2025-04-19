@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import Image from "next/image";
 import Button from "@/components/ui/Button";
+import { useAlert } from "@/components/ui/CustomAlert";
 
 export default function Login() {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const { showAlert } = useAlert();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -49,7 +52,15 @@ export default function Login() {
         {/* Botón de Google */}
         <Button
           className='mb-2'
-          onClick={() => signIn("google")}
+          onClick={() => {
+            termsAccepted
+              ? signIn("google")
+              : showAlert({
+                  type: "error",
+                  message:
+                    "Debes aceptar los términos y condiciones para iniciar sesión con Google.",
+                });
+          }}
           backgroundColor='#DB4437'
           textColor='white'
           icon={
@@ -89,9 +100,11 @@ export default function Login() {
 
         {/* Botón de Facebook */}
         <Button
-          onClick={() => signIn("facebook")}
+          // onClick={() => signIn("facebook")}
           backgroundColor='#1877F2'
           textColor='white'
+          className='opacity-50'
+          style={{ cursor: "not-allowed", backgroundColor: "#1877F2" }}
           icon={
             <svg
               xmlns='http://www.w3.org/2000/svg'
@@ -113,10 +126,23 @@ export default function Login() {
 
         {/* Términos y condiciones */}
         <div className='mt-4 flex items-center'>
-          <input type='checkbox' id='terms' className='mr-2' />
-          <label htmlFor='terms' className='text-sm text-[var(--color-black)]'>
+          <input
+            type='checkbox'
+            id='terms-and-conditions'
+            className='mr-2'
+            onChange={() => {
+              setTermsAccepted(!termsAccepted);
+            }}
+          />
+          <label
+            htmlFor='terms-and-conditions'
+            className='text-sm text-[var(--color-black)]'
+          >
             Acepto los{" "}
-            <a href='/terminos' className='text-[var(--color-red)] underline'>
+            <a
+              href='/terms-and-conditions'
+              className='text-[var(--color-red)] underline'
+            >
               términos y condiciones
             </a>
           </label>

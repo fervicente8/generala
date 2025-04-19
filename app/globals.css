@@ -86,7 +86,7 @@
 body {
   background-color: var(--color-beige);
   color: var(--color-black);
-  font-family: var(--font-playfair), sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
 }
 
 .dark {

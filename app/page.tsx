@@ -4,13 +4,23 @@ import { Game, GameUser, User, UserFriendship } from "@/types";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { LogOut, Search, X, LockIcon, Trash2, Eye, EyeOff } from "lucide-react";
+import {
+  LogOut,
+  Search,
+  X,
+  LockIcon,
+  Trash2,
+  Eye,
+  EyeOff,
+  BrainCircuit,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import CustomLoadingSpinner from "@/components/ui/CustomLoadingSpinner";
 import { socket } from "@/lib/socket";
 import FriendCard from "@/components/friends/FriendCard";
 import FriendsRequests from "@/components/friends/FriendsRequests";
 import { useAlert } from "@/components/ui/CustomAlert";
+import { StatsModal } from "@/components/stats/StatsModal";
 
 export default function MainMenu() {
   // Session
@@ -31,6 +41,11 @@ export default function MainMenu() {
   const [showPassword, setShowPassword] = useState(false);
   // Estados de creación de sala
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
+  const [isDeletingRoom, setIsDeletingRoom] = useState(false);
+  const [isJoiningRoom, setIsJoiningRoom] = useState(false);
+  const [isLeavingRoom, setIsLeavingRoom] = useState(false);
+  const [isStartingGame, setIsStartingGame] = useState(false);
+  const [isKickingUser, setIsKickingUser] = useState(false);
   const [gameSettings, setGameSettings] = useState<{
     name: string;
     maxPlayers: number;
@@ -51,6 +66,10 @@ export default function MainMenu() {
   const [onlineUserIds, setOnlineUserIds] = useState<string[]>([]);
   // Alerta
   const { showAlert } = useAlert();
+  // Stats
+  const [showStats, setShowStats] = useState(false);
+  const [statsToShow, setStatsToShow] = useState(null);
+  const [isStatsLoading, setIsStatsLoading] = useState(false);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -241,9 +260,7 @@ export default function MainMenu() {
         } else {
           setActiveRoom(data);
         }
-      } catch (error) {
-        console.error("Error obteniendo la sala activa:", error);
-      }
+      } catch (error) {}
     };
 
     fetchActiveRoom();
@@ -362,6 +379,9 @@ export default function MainMenu() {
   };
 
   const handleDeleteRoom = async (roomId: string) => {
+    if (!roomId) return;
+
+    setIsDeletingRoom(true);
     try {
       const res = await fetch(`/api/rooms/delete-room?roomId=${roomId}`, {
         method: "DELETE",
@@ -376,12 +396,15 @@ export default function MainMenu() {
       socket.emit("deleteGame", data);
     } catch (error) {
       showAlert({ type: "error", message: "Error al eliminar la sala" });
+    } finally {
+      setIsDeletingRoom(false);
     }
   };
 
   const joinRoom = async (gameId: string, password?: string) => {
     if (!session?.user?.id) return;
 
+    setIsJoiningRoom(true);
     try {
       const res = await fetch("/api/rooms/join-room", {
         method: "POST",
@@ -415,12 +438,15 @@ export default function MainMenu() {
     } catch (error) {
       setPasswordModal(null);
       showAlert({ type: "error", message: "Error de conexión" });
+    } finally {
+      setIsJoiningRoom(false);
     }
   };
 
   const leaveRoom = async (gameId: string) => {
     if (!session?.user?.id) return;
 
+    setIsLeavingRoom(true);
     try {
       const res = await fetch("/api/rooms/leave-room", {
         method: "POST",
@@ -454,10 +480,13 @@ export default function MainMenu() {
       socket.emit("leaveGame", gameUser);
     } catch (error) {
       showAlert({ type: "error", message: "Error de conexión" });
+    } finally {
+      setIsLeavingRoom(false);
     }
   };
 
   const handleKickPlayer = async (gameId: string, playerId: string) => {
+    setIsKickingUser(true);
     try {
       const res = await fetch("/api/rooms/kick-player", {
         method: "POST",
@@ -481,6 +510,8 @@ export default function MainMenu() {
       socket.emit("kickPlayer", { game: data, kickedPlayerId: playerId });
     } catch (error) {
       showAlert({ type: "error", message: "Error de conexión" });
+    } finally {
+      setIsKickingUser(false);
     }
   };
 
@@ -496,6 +527,8 @@ export default function MainMenu() {
       });
       return;
     }
+
+    setIsStartingGame(true);
 
     try {
       const res = await fetch("/api/rooms/start-game", {
@@ -520,6 +553,33 @@ export default function MainMenu() {
       socket.emit("startGame", data);
     } catch (error) {
       console.error("Error al iniciar el juego:", error);
+    } finally {
+      setIsStartingGame(false);
+    }
+  };
+
+  const getPlayerStats = async (playerId: string) => {
+    setIsStatsLoading(true);
+    try {
+      const res = await fetch(`/api/users/stats/${playerId}`);
+      const data = await res.json();
+      if (!res.ok) {
+        showAlert({
+          type: "error",
+          message: data.error || "Error al obtener estadisticas",
+        });
+      }
+
+      setStatsToShow(data);
+      setShowStats(true);
+    } catch (error) {
+      showAlert({
+        type: "error",
+        message: "Error de conexión",
+      });
+      return null;
+    } finally {
+      setIsStatsLoading(false);
     }
   };
 
@@ -634,16 +694,31 @@ export default function MainMenu() {
           </div>
         )}
         <div className='absolute bottom-2 w-[90%] left-1/2 transform -translate-x-1/2'>
-          <FriendsRequests friends={friends} setFriends={setFriends} />
+          <FriendsRequests
+            friends={friends}
+            setFriends={setFriends}
+            setIsJoiningRoom={setIsJoiningRoom}
+          />
         </div>
       </aside>
 
       {/* Contenido principal */}
       <main className='relative flex-1 p-6 md:p-15 overflow-y-scroll scrollbar-none'>
         <div className='w-full mx-auto'>
-          <h1 className='text-4xl font-extrabold mb-4 text-[var(--color-beige)] drop-shadow-md'>
-            Bienvenido, {session.user?.name}
-          </h1>
+          <div className='flex flex-row items-center mb-4'>
+            <h1 className='text-4xl font-extrabold  text-[var(--color-beige)] drop-shadow-md max-w-3/4 truncate'>
+              Bienvenido, {session.user?.name}
+            </h1>
+            <button
+              onClick={() => {
+                setStatsToShow(session.user.stats);
+                setShowStats(true);
+              }}
+              className='ml-4 px-4 py-2 text-white bg-black/60 hover:bg-black/50 backdrop-blur-3xl rounded-lg shadow-lg transition-all duration-200 cursor-pointer'
+            >
+              Ver estadísticas
+            </button>
+          </div>
 
           {/* Barra de búsqueda de salas */}
           <div className='w-full flex items-center bg-white shadow-md rounded-lg '>
@@ -691,8 +766,13 @@ export default function MainMenu() {
                     jugadores
                   </p>
                   <button
-                    className='bg-[var(--color-red)] hover:bg-[var(--color-red)]/80 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-200 cursor-pointer text-sm'
+                    className={`bg-[var(--color-red)]  text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-200  text-sm ${
+                      isDeletingRoom || isLeavingRoom
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:bg-[var(--color-red)]/80 cursor-pointer"
+                    }`}
                     onClick={() => {
+                      if (isDeletingRoom || isLeavingRoom) return;
                       if (activeRoom.ownerId === session.user?.id) {
                         handleDeleteRoom(activeRoom.id);
                       } else {
@@ -773,12 +853,14 @@ export default function MainMenu() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                             transition={{ duration: 0.3 }}
-                            className={`relative flex items-center p-4 bg-white rounded-lg shadow-md  transition-transform duration-200 ${
-                              room.players.length >= room.maxPlayers
-                                ? "opacity-50 cursor-not-allowed"
+                            className={`relative flex items-center p-4 bg-white rounded-lg shadow-md transition-transform duration-200 ${
+                              room.players.length >= room.maxPlayers ||
+                              isJoiningRoom
+                                ? "cursor-not-allowed grayscale"
                                 : "cursor-pointer hover:shadow-lg hover:scale-105"
                             }`}
                             onClick={() => {
+                              if (isJoiningRoom) return;
                               if (activeRoom?.id === room.id) {
                                 showAlert({
                                   type: "error",
@@ -797,7 +879,6 @@ export default function MainMenu() {
                                 joinRoom(room.id);
                               }
                             }}
-                            style={{ cursor: "pointer" }}
                           >
                             {/* Imagen del propietario */}
                             <img
@@ -914,11 +995,21 @@ export default function MainMenu() {
                     <span className=' font-bold text-[var(--color-black)]'>
                       {player.user.name}
                     </span>
+                    <BrainCircuit
+                      className={`absolute top-1 left-1 h-5 w-5 text-[var(--color-black)] transition-colors duration-200 hover:text-[var(--color-black)]/80 cursor-pointer`}
+                      onClick={() => getPlayerStats(player.userId)}
+                    />
+
                     {session.user.id === activeRoom.ownerId &&
                       player.user.id !== session?.user?.id && (
                         <X
-                          className='absolute top-1 right-1 h-5 w-5 text-[var(--color-red)] cursor-pointer hover:text-[var(--color-red)]/80 transition-colors duration-200'
+                          className={`absolute top-1 right-1 h-5 w-5 text-[var(--color-red)]  transition-colors duration-200 ${
+                            isKickingUser
+                              ? "opacity-50 cursor-not-allowed"
+                              : "cursor-pointer hover:text-[var(--color-red)]/80"
+                          }`}
                           onClick={() =>
+                            !isKickingUser &&
                             handleKickPlayer(activeRoom.id, player.userId)
                           }
                         />
@@ -934,20 +1025,43 @@ export default function MainMenu() {
               {activeRoom.ownerId === session?.user?.id && (
                 <div className='flex gap-2 items-center'>
                   <button
-                    onClick={() => startGame(activeRoom)}
-                    className='bg-white text-blue-500 px-4 py-2 rounded font-bold hover:bg-blue-600 hover:text-white transition-colors duration-200 cursor-pointer'
+                    onClick={() => {
+                      !isStartingGame &&
+                        !isDeletingRoom &&
+                        startGame(activeRoom);
+                    }}
+                    className={`bg-white text-blue-500 px-4 py-2 rounded font-bold transition-colors duration-200  ${
+                      isStartingGame || isDeletingRoom
+                        ? "opacity-50 cursor-not-allowed"
+                        : "cursor-pointer hover:bg-blue-600 hover:text-white"
+                    }`}
                   >
                     Iniciar Partida
                   </button>
                   <Trash2
-                    className='h-5 w-5 text-[var(--color-red)] cursor-pointer hover:text-[var(--color-red)]/80 transition-colors duration-200'
-                    onClick={() => handleDeleteRoom(activeRoom.id)}
+                    className={`h-5 w-5 text-[var(--color-red)] transition-colors duration-200 ${
+                      isStartingGame || isDeletingRoom
+                        ? "opacity-50 cursor-not-allowed"
+                        : "cursor-pointer hover:text-[var(--color-red)]/80"
+                    }`}
+                    onClick={() => {
+                      !isDeletingRoom &&
+                        !isStartingGame &&
+                        handleDeleteRoom(activeRoom.id);
+                    }}
                   />
                 </div>
               )}
             </div>
           </div>
         )}
+
+        <button
+          onClick={() => router.push("/how-to-play")}
+          className='absolute bottom-2 right-2 bg-[var(--color-gold)] text-white px-4 py-2 rounded-lg hover:bg-[var(--color-gold)]/80 cursor-pointer'
+        >
+          ¿Como jugar?
+        </button>
       </main>
 
       {/* Botón de cierre de sesión */}
@@ -964,7 +1078,12 @@ export default function MainMenu() {
       {isModalOpen && (
         <div className='fixed inset-0 flex items-center justify-center bg-[var(--color-black)]/50'>
           <div className='bg-white p-6 rounded-lg shadow-lg w-96'>
-            <form action='POST' onSubmit={handleCreateRoom}>
+            <form
+              action='POST'
+              onSubmit={(e) => {
+                !isCreatingRoom && handleCreateRoom(e);
+              }}
+            >
               <div className='flex justify-between items-center'>
                 <h2 className='text-xl font-bold'>Crear nueva sala</h2>
                 <button onClick={() => setIsModalOpen(false)}>
@@ -1174,13 +1293,26 @@ export default function MainMenu() {
                 )}
               </div>
 
-              <button className='mt-4 w-full bg-[var(--color-gold)] hover:bg-[var(--color-gold)]/80 text-white py-2 px-4 rounded '>
+              <button
+                className={`mt-4 w-full bg-[var(--color-gold)] text-white py-2 px-4 rounded ${
+                  isCreatingRoom
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-[var(--color-gold)]/80 cursor-pointer"
+                }`}
+              >
                 Crear
               </button>
             </form>
           </div>
         </div>
       )}
+
+      <StatsModal
+        isOpen={showStats}
+        onClose={() => setShowStats(false)}
+        stats={statsToShow as any}
+        statsLoading={isStatsLoading}
+      />
     </div>
   );
 }

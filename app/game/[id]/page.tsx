@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { GameUser } from "@/types";
 import CustomLoadingSpinner from "@/components/ui/CustomLoadingSpinner";
@@ -13,6 +13,7 @@ import Cup from "@/components/game/Cup";
 import DiceBoard from "@/components/game/DiceBoard";
 import { socket } from "@/lib/socket";
 import ScoreTable from "@/components/game/ScoreSheet";
+import { Volume2, VolumeX } from "lucide-react";
 
 interface GameTableProps {
   id: string;
@@ -37,8 +38,11 @@ export default function GameTable() {
   // Params
   const { id: gameId } = useParams();
   // Sonidos
+  const [isSoundPlaying, setIsSoundPlaying] = useState(true);
+  const backSoundRef = useRef<HTMLAudioElement | null>(null);
   const diceRollSound = new Audio("/sounds/dice-roll.mp3");
   const pencilSound = new Audio("/sounds/pencil.mp3");
+  const backSound = new Audio("/sounds/backSound.mp3");
   // Router
   const router = useRouter();
 
@@ -72,6 +76,18 @@ export default function GameTable() {
 
     fetchGame();
   }, [gameId, session?.user.id]);
+
+  useEffect(() => {
+    backSoundRef.current = backSound;
+    backSoundRef.current.loop = true;
+    backSoundRef.current.volume = 0.1;
+    backSoundRef.current.play();
+
+    return () => {
+      backSoundRef.current?.pause();
+      backSoundRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     if (!session?.user?.id) return;
@@ -113,7 +129,7 @@ export default function GameTable() {
         return prevGame;
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       setRollingLoading(false);
       setDicesToReroll([]);
@@ -188,6 +204,18 @@ export default function GameTable() {
     );
   }
 
+  const toggleBackSound = () => {
+    if (!backSoundRef.current) return;
+
+    if (isSoundPlaying) {
+      backSoundRef.current.pause();
+    } else {
+      backSoundRef.current.play();
+    }
+
+    setIsSoundPlaying((prev) => !prev);
+  };
+
   const verifyGameEnd = () => {
     const isCompleted = game.players.every((player) => {
       const scoreFields = [
@@ -217,7 +245,7 @@ export default function GameTable() {
   const getWinnersAndRanking = () => {
     const completedPlayers = game.players
       .filter((player) => typeof player.totalScore === "number")
-      .sort((a, b) => b.totalScore! - a.totalScore!); // Orden descendente
+      .sort((a, b) => b.totalScore! - a.totalScore!);
 
     if (completedPlayers.length === 0) return { winners: [], ranking: [] };
 
@@ -327,6 +355,17 @@ export default function GameTable() {
           </button>
         </div>
       )}
+
+      <button
+        className='absolute top-4 right-4 bg-white text-black px-3 py-1 rounded shadow hover:bg-gray-200 transition'
+        onClick={toggleBackSound}
+      >
+        {!isSoundPlaying ? (
+          <VolumeX className='h-5 w-5 text-black' />
+        ) : (
+          <Volume2 className='h-5 w-5 text-black' />
+        )}
+      </button>
 
       <ScoreTable
         players={game.players}

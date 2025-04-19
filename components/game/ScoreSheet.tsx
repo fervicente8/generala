@@ -51,7 +51,11 @@ function calculateScore(
   rollCount: number
 ): number {
   const counts = dice.reduce((acc, val) => {
-    acc[val] = (acc[val] || 0) + 1;
+    if (acc[val]) {
+      acc[val] += 1;
+    } else {
+      acc[val] = 1;
+    }
     return acc;
   }, {} as Record<number, number>);
 
@@ -67,7 +71,7 @@ function calculateScore(
     case "5":
     case "6":
       const num = parseInt(category);
-      return dice.filter((d) => d === num).reduce((a, b) => a + b, 0);
+      return (counts[num] || 0) * num;
 
     case "Escalera":
       baseScore = ["12345", "23456", "34561"].includes(sorted.join(""))
@@ -98,6 +102,8 @@ function calculateScore(
       return 0;
   }
 
+  setTimeout(() => {}, 1500); // A probar, un delay hasta que termine la animacion de dados
+
   return baseScore > 0 ? baseScore + servedBonus : 0;
 }
 
@@ -117,7 +123,7 @@ export default function ScoreTable({
 
   useEffect(() => {
     if (rollCount === 3 && isMyTurn) {
-      setVisible(true);
+      setTimeout(() => setVisible(true), 1500);
     }
   }, [rollCount, isMyTurn]);
 
@@ -145,6 +151,7 @@ export default function ScoreTable({
         });
       }
 
+      setVisible(false);
       socket.emit("submitScore", {
         players: players.map((player) => player.user),
         currentTurnId: data.currentTurnId,

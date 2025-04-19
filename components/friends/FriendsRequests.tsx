@@ -8,9 +8,14 @@ import { useAlert } from "../ui/CustomAlert";
 interface Props {
   friends: UserFriendship[];
   setFriends: (friends: UserFriendship[]) => void;
+  setIsJoiningRoom?: (isJoiningRoom: boolean) => void;
 }
 
-export default function FriendsRequests({ friends, setFriends }: Props) {
+export default function FriendsRequests({
+  friends,
+  setFriends,
+  setIsJoiningRoom,
+}: Props) {
   // Session
   const { data: session } = useSession();
   // Requests
@@ -144,6 +149,7 @@ export default function FriendsRequests({ friends, setFriends }: Props) {
   const handleAcceptInvitation = async (invitationId: string) => {
     if (!session?.user?.id) return;
 
+    setIsJoiningRoom && setIsJoiningRoom(true);
     try {
       const res = await fetch("/api/rooms/accept-invitation", {
         method: "POST",
@@ -188,6 +194,8 @@ export default function FriendsRequests({ friends, setFriends }: Props) {
       socket.emit("acceptGameInvitation", gameUser);
     } catch (error) {
       console.error("Error al aceptar invitación:", error);
+    } finally {
+      setIsJoiningRoom && setIsJoiningRoom(false);
     }
   };
 

@@ -28,9 +28,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 🔍 Verificar si el nombre de la sala ya existe
-    const existingRoom = await prisma.game.findUnique({
-      where: { name },
+    const existingRoom = await prisma.game.findFirst({
+      where: {
+        name,
+        status: "waiting",
+      },
     });
 
     if (existingRoom) {
