@@ -1,12 +1,10 @@
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function upsertUser(userData: {
-  googleId: string;
-  name: string;
-  email: string;
-  image?: string;
-}) {
+export async function POST(req: NextRequest) {
   try {
+    const userData = await req.json();
+
     const user = await prisma.user.upsert({
       where: { googleId: userData.googleId },
       update: {},
@@ -30,16 +28,16 @@ export async function upsertUser(userData: {
             winRate: 0.0,
             totalTimePlayed: 0,
             lastGameDate: null,
-            elo: 0, // Elo inicial
+            elo: 0,
             eloChange: 0,
           },
         },
       },
     });
 
-    return user;
+    return NextResponse.json(user);
   } catch (error) {
-    console.error("Error upserting user:", error);
-    throw new Error("Failed to upsert user");
+    console.error("Error al crear o actualizar usuario:", error);
+    return NextResponse.json({ error: "No se pudo crear o actualizar el usuario" }, { status: 500 });
   }
 }

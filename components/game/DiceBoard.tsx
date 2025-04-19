@@ -30,6 +30,8 @@ export default function DiceBoard({
   rollCount,
   isMyTurn,
 }: DiceBoardProps) {
+  console.log(game.diceValues);
+
   return (
     <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-6 select-none'>
       <div className='flex gap-4'>
@@ -43,6 +45,7 @@ export default function DiceBoard({
                 (rollCount === 1 || dicesToReroll.includes(index))
               }
               selectedForReroll={dicesToReroll.includes(index)}
+              rollCount={rollCount}
               onClick={() => {
                 if (rollCount < 3 && isMyTurn) {
                   if (dicesToReroll.includes(index)) {

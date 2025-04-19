@@ -5,9 +5,10 @@ import styles from "./Dice.module.css";
 
 interface DiceProps extends HTMLAttributes<HTMLDivElement> {
   value: 1 | 2 | 3 | 4 | 5 | 6;
-  rolling?: boolean;
+  rolling: boolean;
   selectedForReroll?: boolean;
-  isMyTurn?: boolean;
+  rollCount: number;
+  isMyTurn: boolean;
   onClick?: () => void;
 }
 
@@ -16,6 +17,7 @@ const Dice = ({
   rolling = false,
   selectedForReroll = false,
   isMyTurn = false,
+  rollCount,
   onClick,
   className,
   ...props
@@ -24,7 +26,7 @@ const Dice = ({
     <div
       className={`${styles.container} ${className || ""} ${
         selectedForReroll ? styles.selected : ""
-      } ${isMyTurn ? styles.interactive : ""}`}
+      } ${isMyTurn && rollCount < 3 ? styles.interactive : ""}`}
       onClick={isMyTurn ? onClick : undefined}
       {...props}
     >

@@ -2,7 +2,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px;
   border-radius: 4px;
   transition: transform 0.2s ease, background-color 0.2s ease;
   transform-origin: center center;
@@ -118,10 +117,10 @@
   }
 }
 
-/* Estilos para dados seleccionados */
 .selected {
-  background-color: rgba(255, 255, 0, 0.2);
-  border: 2px solid #ffeb3b;
+  transform: scale(1.1);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.6);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* Estilos para interactividad (hover y cursor) */
@@ -129,8 +128,8 @@
   cursor: pointer;
 }
 
-.interactive:hover {
-  transform: scale(1.1); /* Escala aplicada al contenedor */
+.interactive:not(.selected):hover {
+  transform: scale(1.05);
 }
 
 /* Posicionamiento estático para cada valor del dado */
@@ -139,7 +138,7 @@
 }
 
 .face-2 {
-  transform: rotateX(-90deg) rotateY(0deg); /* Muestra la cara bottom (valor 2) */
+  transform: rotateX(90deg) rotateY(0deg); /* Muestra la cara bottom (valor 2) */
 }
 
 .face-3 {
@@ -151,7 +150,7 @@
 }
 
 .face-5 {
-  transform: rotateX(90deg) rotateY(0deg); /* Muestra la cara top (valor 5) */
+  transform: rotateX(-90deg) rotateY(0deg); /* Muestra la cara top (valor 5) */
 }
 
 .face-6 {

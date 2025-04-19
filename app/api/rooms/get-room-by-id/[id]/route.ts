@@ -3,16 +3,16 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  const gameId = params.id;
+  const gameId = (await params).id;
   const { searchParams } = new URL(req.url);
   const userId = searchParams.get("userId");
-  
+
   if (!userId) {
     return NextResponse.json({ error: "Usuario no autenticado" }, { status: 400 });
   }
-  
+
   try {
     // Obtener juego con jugadores
     const game = await prisma.game.findUnique({
@@ -33,9 +33,9 @@ export async function GET(
     }
 
     const isUserInGame = game.players.some((player) => player.userId === userId);
-  
+
     if (!isUserInGame) {
-      return NextResponse.json({ error: "No estas en esta sala" }, { status: 403 });
+      return NextResponse.json({ error: "No estás en esta sala" }, { status: 403 });
     }
 
     return NextResponse.json({

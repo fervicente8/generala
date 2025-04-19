@@ -258,122 +258,127 @@ export default function GameTable() {
   const { winners, ranking } = getWinnersAndRanking();
 
   return (
-    <div className='relative w-full h-[100vh] bg-green-800 overflow-hidden shadow-xl'>
-      {/* Imagen para desktop */}
-      <div className='hidden lg:block w-full h-full'>
-        <Image
-          src='/table-desktop.png'
-          alt='Mesa de Generala - Desktop'
-          layout='fill'
-          className='relative object-fit-cover'
-        />
-      </div>
-
-      {/* Imagen para dispositivos móviles */}
-      <div className='lg:hidden w-full h-full'>
-        <Image
-          src='/table-mobile.png'
-          alt='Mesa de Generala - Mobile'
-          layout='fill'
-          className='relative object-fit-cover'
-        />
-      </div>
-
-      {game.players.map((player, index) => (
-        <PlayerSlot
-          key={player.userId}
-          player={player}
-          position={index}
-          isCurrentTurn={player.userId === game.currentTurnId}
-          timePerTurn={game.turnTimeout ? game.turnTimeout : 0}
-          totalPlayers={game.players.length}
+    <div className='relative flex flex-row w-full max-h-[100vh] overflow-hidden'>
+      <div className='flex-shrink-0 h-[100vh]'>
+        <ScoreTable
+          players={game.players}
+          currentTurnId={game.currentTurnId}
+          isMyTurn={session?.user?.id === game.currentTurnId}
+          diceValues={game.diceValues}
           rollCount={game.rollCount}
         />
-      ))}
-
-      {!verifyGameEnd() ? (
-        <>
-          <DiceBoard
-            game={game}
-            rollingLoading={rollingLoading}
-            dicesToReroll={dicesToReroll}
-            setDicesToReroll={setDicesToReroll}
-            rollCount={game.rollCount}
-            isMyTurn={session?.user?.id === game.currentTurnId}
-          />
-
-          <Cup
-            gamePlayers={game.players}
-            isMyTurn={session?.user?.id === game.currentTurnId}
-            rollCount={game.rollCount}
-            gameId={game.id}
-            rollingLoading={rollingLoading}
-            dicesToReroll={dicesToReroll}
-            setDicesToReroll={setDicesToReroll}
-          />
-        </>
-      ) : (
-        <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-6 select-none'>
-          <div className='flex flex-col items-center gap-4'>
-            <p className='text-2xl text-[var(--color-gold)] font-bold'>
-              Juego terminado
-            </p>
-            {winners.length === 1 ? (
-              <p className='text-2xl text-white font-bold'>
-                {winners[0].user.name} es el ganador!
-              </p>
-            ) : (
-              <p className='text-2xl text-white font-bold'>
-                ¡Empate entre {winners.map((w) => w.user.name).join(", ")}!
-              </p>
-            )}
-          </div>
-
-          <div className='flex flex-col gap-2 items-center text-white'>
-            <p className='text-xl font-semibold underline'>Ranking</p>
-            {ranking.map((player, index) => (
-              <div
-                key={player.id}
-                className={`text-lg ${
-                  winners.some((w) => w.id === player.id)
-                    ? "text-[var(--color-gold)] font-bold"
-                    : ""
-                }`}
-              >
-                {index + 1}. {player.user.name} - {player.totalScore} pts
-              </div>
-            ))}
-          </div>
-
-          <button
-            className='bg-[var(--color-gold)] text-black py-2 px-4 rounded-lg font-semibold hover:bg-[var(--color-gold)]/80 transition-all duration-200 cursor-pointer'
-            onClick={() => {
-              router.push("/");
-            }}
-          >
-            Volver al lobby
-          </button>
+      </div>
+      <div className='flex-1 relative'>
+        <div className='relative h-[100vh] bg-green-800 overflow-hidden shadow-xl'>
+          {/* Imagen para desktop */}
         </div>
-      )}
+        <div className='hidden lg:block w-full h-full'>
+          <Image
+            src='/table-desktop.png'
+            alt='Mesa de Generala - Desktop'
+            layout='fill'
+            className='relative object-fit-cover'
+          />
+        </div>
 
-      <button
-        className='absolute top-4 right-4 bg-white text-black px-3 py-1 rounded shadow hover:bg-gray-200 transition'
-        onClick={toggleBackSound}
-      >
-        {!isSoundPlaying ? (
-          <VolumeX className='h-5 w-5 text-black' />
+        {/* Imagen para dispositivos móviles */}
+        <div className='lg:hidden w-full h-full'>
+          <Image
+            src='/table-mobile.png'
+            alt='Mesa de Generala - Mobile'
+            layout='fill'
+            className='relative object-fit-cover'
+          />
+        </div>
+
+        {game.players.map((player, index) => (
+          <PlayerSlot
+            key={player.userId}
+            player={player}
+            position={index}
+            isCurrentTurn={player.userId === game.currentTurnId}
+            timePerTurn={game.turnTimeout ? game.turnTimeout : 0}
+            totalPlayers={game.players.length}
+            rollCount={game.rollCount}
+          />
+        ))}
+
+        {!verifyGameEnd() ? (
+          <>
+            <DiceBoard
+              game={game}
+              rollingLoading={rollingLoading}
+              dicesToReroll={dicesToReroll}
+              setDicesToReroll={setDicesToReroll}
+              rollCount={game.rollCount}
+              isMyTurn={session?.user?.id === game.currentTurnId}
+            />
+
+            <Cup
+              gamePlayers={game.players}
+              isMyTurn={session?.user?.id === game.currentTurnId}
+              rollCount={game.rollCount}
+              gameId={game.id}
+              rollingLoading={rollingLoading}
+              dicesToReroll={dicesToReroll}
+              setDicesToReroll={setDicesToReroll}
+            />
+          </>
         ) : (
-          <Volume2 className='h-5 w-5 text-black' />
-        )}
-      </button>
+          <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-6 select-none'>
+            <div className='flex flex-col items-center gap-4'>
+              <p className='text-2xl text-[var(--color-gold)] font-bold'>
+                Juego terminado
+              </p>
+              {winners.length === 1 ? (
+                <p className='text-2xl text-white font-bold'>
+                  {winners[0].user.name} es el ganador!
+                </p>
+              ) : (
+                <p className='text-2xl text-white font-bold'>
+                  ¡Empate entre {winners.map((w) => w.user.name).join(", ")}!
+                </p>
+              )}
+            </div>
 
-      <ScoreTable
-        players={game.players}
-        currentTurnId={game.currentTurnId}
-        isMyTurn={session?.user?.id === game.currentTurnId}
-        diceValues={game.diceValues}
-        rollCount={game.rollCount}
-      />
+            <div className='flex flex-col gap-2 items-center text-white'>
+              <p className='text-xl font-semibold underline'>Ranking</p>
+              {ranking.map((player, index) => (
+                <div
+                  key={player.id}
+                  className={`text-lg ${
+                    winners.some((w) => w.id === player.id)
+                      ? "text-[var(--color-gold)] font-bold"
+                      : ""
+                  }`}
+                >
+                  {index + 1}. {player.user.name} - {player.totalScore} pts
+                </div>
+              ))}
+            </div>
+
+            <button
+              className='bg-[var(--color-gold)] text-black py-2 px-4 rounded-lg font-semibold hover:bg-[var(--color-gold)]/80 transition-all duration-200 cursor-pointer'
+              onClick={() => {
+                router.push("/");
+              }}
+            >
+              Volver al lobby
+            </button>
+          </div>
+        )}
+
+        <button
+          className='absolute top-4 right-4 bg-white text-black px-3 py-1 rounded shadow hover:bg-gray-200 transition'
+          onClick={toggleBackSound}
+        >
+          {!isSoundPlaying ? (
+            <VolumeX className='h-5 w-5 text-black' />
+          ) : (
+            <Volume2 className='h-5 w-5 text-black' />
+          )}
+        </button>
+      </div>
     </div>
   );
 }

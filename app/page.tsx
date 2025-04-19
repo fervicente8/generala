@@ -12,7 +12,7 @@ import {
   Trash2,
   Eye,
   EyeOff,
-  BrainCircuit,
+  ChartColumnIncreasing,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import CustomLoadingSpinner from "@/components/ui/CustomLoadingSpinner";
@@ -995,7 +995,7 @@ export default function MainMenu() {
                     <span className=' font-bold text-[var(--color-black)]'>
                       {player.user.name}
                     </span>
-                    <BrainCircuit
+                    <ChartColumnIncreasing
                       className={`absolute top-1 left-1 h-5 w-5 text-[var(--color-black)] transition-colors duration-200 hover:text-[var(--color-black)]/80 cursor-pointer`}
                       onClick={() => getPlayerStats(player.userId)}
                     />

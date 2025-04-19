@@ -27,7 +27,7 @@ const CATEGORIES = [
   { label: "Full", name: "fullHouse" },
   { label: "Poker", name: "poker" },
   { label: "Generala", name: "generala" },
-  { label: "Doble Generala", name: "double" },
+  { label: "Generala II", name: "double" },
 ];
 
 type GameUserCategory = keyof Pick<
@@ -48,7 +48,8 @@ type GameUserCategory = keyof Pick<
 function calculateScore(
   category: string,
   dice: number[],
-  rollCount: number
+  rollCount: number,
+  playerScore: GameUser
 ): number {
   const counts = dice.reduce((acc, val) => {
     if (acc[val]) {
@@ -60,6 +61,7 @@ function calculateScore(
   }, {} as Record<number, number>);
 
   const sorted = [...dice].sort();
+
   let baseScore = 0;
   let servedBonus = rollCount === 1 ? 5 : 0;
 
@@ -95,14 +97,15 @@ function calculateScore(
       break;
 
     case "Doble Generala":
-      baseScore = Object.values(counts).some((c) => c === 5) ? 100 : 0;
+      baseScore =
+        Object.values(counts).some((c) => c === 5) && playerScore.generala
+          ? 100
+          : 0;
       break;
 
     default:
       return 0;
   }
-
-  setTimeout(() => {}, 1500); // A probar, un delay hasta que termine la animacion de dados
 
   return baseScore > 0 ? baseScore + servedBonus : 0;
 }
@@ -116,16 +119,8 @@ export default function ScoreTable({
 }: ScoreTableProps) {
   // Session
   const { data: session } = useSession();
-
   const [loading, setLoading] = useState(false);
-  const [visible, setVisible] = useState(false);
   const { showAlert } = useAlert();
-
-  useEffect(() => {
-    if (rollCount === 3 && isMyTurn) {
-      setTimeout(() => setVisible(true), 1500);
-    }
-  }, [rollCount, isMyTurn]);
 
   const handleSetScore = async (category: string, score: number) => {
     if (!isMyTurn) return;
@@ -151,7 +146,6 @@ export default function ScoreTable({
         });
       }
 
-      setVisible(false);
       socket.emit("submitScore", {
         players: players.map((player) => player.user),
         currentTurnId: data.currentTurnId,
@@ -176,123 +170,131 @@ export default function ScoreTable({
   };
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={false}
-        animate={{ height: visible ? "auto" : 48, opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.4, ease: "easeInOut" }}
-        className='fixed bottom-0 left-0 w-1/3 bg-white rounded-t-2xl shadow-lg z-50 overflow-hidden'
-      >
-        <div className='relative px-4 py-2 border-b border-gray-200'>
-          <h2 className='text-lg font-semibold text-center'>Anotador</h2>
-          {visible ? (
-            <ChevronDown
-              onClick={() => setVisible(false)}
-              className='absolute top-2 right-4 cursor-pointer'
-            />
-          ) : (
-            <ChevronUp
-              onClick={() => setVisible(true)}
-              className='absolute top-2 right-4 cursor-pointer'
-            />
-          )}
-        </div>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4, ease: "easeInOut" }}
+      className='bg-white max-w-[600px] h-[100vh] z-50 py-2 px-4'
+    >
+      <div className='overflow-x-scroll'>
+        <h2 className='text-xl font-semibold mb-6 mt-4'>Puntuación</h2>
 
-        {visible && (
-          <div className='p-4'>
-            <table className='w-full border-collapse'>
-              <thead>
-                <tr>
-                  <th className='text-left'></th>
-                  {players.map((player) => (
-                    <th
-                      key={player.userId}
-                      className={`p-2 ${
-                        session?.user?.id === player.userId
-                          ? " text-blue-900"
-                          : ""
-                      }`}
-                    >
-                      {player.user.name}
-                      {player.user.id === session?.user?.id && " (Yo)"}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {CATEGORIES.map((category) => (
-                  <tr key={category.name}>
-                    <td className='p-2 font-medium'>{category.label}</td>
-                    {players.map((player) => {
-                      const value =
-                        player.userId === currentTurnId &&
+        <table className='w-full border-separate border-spacing-y-1 h-[88vh]'>
+          <thead>
+            <tr>
+              <th className='text-left'></th>
+              {players.map((player) => (
+                <th key={player.userId} className={``}>
+                  <img
+                    src={
+                      player.user.image
+                        ? player.user.image
+                        : "/default-avatar.png"
+                    }
+                    alt='Avatar'
+                    onError={(e) =>
+                      (e.currentTarget.src = "/default-avatar.png")
+                    }
+                    className='w-16 h-16 rounded-full m-auto'
+                  />
+                </th>
+              ))}
+            </tr>
+            <tr>
+              <th className='text-left'></th>
+              {players.map((player) => (
+                <th
+                  key={player.userId}
+                  className={`p-2 text-sm ${
+                    session?.user?.id === player.userId ? "text-blue-900" : ""
+                  }`}
+                >
+                  {player.user.name}
+                  {player.user.id === session?.user?.id && " (Yo)"}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {CATEGORIES.map((category, index) => (
+              <tr key={category.name}>
+                <td
+                  className={`p-2 text-[#333] min-w-[120px] border-b border-gray-400 text-md font-bold ${
+                    index === 0 && "border-t"
+                  }`}
+                >
+                  {category.label}
+                </td>
+                {players.map((player) => {
+                  const value =
+                    player.userId === currentTurnId &&
+                    isMyTurn &&
+                    !isAlreadySubmitted(
+                      category.name as GameUserCategory,
+                      player.userId
+                    )
+                      ? calculateScore(
+                          category.label,
+                          diceValues,
+                          rollCount,
+                          player
+                        )
+                      : player[category.name as GameUserCategory] === null
+                      ? ""
+                      : player[category.name as GameUserCategory];
+                  return (
+                    <td
+                      key={player.id}
+                      className={`p-2 text-center min-w-[150px] border-b border-gray-400 select-none text-md ${
+                        index === 0 && "border-t"
+                      } ${
+                        isAlreadySubmitted(
+                          category.name as GameUserCategory,
+                          player.userId
+                        ) && "text-[#555] cursor-default"
+                      } ${
                         isMyTurn &&
+                        player.userId === currentTurnId &&
                         !isAlreadySubmitted(
                           category.name as GameUserCategory,
                           player.userId
-                        )
-                          ? calculateScore(
-                              category.label,
-                              diceValues,
-                              rollCount
-                            )
-                          : player[category.name as GameUserCategory] === null
-                          ? ""
-                          : player[category.name as GameUserCategory];
-                      return (
-                        <td
-                          key={player.id}
-                          className={`p-2 text-center select-none ${
-                            isAlreadySubmitted(
-                              category.name as GameUserCategory,
-                              player.userId
-                            ) && "text-[#333] cursor-default"
-                          } ${
-                            isMyTurn &&
-                            player.userId === currentTurnId &&
-                            !isAlreadySubmitted(
-                              category.name as GameUserCategory,
-                              player.userId
-                            ) &&
-                            "cursor-pointer bg-blue-100 hover:text-blue-900 transition duration-200 ease-in-out font-semibold rounded"
-                          }`}
-                          onClick={() => {
-                            if (
-                              isMyTurn &&
-                              player.userId === currentTurnId &&
-                              !loading &&
-                              !isAlreadySubmitted(
-                                category.name as GameUserCategory,
-                                player.userId
-                              )
-                            ) {
-                              handleSetScore(category.name, value as number);
-                            }
-                          }}
-                        >
-                          {value}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-                <tr>
-                  <td className='p-2 font-medium'>Total</td>
-                  {players.map((player) => (
-                    <td
-                      key={player.id}
-                      className='p-2 text-center cursor-default font-semibold text-blue-900'
+                        ) &&
+                        "cursor-pointer bg-blue-100 hover:text-blue-900 transition duration-200 ease-in-out font-semibold rounded"
+                      }`}
+                      onClick={() => {
+                        if (
+                          isMyTurn &&
+                          player.userId === currentTurnId &&
+                          !loading &&
+                          !isAlreadySubmitted(
+                            category.name as GameUserCategory,
+                            player.userId
+                          )
+                        ) {
+                          handleSetScore(category.name, value as number);
+                        }
+                      }}
                     >
-                      {player.totalScore}
+                      {value}
                     </td>
-                  ))}
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        )}
-      </motion.div>
-    </AnimatePresence>
+                  );
+                })}
+              </tr>
+            ))}
+            <tr>
+              <td className='p-2 font-bold'>Total</td>
+              {players.map((player) => (
+                <td
+                  key={player.id}
+                  className='p-2 text-center cursor-default font-semibold text-blue-900'
+                >
+                  {player.totalScore}
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </motion.div>
   );
 }
