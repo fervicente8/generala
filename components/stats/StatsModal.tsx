@@ -35,8 +35,9 @@ export const StatsModal: React.FC<StatsModalProps> = ({
   statsLoading,
 }) => {
   // Session
-  if (!isOpen) return null;
   const { data: session } = useSession();
+
+  if (!isOpen) return null;
 
   return (
     <div className='fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50'>
