@@ -14,9 +14,7 @@ const eslintConfig = [
       }],
 
       "react/no-unescaped-entities": ["error", {
-        "escape": {
-          "quotes": true,
-        }
+        "forbid": ["\"", "\"", "`"]
       }],
 
       "@next/next/no-img-element": "warn",
