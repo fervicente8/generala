@@ -4,6 +4,7 @@ import { CirclePlus, CircleX, MailCheck, SendHorizonal } from "lucide-react";
 import CustomLoadingSpinner from "../ui/CustomLoadingSpinner";
 import { socket } from "@/lib/socket";
 import { useAlert } from "../ui/CustomAlert";
+import Image from "next/image";
 
 interface Props {
   sessionUser: User;
@@ -184,13 +185,13 @@ export default function FriendCard({
     <div className='flex items-center justify-between gap-2 select-none'>
       <div className='flex items-center gap-2'>
         <div className='relative'>
-          <img
-            src={user.image ? user.image : "/default-avatar.png"}
+          <Image
+            src={user.image || "/default-avatar.png"}
             alt='Avatar'
-            className='w-12 h-12 rounded-full'
-            onError={(e) => {
-              e.currentTarget.src = "/default-avatar.png";
-            }}
+            width={48} // w-12 = 48px
+            height={48} // h-12 = 48px
+            className='rounded-full'
+            unoptimized
           />
           <div
             className={`absolute bottom-[2px] right-[2px] w-[14px] h-[14px] ${

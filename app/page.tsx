@@ -21,6 +21,7 @@ import FriendCard from "@/components/friends/FriendCard";
 import FriendsRequests from "@/components/friends/FriendsRequests";
 import { useAlert } from "@/components/ui/CustomAlert";
 import { StatsModal } from "@/components/stats/StatsModal";
+import Image from "next/image";
 
 export default function MainMenu() {
   // Session
@@ -744,18 +745,14 @@ export default function MainMenu() {
                   </p>
                   <div className='flex gap-2 items-center'>
                     {activeRoom.players.map((player) => (
-                      <img
+                      <Image
                         key={player.id}
-                        src={
-                          player.user.image
-                            ? player.user.image
-                            : "/default-avatar.png"
-                        }
-                        alt='Foto de perfil'
-                        className='w-15 h-15 rounded-full'
-                        onError={(e) => {
-                          e.currentTarget.src = "/default-avatar.png";
-                        }}
+                        src={player.user.image || "/default-avatar.png"}
+                        alt='Avatar'
+                        width={60}
+                        height={60}
+                        className='rounded-full'
+                        unoptimized
                       />
                     ))}
                   </div>
@@ -881,17 +878,13 @@ export default function MainMenu() {
                             }}
                           >
                             {/* Imagen del propietario */}
-                            <img
-                              src={
-                                room.owner.image
-                                  ? room.owner.image
-                                  : "/default-avatar.png"
-                              }
-                              alt='Imagen del propietario'
-                              className='w-10 h-10 rounded-full mr-4'
-                              onError={(e) => {
-                                e.currentTarget.src = "/default-avatar.png";
-                              }}
+                            <Image
+                              src={room.owner.image || "/default-avatar.png"}
+                              alt='Avatar'
+                              width={40}
+                              height={40}
+                              className='rounded-full mr-4'
+                              unoptimized // si usás imágenes externas sin configurar domains
                             />
 
                             {/* Información de la sala */}
@@ -980,17 +973,13 @@ export default function MainMenu() {
                     key={player.id}
                     className='relative flex flex-col gap-2 items-center justify-content-center bg-white p-4 rounded-lg'
                   >
-                    <img
-                      src={
-                        player.user.image
-                          ? player.user.image
-                          : "/default-avatar.png"
-                      }
+                    <Image
+                      src={player.user.image || "/default-avatar.png"}
                       alt='Foto de perfil'
-                      className='w-15 h-15 rounded-full'
-                      onError={(e) => {
-                        e.currentTarget.src = "/default-avatar.png";
-                      }}
+                      width={60}
+                      height={60}
+                      className='rounded-full'
+                      unoptimized
                     />
                     <span className=' font-bold text-[var(--color-black)]'>
                       {player.user.name}

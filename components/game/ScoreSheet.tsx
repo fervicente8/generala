@@ -7,6 +7,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { useAlert } from "../ui/CustomAlert";
 import { socket } from "@/lib/socket";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 
 interface ScoreTableProps {
   players: GameUser[];
@@ -185,17 +186,13 @@ export default function ScoreTable({
               <th className='text-left'></th>
               {players.map((player) => (
                 <th key={player.userId} className={``}>
-                  <img
-                    src={
-                      player.user.image
-                        ? player.user.image
-                        : "/default-avatar.png"
-                    }
+                  <Image
+                    src={player.user.image || "/default-avatar.png"}
                     alt='Avatar'
-                    onError={(e) =>
-                      (e.currentTarget.src = "/default-avatar.png")
-                    }
-                    className='w-16 h-16 rounded-full m-auto'
+                    width={64}
+                    height={64}
+                    className='rounded-full m-auto'
+                    unoptimized
                   />
                 </th>
               ))}

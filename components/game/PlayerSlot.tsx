@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { GameUser } from "@/types";
 import { getPlayerPositions } from "@/lib/utils";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 
 interface PlayerSlotProps {
   player: GameUser;
@@ -60,11 +61,13 @@ export default function PlayerSlot({
       <span className='text-white font-semibold mb-2 max-w-full truncate'>
         {player.user.name} {player.userId === session?.user?.id && "(Yo)"}
       </span>
-      <img
-        src={player.user.image ? player.user.image : "/default-avatar.png"}
+      <Image
+        src={player.user.image || "/default-avatar.png"}
         alt='Foto de perfil'
-        className='w-16 h-16 rounded-full object-cover '
-        onError={(e) => (e.currentTarget.src = "/default-avatar.png")}
+        width={64}
+        height={64}
+        className='rounded-full object-cover'
+        unoptimized
       />
       {isCurrentTurn && timePerTurn > 0 && (
         <span className='text-[var(--color-gold)] text-sm absolute bottom-2 right-2'>

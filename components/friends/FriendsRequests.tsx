@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { socket } from "@/lib/socket";
 import { useSession } from "next-auth/react";
 import { useAlert } from "../ui/CustomAlert";
+import Image from "next/image";
 
 interface Props {
   friends: UserFriendship[];
@@ -247,17 +248,13 @@ export default function FriendsRequests({
               className='flex items-center justify-between gap-2 bg-white py-2 px-4 rounded-lg shadow-sm'
             >
               <div className='flex items-center gap-2'>
-                <img
-                  src={
-                    invitation.sender.image
-                      ? invitation.sender.image
-                      : "/default-avatar.png"
-                  }
+                <Image
+                  src={invitation.sender.image || "/default-avatar.png"}
                   alt='Avatar'
-                  className='h-10 w-10 rounded-full'
-                  onError={(e) => {
-                    e.currentTarget.src = "/default-avatar.png";
-                  }}
+                  width={40}
+                  height={40}
+                  className='rounded-full'
+                  unoptimized
                 />
                 <p className='text-sm'>
                   {invitation.sender.name} te ha invitado a jugar
@@ -292,17 +289,13 @@ export default function FriendsRequests({
               className='flex items-center justify-between gap-2 bg-white py-2 px-4 rounded-lg shadow-sm'
             >
               <div className='flex items-center gap-2'>
-                <img
-                  src={
-                    request.requester.image
-                      ? request.requester.image
-                      : "/default-avatar.png"
-                  }
+                <Image
+                  src={request.requester.image || "/default-avatar.png"}
                   alt='Avatar'
-                  className='h-10 w-10 rounded-full'
-                  onError={(e) => {
-                    e.currentTarget.src = "/default-avatar.png";
-                  }}
+                  width={40}
+                  height={40}
+                  className='rounded-full'
+                  unoptimized
                 />
                 <p>{request.requester.name}</p>
               </div>
