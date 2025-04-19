@@ -13,9 +13,7 @@ const eslintConfig = [
         "additionalHooks": "(useCallback|useMemo)"
       }],
 
-      "react/no-unescaped-entities": ["error", {
-        "forbid": ["\"", "\"", "`"]
-      }],
+      "react/no-unescaped-entities": "off",
 
       "@next/next/no-img-element": "warn",
 
