@@ -40,5 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# archivos generados automáticamente (Prisma, etc.)
+# archivos generados automáticamente (Prisma y Supabase)
 lib/generated/
+supabase

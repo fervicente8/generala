@@ -25,16 +25,19 @@ export const metadata: Metadata = {
     title: "Generala Online - Juega con Amigos",
     description:
       "Disfruta de la clásica Generala en línea. Crea salas, juega con amigos y compite en partidas emocionantes.",
-    url: "https://tudominio.com",
+    url: "https://lagenerala.vercel.app",
     type: "website",
     images: [
       {
-        url: "https://tudominio.com/preview.jpg",
+        url: "https://lagenerala.vercel.app/preview.jpg",
         width: 1200,
         height: 630,
         alt: "Generala Online",
       },
     ],
+  },
+  alternates: {
+    canonical: "https://lagenerala.vercel.app",
   },
 };
 
