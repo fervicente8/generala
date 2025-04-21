@@ -1,27 +1,57 @@
-# Usa una imagen liviana de Node.js
-FROM node:18-alpine
+# syntax = docker/dockerfile:1
 
-# Instala dependencias necesarias para Prisma
-RUN apk add --no-cache openssl
+# Adjust NODE_VERSION as desired
+ARG NODE_VERSION=22.11.0
+FROM node:${NODE_VERSION}-slim AS base
 
-# Define el directorio de trabajo
+LABEL fly_launch_runtime="Next.js/Prisma"
+
+# Next.js/Prisma app lives here
 WORKDIR /app
 
-# Copia archivos de dependencias
-COPY package*.json ./
-RUN npm install
+# Set production environment
+ENV NODE_ENV="production"
 
-# Copia el resto del proyecto
-COPY . .
 
-# Genera Prisma Client
+# Throw-away build stage to reduce size of final image
+FROM base AS build
+
+# Install packages needed to build node modules
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y build-essential node-gyp openssl pkg-config python-is-python3
+
+# Install node modules
+COPY package-lock.json package.json ./
+COPY prisma .
+RUN npm ci --include=dev
+
+# Generate Prisma Client
 RUN npx prisma generate
 
-# Construye la app de Next.js
-RUN npm run build
+# Copy application code
+COPY . .
 
-# Expone el puerto
+# Build application
+RUN npx next build --experimental-build-mode compile
+
+# Remove development dependencies
+RUN npm prune --omit=dev
+
+
+# Final stage for app image
+FROM base
+
+# Install packages needed for deployment
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y openssl && \
+    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
+# Copy built application
+COPY --from=build /app /app
+
+# Entrypoint prepares the database.
+ENTRYPOINT [ "/app/docker-entrypoint.js" ]
+
+# Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
-
-# Comando de inicio
-CMD ["npm", "start"]
+CMD [ "npm", "run", "start" ]
