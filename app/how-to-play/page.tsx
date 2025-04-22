@@ -5,7 +5,7 @@ export default function HowToPlay() {
   const router = useRouter();
 
   return (
-    <main className='h-full p-6 max-w-4xl mx-auto text-base sm:text-lg space-y-8'>
+    <main className='h-full p-6 max-w-4xl mx-auto text-base sm:text-lg space-y-8 bg-gradient-to-r from-[var(--color-beige)]/60 to-[#fffaf0]'>
       <button
         className='fixed top-3 left-3 text-gray-500 hover:text-gray-800 cursor-pointer'
         onClick={() => router.back()}
