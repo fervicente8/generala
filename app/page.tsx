@@ -585,9 +585,9 @@ export default function MainMenu() {
   };
 
   return (
-    <div className='flex min-h-screen bg-[var(--color-white)] text-[var(--color-black)] overflow-hidden'>
+    <div className='flex min-h-screen bg-[#fffaf0] text-[var(--color-black)] overflow-hidden'>
       {/* Lista de amigos */}
-      <aside className='relative w-full md:w-1/4 p-6 shadow-xl rounded-r-2xl bg-blue-500'>
+      <aside className='relative w-full md:w-1/4 p-6 shadow-xl rounded-r-2xl bg-[var(--color-green)]'>
         <h2 className='text-2xl font-bold mb-4 text-[var(--color-white)] '>
           Amigos
         </h2>
@@ -705,7 +705,7 @@ export default function MainMenu() {
       </aside>
 
       {/* Contenido principal */}
-      <main className='relative flex-1 p-6 md:p-10 overflow-y-scroll scrollbar-none bg-[var(--color-white)]'>
+      <main className='relative flex-1 p-6 md:p-10 overflow-y-scroll scrollbar-none bg-gradient-to-r from-[var(--color-beige)]/60 to-[#fffaf0]'>
         <div className='w-full mx-auto'>
           <div className='flex flex-row items-center mb-4'>
             <h1 className='text-4xl font-extrabold text-[var(--color-black)] drop-shadow-md max-w-3/4 truncate'>
