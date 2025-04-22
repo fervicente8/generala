@@ -585,12 +585,10 @@ export default function MainMenu() {
   };
 
   return (
-    <div className='flex min-h-screen bg-[#fffaf0] text-[var(--color-black)] overflow-hidden'>
+    <div className='flex min-h-screen bg-[var(--color-beige)] text-[var(--color-black)] overflow-hidden'>
       {/* Lista de amigos */}
-      <aside className='relative w-full md:w-1/4 p-6 shadow-xl rounded-r-2xl bg-[var(--color-green)]'>
-        <h2 className='text-2xl font-bold mb-4 text-[var(--color-white)] '>
-          Amigos
-        </h2>
+      <aside className='relative w-full md:w-1/5 p-6 shadow-xl rounded-r-2xl bg-[var(--color-white)]'>
+        <h2 className='text-2xl font-bold mb-4 text-blue-500 '>Amigos</h2>
         {/* Buscador de amigos */}
         <div className='mt-4 relative'>
           <div>
@@ -631,7 +629,7 @@ export default function MainMenu() {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -10 }}
                           transition={{ duration: 0.3 }}
-                          className='p-3 bg-white rounded-lg transition-colors duration-200 shadow-sm'
+                          className='p-3 bg-white rounded-lg transition-colors duration-200 border border-[var(--color-black)]/20'
                         >
                           <FriendCard
                             sessionUser={session?.user as User}
@@ -676,7 +674,7 @@ export default function MainMenu() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.3 }}
-                        className='p-3 bg-white rounded-lg transition-colors duration-200 shadow-sm'
+                        className='p-3 bg-white rounded-lg transition-colors duration-200 border border-[var(--color-black)]/20'
                       >
                         <FriendCard
                           sessionUser={session?.user as User}
@@ -705,7 +703,7 @@ export default function MainMenu() {
       </aside>
 
       {/* Contenido principal */}
-      <main className='relative flex-1 p-6 md:p-10 overflow-y-scroll scrollbar-none bg-gradient-to-r from-[var(--color-beige)]/60 to-[#fffaf0]'>
+      <main className='relative flex-1 p-6 md:p-10 overflow-y-scroll scrollbar-none bg-gradient-to-r from-[#fffaf0]/30 to-[#fffaf0]'>
         <div className='w-full mx-auto'>
           <div className='flex flex-row items-center mb-4'>
             <h1 className='text-4xl font-extrabold text-[var(--color-black)] drop-shadow-md max-w-3/4 truncate'>
