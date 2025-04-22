@@ -5,10 +5,10 @@
 
 :root {
   --color-green: #187031; /* Verde Casino */
-  --color-gold: #d4a017; /* Dorado Dados */
   --color-red: #c0392b; /* Rojo Suerte */
   --color-beige: #f4e1c1; /* Beige Papiro */
-  --color-black: #1c1c1c; /* Negro Profundo */
+  --color-black: #2a2a2a; /* Negro Profundo */
+  --color-white: #fafafa; /* Blanco apagado*/
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -84,9 +84,11 @@
 }
 
 body {
-  background-color: var(--color-beige);
+  margin: 0;
+  background-color: var(--color-green);
   color: var(--color-black);
   font-family: var(--font-montserrat), sans-serif;
+  overflow: hidden;
 }
 
 .dark {

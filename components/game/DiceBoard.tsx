@@ -30,16 +30,30 @@ export default function DiceBoard({
   rollCount,
   isMyTurn,
 }: DiceBoardProps) {
-  console.log(game.diceValues);
-
   return (
     <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-6 select-none'>
       <div className='flex gap-4'>
+        {isMyTurn &&
+          game.diceValues.length === 0 &&
+          Array(5)
+            .fill(0)
+            .map((value, index) => (
+              <Dice
+                key={index}
+                value={value}
+                rolling={
+                  rollingLoading &&
+                  (rollCount === 1 || dicesToReroll.includes(index))
+                }
+                rollCount={rollCount}
+                isMyTurn={isMyTurn}
+              />
+            ))}
         {game.diceValues.map((value, index) => {
           return (
             <Dice
               key={index}
-              value={value as 1 | 2 | 3 | 4 | 5 | 6}
+              value={value as 0 | 1 | 2 | 3 | 4 | 5 | 6}
               rolling={
                 rollingLoading &&
                 (rollCount === 1 || dicesToReroll.includes(index))

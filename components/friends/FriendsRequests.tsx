@@ -235,7 +235,7 @@ export default function FriendsRequests({
   return (
     <div className='flex flex-col gap-2'>
       {invitations.length > 0 && (
-        <h2 className='text-md bg-[var(--color-gold)] text-white px-4 py-2 rounded-lg text-center shadow-sm'>
+        <h2 className='text-md text-white px-4 py-2 rounded-lg text-center'>
           Invitaciones de juego pendientes
         </h2>
       )}
@@ -276,7 +276,7 @@ export default function FriendsRequests({
       )}
 
       {incomingRequests.length > 0 && (
-        <h2 className='text-md bg-[var(--color-gold)] text-white px-4 py-2 rounded-lg text-center shadow-sm'>
+        <h2 className='text-md text-white px-4 py-2 rounded-lg text-center'>
           Peticiones de amistad pendientes
         </h2>
       )}

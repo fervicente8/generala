@@ -1,0 +1,18 @@
+@import url("https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap");
+
+.container {
+  cursor: none;
+  font-family: "Patrick Hand", cursive;
+}
+
+.pointer {
+  opacity: 0;
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  background-image: url("/pointers/pencil.webp");
+  background-size: contain;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.1s ease-out;
+}

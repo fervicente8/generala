@@ -585,29 +585,30 @@ export default function MainMenu() {
   };
 
   return (
-    <div className='flex min-h-screen bg-[var(--color-green)] text-[var(--color-black)] overflow-hidden'>
+    <div className='flex min-h-screen bg-[var(--color-white)] text-[var(--color-black)] overflow-hidden'>
       {/* Lista de amigos */}
-      <aside className='relative w-full md:w-1/4 p-6 bg-[var(--color-beige)] shadow-lg rounded-r-2xl'>
-        <h2 className='text-2xl font-bold mb-4 text-[var(--color-black)]'>
+      <aside className='relative w-full md:w-1/4 p-6 shadow-xl rounded-r-2xl bg-blue-500'>
+        <h2 className='text-2xl font-bold mb-4 text-[var(--color-white)] '>
           Amigos
         </h2>
         {/* Buscador de amigos */}
         <div className='mt-4 relative'>
-          <input
-            type='text'
-            placeholder='Buscar amigos...'
-            value={friendSearch}
-            onChange={(e) => setFriendSearch(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearchFriends()}
-            className='w-full p-3 border border-[var(--color-black)]/20 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)] transition-all duration-200'
-          />
-          <button
-            onClick={handleSearchFriends}
-            disabled={isSearchingFriends}
-            className='mt-3 w-full bg-[var(--color-gold)] hover:bg-[var(--color-gold)]/80 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
-          >
-            {isSearchingFriends ? "Buscando..." : "Buscar"}
-          </button>
+          <div>
+            <input
+              type='text'
+              placeholder='Buscar amigos...'
+              value={friendSearch}
+              onChange={(e) => setFriendSearch(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearchFriends()}
+              className='w-full p-3 border border-[var(--color-black)]/20 rounded-md bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200'
+            />
+            <Search
+              onClick={() => {
+                if (!isSearchingFriends) handleSearchFriends();
+              }}
+              className='absolute right-3 top-3 w-6 h-6 text-[var(--color-black)] cursor-pointer transition-all duration-200 hover:text-blue-500'
+            />
+          </div>
           {friendResults && (
             <div>
               {isSearchingFriends ? (
@@ -630,7 +631,7 @@ export default function MainMenu() {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -10 }}
                           transition={{ duration: 0.3 }}
-                          className='p-3 bg-white rounded-lg shadow-sm transition-colors duration-200'
+                          className='p-3 bg-white rounded-lg transition-colors duration-200 shadow-sm'
                         >
                           <FriendCard
                             sessionUser={session?.user as User}
@@ -675,7 +676,7 @@ export default function MainMenu() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.3 }}
-                        className='p-3 bg-white rounded-lg shadow-md transition-colors duration-200'
+                        className='p-3 bg-white rounded-lg transition-colors duration-200 shadow-sm'
                       >
                         <FriendCard
                           sessionUser={session?.user as User}
@@ -704,41 +705,41 @@ export default function MainMenu() {
       </aside>
 
       {/* Contenido principal */}
-      <main className='relative flex-1 p-6 md:p-15 overflow-y-scroll scrollbar-none'>
+      <main className='relative flex-1 p-6 md:p-10 overflow-y-scroll scrollbar-none bg-[var(--color-white)]'>
         <div className='w-full mx-auto'>
           <div className='flex flex-row items-center mb-4'>
-            <h1 className='text-4xl font-extrabold  text-[var(--color-beige)] drop-shadow-md max-w-3/4 truncate'>
-              Bienvenido, {session.user?.name}
+            <h1 className='text-4xl font-extrabold text-[var(--color-black)] drop-shadow-md max-w-3/4 truncate'>
+              Bienvenido/a, {session.user?.name}
             </h1>
             <button
               onClick={() => {
                 setStatsToShow(session.user.stats);
                 setShowStats(true);
               }}
-              className='ml-4 px-4 py-2 text-white bg-black/60 hover:bg-black/50 backdrop-blur-3xl rounded-lg shadow-lg transition-all duration-200 cursor-pointer'
+              className='ml-4 px-4 py-2 text-white bg-black/50 hover:bg-black/50 backdrop-blur-3xl rounded-lg shadow-lg transition-all duration-200 cursor-pointer'
             >
               Ver estadísticas
             </button>
           </div>
 
           {/* Barra de búsqueda de salas */}
-          <div className='w-full flex items-center bg-white shadow-md rounded-lg '>
+          <div className='w-full flex items-center bg-white shadow rounded-lg border-[var(--color-black)]/20 border '>
             <Search className='w-6 h-6 text-[var(--color-black)] mx-4' />
             <input
               type='text'
               placeholder='Buscar sala...'
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className='flex-1 p-4 border border-[var(--color-black)]/20   rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)] text-[var(--color-black)] transition-all duration-200'
+              className='flex-1 p-4 rounded-r-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-[var(--color-black)] transition-all duration-200'
             />
           </div>
           {/* Tu sala */}
           {activeRoom && (
-            <section className='mt-6'>
-              <h2 className='text-2xl font-bold text-[var(--color-beige)] mb-4'>
+            <section className='mt-4'>
+              <h2 className='text-2xl font-bold italic text-[var(--color-black)] mb-4'>
                 Sala activa
               </h2>
-              <div className='flex items-center justify-between p-4 bg-white rounded-lg shadow-md md:w-2/4'>
+              <div className='flex items-center justify-between p-4 bg-white rounded-lg shadow-md border-[var(--color-black)]/20 border md:w-2/4'>
                 <div className='flex flex-col gap-2'>
                   <p className='text-[var(--color-black)] text-lg italic'>
                     {activeRoom.name}
@@ -787,14 +788,14 @@ export default function MainMenu() {
           )}
 
           {/* Listado de salas */}
-          <section className='mt-6'>
+          <section className='mt-4'>
             <div className='flex justify-between items-center mb-4'>
-              <h2 className='text-2xl font-bold text-[var(--color-beige)]'>
+              <h2 className='text-2xl font-bold italic text-[var(--color-black)]'>
                 Salas disponibles
               </h2>
               {/* Botón para agregar sala */}
               <button
-                className='bg-[var(--color-gold)] hover:bg-[var(--color-gold)]/80 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-200'
+                className='bg-blue-500 hover:bg-blue-500/80 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-200'
                 onClick={() => setIsModalOpen(true)}
                 disabled={isLoadingRooms || activeRoom !== null}
                 style={{
@@ -814,14 +815,14 @@ export default function MainMenu() {
                 (room) =>
                   activeRoom?.id !== room.id && room.status === "waiting"
               ).length === 0 ? (
-              <p className='text-[var(--color-beige)]/70 italic'>
+              <p className='text-[var(--color-black)]/70 italic'>
                 No hay salas disponibles.
               </p>
             ) : rooms.filter(
                 (room) =>
                   room.name.includes(search) && room.status === "waiting"
               ).length === 0 ? (
-              <p className='text-[var(--color-beige)]/70 italic'>
+              <p className='text-[var(--color-black)]/70 italic'>
                 No se encontraron salas con el nombre "{search}".
               </p>
             ) : (
@@ -839,7 +840,7 @@ export default function MainMenu() {
                         !room ? (
                           <div
                             key={index}
-                            className='relative flex justify-center items-center p-4 py-6 bg-white rounded-lg shadow-md'
+                            className='relative flex justify-center items-center p-4 py-6 bg-white rounded-lg shadow-md border border-[var(--color-black)]/20'
                           >
                             <CustomLoadingSpinner size='md' showText={false} />
                           </div>
@@ -850,7 +851,7 @@ export default function MainMenu() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                             transition={{ duration: 0.3 }}
-                            className={`relative flex items-center p-4 bg-white rounded-lg shadow-md transition-transform duration-200 ${
+                            className={`relative flex items-center p-4 bg-white rounded-lg shadow border border-[var(--color-black)]/20 transition-transform duration-200 ${
                               room.players.length >= room.maxPlayers ||
                               isJoiningRoom
                                 ? "cursor-not-allowed grayscale"
@@ -884,7 +885,7 @@ export default function MainMenu() {
                               width={40}
                               height={40}
                               className='rounded-full mr-4'
-                              unoptimized // si usás imágenes externas sin configurar domains
+                              unoptimized
                             />
 
                             {/* Información de la sala */}
@@ -932,14 +933,14 @@ export default function MainMenu() {
                                   <input
                                     type='password'
                                     placeholder='Contraseña'
-                                    className='border border-gray-300 rounded-lg px-2 py-1 w-full mb-2'
+                                    className='border border-[var(--color-black)]/20 rounded-lg px-2 py-1 w-full mb-2'
                                     value={password}
                                     onChange={(e) =>
                                       setPassword(e.target.value)
                                     }
                                   />
                                   <button
-                                    className='bg-[var(--color-gold)] text-white px-4 py-2 rounded-lg hover:bg-[var(--color-gold)]/80 cursor-pointer'
+                                    className='bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-500/80 cursor-pointer'
                                     onClick={() => joinRoom(room.id, password)}
                                   >
                                     Ingresar
@@ -1047,7 +1048,7 @@ export default function MainMenu() {
 
         <button
           onClick={() => router.push("/how-to-play")}
-          className='absolute bottom-2 right-2 bg-[var(--color-gold)] text-white px-4 py-2 rounded-lg hover:bg-[var(--color-gold)]/80 cursor-pointer'
+          className='absolute bottom-2 right-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-500/80 cursor-pointer'
         >
           ¿Como jugar?
         </button>
@@ -1090,7 +1091,7 @@ export default function MainMenu() {
                 id='roomName'
                 value={gameSettings.name}
                 onChange={handleChange}
-                className='w-full p-2 border rounded mb-3 border-[var(--color-black)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)] text-[var(--color-black)] transition-all duration-200'
+                className='w-full p-2 border rounded mb-3 border-[var(--color-black)]/20 focus:outline-none focus:ring-2 focus:ring-blue-500 text-[var(--color-black)] transition-all duration-200'
                 placeholder={`Sala de ${session.user?.name}`}
                 required
                 minLength={3}
@@ -1119,7 +1120,7 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-2 px-4 bg-[var(--color-gold)] hover:bg-[var(--color-gold)]/80 text-white rounded-l'
+                      className='py-2 px-4 bg-blue-500 hover:bg-blue-500/80 text-white rounded-l'
                     >
                       -
                     </button>
@@ -1139,7 +1140,7 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-2 px-4 bg-[var(--color-gold)] hover:bg-[var(--color-gold)]/80 text-white rounded-r'
+                      className='py-2 px-4 bg-blue-500 hover:bg-blue-500/80 text-white rounded-r'
                     >
                       +
                     </button>
@@ -1167,7 +1168,7 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-2 px-4 bg-[var(--color-gold)] hover:bg-[var(--color-gold)]/80 text-white rounded-l'
+                      className='py-2 px-4 bg-blue-500 hover:bg-blue-500/80 text-white rounded-l'
                     >
                       -
                     </button>
@@ -1187,7 +1188,7 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-2 px-4 bg-[var(--color-gold)] hover:bg-[var(--color-gold)]/80 text-white rounded-r'
+                      className='py-2 px-4 bg-blue-500 hover:bg-blue-500/80 text-white rounded-r'
                     >
                       +
                     </button>
@@ -1226,7 +1227,7 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-2 px-4 bg-[var(--color-gold)] hover:bg-[var(--color-gold)]/80 text-white rounded-l'
+                      className='py-2 px-4 bg-blue-500 hover:bg-blue-500/80 text-white rounded-l'
                     >
                       -
                     </button>
@@ -1246,7 +1247,7 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-2 px-4 bg-[var(--color-gold)] hover:bg-[var(--color-gold)]/80 text-white rounded-r'
+                      className='py-2 px-4 bg-blue-500 hover:bg-blue-500/80 text-white rounded-r'
                     >
                       +
                     </button>
@@ -1265,7 +1266,7 @@ export default function MainMenu() {
                   id='roomPassword'
                   value={gameSettings.password}
                   onChange={handleChange}
-                  className='w-full p-2 border rounded mb-3 border-[var(--color-black)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)] text-[var(--color-black)] transition-all duration-200'
+                  className='w-full p-2 border rounded mb-3 border-[var(--color-black)]/20 focus:outline-none focus:ring-2 focus:ring-blue-500 text-[var(--color-black)] transition-all duration-200'
                 />
                 {showPassword ? (
                   <Eye
@@ -1283,10 +1284,10 @@ export default function MainMenu() {
               </div>
 
               <button
-                className={`mt-4 w-full bg-[var(--color-gold)] text-white py-2 px-4 rounded ${
+                className={`mt-4 w-full bg-blue-500 text-white py-2 px-4 rounded ${
                   isCreatingRoom
                     ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-[var(--color-gold)]/80 cursor-pointer"
+                    : "hover:bg-blue-500/80 cursor-pointer"
                 }`}
               >
                 Crear

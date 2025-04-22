@@ -13,7 +13,7 @@ import Cup from "@/components/game/Cup";
 import DiceBoard from "@/components/game/DiceBoard";
 import { socket } from "@/lib/socket";
 import ScoreTable from "@/components/game/ScoreSheet";
-import { Volume2, VolumeX } from "lucide-react";
+import { Pause, Play, Volume2, VolumeX } from "lucide-react";
 
 interface GameTableProps {
   id: string;
@@ -38,13 +38,36 @@ export default function GameTable() {
   // Params
   const { id: gameId } = useParams();
   // Sonidos
+  const [isMuted, setIsMuted] = useState(false);
   const [isSoundPlaying, setIsSoundPlaying] = useState(true);
   const backSoundRef = useRef<HTMLAudioElement | null>(null);
-  const diceRollSound = new Audio("/sounds/dice-roll.mp3");
-  const pencilSound = new Audio("/sounds/pencil.mp3");
-  const backSound = new Audio("/sounds/backSound.mp3");
   // Router
   const router = useRouter();
+
+  const playBackSound = () => {
+    const backSound = new Audio("/sounds/backSound.mp3");
+    backSound.loop = true;
+    backSound.volume = 0.03;
+    backSound.currentTime = 0;
+    backSound.play();
+    backSoundRef.current = backSound;
+  };
+
+  const playDiceSound = () => {
+    if (isMuted) return;
+    const diceRollSound = new Audio("/sounds/dice-roll.mp3");
+    diceRollSound.volume = 0.2;
+    diceRollSound.currentTime = 0;
+    diceRollSound.play();
+  };
+
+  const playPencilSound = () => {
+    if (isMuted) return;
+    const pencilSound = new Audio("/sounds/pencil.mp3");
+    pencilSound.volume = 0.2;
+    pencilSound.currentTime = 0;
+    pencilSound.play();
+  };
 
   useEffect(() => {
     if (!session?.user?.id || !gameId) return;
@@ -78,10 +101,7 @@ export default function GameTable() {
   }, [gameId, session?.user.id]);
 
   useEffect(() => {
-    backSoundRef.current = backSound;
-    backSoundRef.current.loop = true;
-    backSoundRef.current.volume = 0.1;
-    backSoundRef.current.play();
+    playBackSound();
 
     return () => {
       backSoundRef.current?.pause();
@@ -111,8 +131,7 @@ export default function GameTable() {
       rollCount: number;
       dicesToReroll: number[];
     }) => {
-      diceRollSound.currentTime = 0;
-      diceRollSound.play();
+      playDiceSound();
 
       setRollingLoading(true);
 
@@ -129,7 +148,7 @@ export default function GameTable() {
         return prevGame;
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       setRollingLoading(false);
       setDicesToReroll([]);
@@ -140,8 +159,7 @@ export default function GameTable() {
       updatedGameUserId: string;
       updatedValues: GameUser;
     }) => {
-      pencilSound.currentTime = 0;
-      pencilSound.play();
+      playPencilSound();
 
       setGame((prevGame) => {
         if (prevGame) {
@@ -297,9 +315,12 @@ export default function GameTable() {
             player={player}
             position={index}
             isCurrentTurn={player.userId === game.currentTurnId}
+            currentTurnId={game.currentTurnId}
             timePerTurn={game.turnTimeout ? game.turnTimeout : 0}
             totalPlayers={game.players.length}
+            players={game.players}
             rollCount={game.rollCount}
+            isMyTurn={session?.user?.id === game.currentTurnId}
           />
         ))}
 
@@ -327,7 +348,7 @@ export default function GameTable() {
         ) : (
           <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-6 select-none'>
             <div className='flex flex-col items-center gap-4'>
-              <p className='text-2xl text-[var(--color-gold)] font-bold'>
+              <p className='text-2xl text-blue-500 font-bold'>
                 Juego terminado
               </p>
               {winners.length === 1 ? (
@@ -348,7 +369,7 @@ export default function GameTable() {
                   key={player.id}
                   className={`text-lg ${
                     winners.some((w) => w.id === player.id)
-                      ? "text-[var(--color-gold)] font-bold"
+                      ? "text-blue-500 font-bold"
                       : ""
                   }`}
                 >
@@ -358,7 +379,7 @@ export default function GameTable() {
             </div>
 
             <button
-              className='bg-[var(--color-gold)] text-black py-2 px-4 rounded-lg font-semibold hover:bg-[var(--color-gold)]/80 transition-all duration-200 cursor-pointer'
+              className='bg-blue-500 text-black py-2 px-4 rounded-lg font-semibold hover:bg-blue-500/80 transition-all duration-200 cursor-pointer'
               onClick={() => {
                 router.push("/");
               }}
@@ -368,16 +389,28 @@ export default function GameTable() {
           </div>
         )}
 
-        <button
-          className='absolute top-4 right-4 bg-white text-black px-3 py-1 rounded shadow hover:bg-gray-200 transition'
-          onClick={toggleBackSound}
-        >
-          {!isSoundPlaying ? (
-            <VolumeX className='h-5 w-5 text-black' />
-          ) : (
-            <Volume2 className='h-5 w-5 text-black' />
-          )}
-        </button>
+        <div className='absolute top-4 right-4 flex flex-row gap-2'>
+          <button
+            className=' bg-white text-black px-3 py-1 rounded shadow hover:bg-gray-200 transition'
+            onClick={() => setIsMuted(!isMuted)}
+          >
+            {!isMuted ? (
+              <VolumeX className='h-5 w-5 text-black' />
+            ) : (
+              <Volume2 className='h-5 w-5 text-black' />
+            )}
+          </button>
+          <button
+            className=' bg-white text-black px-3 py-1 rounded shadow hover:bg-gray-200 transition'
+            onClick={toggleBackSound}
+          >
+            {!isSoundPlaying ? (
+              <Play className='h-5 w-5 text-black' />
+            ) : (
+              <Pause className='h-5 w-5 text-black' />
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

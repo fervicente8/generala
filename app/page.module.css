@@ -1,0 +1,383 @@
+.container {
+  display: flex;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 100%;
+  max-width: 360px;
+  padding: 32px;
+  background: linear-gradient(to bottom, var(--color-gold), var(--color-beige));
+  box-shadow: var(--shadow-md);
+  border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) 0;
+  position: relative;
+}
+
+.sidebar h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-black);
+  margin-bottom: 24px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: var(--border-radius-sm);
+  background: var(--color-white);
+  box-shadow: var(--shadow-sm);
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
+}
+
+.searchButton {
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px;
+  background: var(--color-gold);
+  color: var(--color-black);
+  font-weight: 600;
+  font-size: 16px;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  box-shadow: var(--shadow-sm);
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.searchButton:hover {
+  background: #ffc107;
+  transform: scale(1.02);
+}
+
+.searchButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.friendList {
+  margin-top: 24px;
+  max-height: 55vh;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.friendList::-webkit-scrollbar {
+  display: none;
+}
+
+.friendCard {
+  padding: 16px;
+  background: var(--color-white);
+  border-radius: var(--border-radius-sm);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.friendCard:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
+}
+
+/* Contenido principal */
+.main {
+  flex: 1;
+  padding: 32px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.main::-webkit-scrollbar {
+  display: none;
+}
+
+.main h1 {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--color-beige);
+  margin-bottom: 32px;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  background: var(--color-white);
+  border-radius: var(--border-radius-sm);
+  box-shadow: var(--shadow-sm);
+  padding: 12px;
+  margin-bottom: 32px;
+}
+
+.searchBar input {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  background: transparent;
+  font-size: 16px;
+}
+
+.searchBar input:focus {
+  outline: none;
+}
+
+.roomList {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  margin-top: 32px;
+}
+
+.roomCard {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  background: var(--color-white);
+  border-radius: var(--border-radius-sm);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.roomCard:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
+}
+
+.roomCard.disabled {
+  filter: grayscale(100%);
+  cursor: not-allowed;
+}
+
+.roomCard img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  margin-right: 20px;
+}
+
+.roomCard .info {
+  flex: 1;
+}
+
+.roomCard .info h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.roomCard .info p {
+  font-size: 14px;
+  color: #666;
+  margin: 6px 0 0;
+}
+
+.roomCard .players {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-black);
+}
+
+.lockIcon {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  color: #666;
+}
+
+/* Modal */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: var(--color-white);
+  padding: 32px;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  width: 100%;
+  max-width: 480px;
+}
+
+.modalContent h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+.modalContent label {
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.modalContent input,
+.modalContent select {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: var(--border-radius-sm);
+  font-size: 16px;
+  transition: border-color 0.2s;
+}
+
+.modalContent input:focus,
+.modalContent select:focus {
+  outline: none;
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
+}
+
+.modalContent .numberInput {
+  display: flex;
+  align-items: center;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+}
+
+.modalContent .numberInput button {
+  padding: 14px;
+  background: var(--color-gold);
+  color: var(--color-black);
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.modalContent .numberInput button:hover {
+  background: #ffc107;
+}
+
+.modalContent .numberInput p {
+  flex: 1;
+  text-align: center;
+  margin: 0;
+  font-size: 16px;
+}
+
+.modalContent .submitButton {
+  width: 100%;
+  margin-top: 24px;
+  padding: 14px;
+  background: var(--color-gold);
+  color: var(--color-black);
+  font-weight: 600;
+  font-size: 16px;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  box-shadow: var(--shadow-sm);
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.modalContent .submitButton:hover {
+  background: #ffc107;
+  transform: scale(1.02);
+}
+
+.modalContent .submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Botones de acción */
+.actionButton {
+  padding: 14px 28px;
+  background: var(--color-gold);
+  color: var(--color-black);
+  font-weight: 600;
+  font-size: 16px;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  box-shadow: var(--shadow-sm);
+  transition: background-color 0.2s, transform 0.2s;
+  cursor: pointer;
+}
+
+.actionButton:hover {
+  background: #ffc107;
+  transform: scale(1.02);
+}
+
+.actionButton.destructive {
+  background: var(--color-red);
+  color: var(--color-white);
+}
+
+.actionButton.destructive:hover {
+  background: #b22222;
+}
+
+.logoutButton {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  padding: 14px 20px;
+  background: var(--color-red);
+  color: var(--color-white);
+  font-weight: 600;
+  font-size: 16px;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.logoutButton:hover {
+  background: #b22222;
+  transform: scale(1.02);
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    max-width: 100%;
+    border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+    padding: 24px;
+  }
+
+  .main {
+    padding: 24px;
+  }
+
+  .main h1 {
+    font-size: 28px;
+  }
+
+  .roomList {
+    grid-template-columns: 1fr;
+  }
+
+  .modalContent {
+    width: 90%;
+    padding: 24px;
+  }
+
+  .actionButton,
+  .submitButton,
+  .searchButton {
+    padding: 12px;
+    font-size: 15px;
+  }
+}

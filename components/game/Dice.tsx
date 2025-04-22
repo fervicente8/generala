@@ -4,7 +4,7 @@ import { HTMLAttributes } from "react";
 import styles from "./Dice.module.css";
 
 interface DiceProps extends HTMLAttributes<HTMLDivElement> {
-  value: 1 | 2 | 3 | 4 | 5 | 6;
+  value: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   rolling: boolean;
   selectedForReroll?: boolean;
   rollCount: number;
@@ -22,11 +22,15 @@ const Dice = ({
   className,
   ...props
 }: DiceProps) => {
+  const showQuestion = value === 0;
+
   return (
     <div
       className={`${styles.container} ${className || ""} ${
         selectedForReroll ? styles.selected : ""
-      } ${isMyTurn && rollCount < 3 ? styles.interactive : ""}`}
+      } ${
+        isMyTurn && rollCount < 3 && rollCount > 0 ? styles.interactive : ""
+      }`}
       onClick={isMyTurn ? onClick : undefined}
       {...props}
     >
@@ -36,18 +40,21 @@ const Dice = ({
         }`}
         style={
           {
-            "--half-size": "16px",
+            "--half-size": "19px",
           } as React.CSSProperties
         }
       >
-        {/* Caras del dado */}
-        {["front", "back", "right", "left", "top", "bottom"].map((face) => (
-          <div key={face} className={`${styles.face} ${styles[face]}`}>
-            {Array.from({ length: 9 }).map((_, i) => (
-              <div key={i} className={styles.dot} />
-            ))}
-          </div>
-        ))}
+        {showQuestion ? (
+          <div className={styles.unknown}>?</div>
+        ) : (
+          ["front", "back", "right", "left", "top", "bottom"].map((face) => (
+            <div key={face} className={`${styles.face} ${styles[face]}`}>
+              {Array.from({ length: 9 }).map((_, i) => (
+                <div key={i} className={styles.dot} />
+              ))}
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

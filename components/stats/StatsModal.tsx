@@ -50,7 +50,7 @@ export const StatsModal: React.FC<StatsModalProps> = ({
         </button>
 
         {stats?.userId && (
-          <h2 className='text-2xl font-bold text-center mb-4 text-blue-600'>
+          <h2 className='text-2xl font-bold text-center mb-4 text-blue-500'>
             📊{" "}
             {stats.userId === session?.user.id
               ? "Tus Estadísticas"
@@ -86,7 +86,7 @@ export const StatsModal: React.FC<StatsModalProps> = ({
 };
 
 const Stat = ({ label, value }: { label: string; value: number | string }) => (
-  <div className='bg-blue-50 rounded-xl px-3 py-2 text-blue-800 shadow-sm'>
+  <div className='bg-blue-50 rounded-xl px-3 py-2 text-blue-500 shadow-sm'>
     <span className='block text-xs font-medium'>{label}</span>
     <span className='text-lg font-semibold'>{value}</span>
   </div>
