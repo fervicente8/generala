@@ -47,23 +47,23 @@ export default function PlayerSlot({
     return positions[index % positions.length];
   };
 
-  useEffect(() => {
-    if (isCurrentTurn && timePerTurn > 0) {
-      setTimeLeft(timePerTurn);
-      const interval = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            handleSetScore(getCategoryToStrike() || "double", 0);
-            clearInterval(interval);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+  // useEffect(() => {
+  //   if (isCurrentTurn && timePerTurn > 0) {
+  //     setTimeLeft(timePerTurn);
+  //     const interval = setInterval(() => {
+  //       setTimeLeft((prev) => {
+  //         if (prev <= 1) {
+  //           handleSetScore(getCategoryToStrike() || "double", 0);
+  //           clearInterval(interval);
+  //           return 0;
+  //         }
+  //         return prev - 1;
+  //       });
+  //     }, 1000);
 
-      return () => clearInterval(interval);
-    }
-  }, [isCurrentTurn, timePerTurn, player.user.id]);
+  //     return () => clearInterval(interval);
+  //   }
+  // }, [isCurrentTurn, timePerTurn, player.user.id]);
 
   useEffect(() => {
     setTimeLeft(timePerTurn);
@@ -100,40 +100,40 @@ export default function PlayerSlot({
     return null;
   };
 
-  const handleSetScore = async (category: string, score: number) => {
-    try {
-      const res = await fetch(`/api/game/submit-score`, {
-        method: "POST",
-        body: JSON.stringify({
-          gameUserId: currentTurnId,
-          gameId: players[0].gameId,
-          category,
-          score,
-        }),
-      });
+  // const handleSetScore = async (category: string, score: number) => {
+  //   try {
+  //     const res = await fetch(`/api/game/submit-score`, {
+  //       method: "POST",
+  //       body: JSON.stringify({
+  //         gameUserId: currentTurnId,
+  //         gameId: players[0].gameId,
+  //         category,
+  //         score,
+  //       }),
+  //     });
 
-      const data = await res.json();
+  //     const data = await res.json();
 
-      if (!res.ok) {
-        showAlert({
-          type: "error",
-          message: data.error || "Error al guardar la puntuación",
-        });
-      }
+  //     if (!res.ok) {
+  //       showAlert({
+  //         type: "error",
+  //         message: data.error || "Error al guardar la puntuación",
+  //       });
+  //     }
 
-      socket.emit("submitScore", {
-        players: players.map((player) => player.user),
-        currentTurnId: data.currentTurnId,
-        updatedGameUserId: currentTurnId,
-        updatedValues: data.updatedValues,
-      });
-    } catch (error) {
-      showAlert({
-        type: "error",
-        message: "Error al guardar la puntuación",
-      });
-    }
-  };
+  //     socket.emit("submitScore", {
+  //       players: players.map((player) => player.user),
+  //       currentTurnId: data.currentTurnId,
+  //       updatedGameUserId: currentTurnId,
+  //       updatedValues: data.updatedValues,
+  //     });
+  //   } catch (error) {
+  //     showAlert({
+  //       type: "error",
+  //       message: "Error al guardar la puntuación",
+  //     });
+  //   }
+  // };
 
   const handleImageError = (playerId: string) => {
     setAvatarErrors((prev) => ({ ...prev, [playerId]: true }));

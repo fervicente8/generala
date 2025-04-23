@@ -13,7 +13,6 @@ import { socket } from "@/lib/socket";
 import ScoreTable from "@/components/game/ScoreSheet";
 import { Pause, Play, Volume2, VolumeX } from "lucide-react";
 import { motion } from "framer-motion";
-import Image from "next/image";
 
 interface GameTableProps {
   id: string;
@@ -26,16 +25,23 @@ interface GameTableProps {
 }
 
 export default function GameTable() {
+  // Session
   const { data: session, status } = useSession();
+  // Estados del componente
   const [loadingGame, setLoadingGame] = useState(true);
   const [game, setGame] = useState<GameTableProps | null>(null);
   const [rollingLoading, setRollingLoading] = useState(false);
   const [dicesToReroll, setDicesToReroll] = useState<number[]>([]);
+  const [loadingSubmit, setLoadingSubmit] = useState(false);
+  // Alert
   const { showAlert } = useAlert();
+  // Params
   const { id: gameId } = useParams();
+  // Sound
   const [isMuted, setIsMuted] = useState(false);
   const [isSoundPlaying, setIsSoundPlaying] = useState(true);
   const backSoundRef = useRef<HTMLAudioElement | null>(null);
+  // Variables
   const router = useRouter();
 
   const playBackSound = () => {
@@ -171,6 +177,7 @@ export default function GameTable() {
             }),
           };
         }
+        setLoadingSubmit(false);
         return prevGame;
       });
     };
@@ -265,19 +272,21 @@ export default function GameTable() {
 
   return (
     <div className='relative flex flex-col lg:flex-row w-full h-screen overflow-hidden bg-[var(--color-black-matte)] font-quicksand'>
-      <div className='w-full lg:w-2/5 lg:flex-shrink-0 h-1/2 lg:h-screen overflow-y-auto'>
+      <div className='w-full lg:w-2/8 lg:flex-shrink-0 h-1/2 lg:h-screen overflow-y-auto'>
         <ScoreTable
           players={game.players}
           currentTurnId={game.currentTurnId}
           isMyTurn={session?.user?.id === game.currentTurnId}
           diceValues={game.diceValues}
           rollCount={game.rollCount}
+          loadingSubmit={loadingSubmit}
+          setLoadingSubmit={setLoadingSubmit}
         />
       </div>
       <div className='flex-1 relative h-1/2 lg:h-screen'>
-        <div className='absolute bottom-2 sm:bottom-4 right-2 sm:right-4 flex flex-row gap-2 z-50'>
+        <div className='absolute bottom-2 sm:bottom-4 right-2 sm:right-4 flex flex-row gap-2 z-[100]'>
           <motion.button
-            className='bg-[var(--color-pearl-white)] text-[var(--color-black-matte)] p-2 sm:px-3 sm:py-1 rounded-full shadow-md border-2 border-[var(--color-metallic-gold)] hover:bg-[var(--color-silver-gray)] transition'
+            className='bg-[var(--color-pearl-white)] text-[var(--color-black-matte)] p-2 sm:px-3 sm:py-1 rounded-full shadow-md border-2 border-[var(--color-metallic-gold)] hover:bg-[var(--color-silver-gray)] transition '
             onClick={() => setIsMuted(!isMuted)}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
@@ -301,7 +310,7 @@ export default function GameTable() {
             )}
           </motion.button>
         </div>
-        <div className='relative w-full h-full overflow-hidden shadow-xl z-50 bg-[url("/table-mobile.png")] sm:bg-[url("/table-desktop.png")] bg-contain bg-no-repeat bg-center'>
+        <div className='relative w-full h-full overflow-hidden shadow-xl z-50 bg-[url("/table-mobile.png")] sm:bg-[url("/table-desktop.png")] bg-cover bg-no-repeat bg-center'>
           {game.players.map((player, index) => (
             <PlayerSlot
               key={player.userId}

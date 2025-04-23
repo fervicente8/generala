@@ -51,7 +51,7 @@ export default function MainMenu() {
     password: string;
   }>({
     name: "",
-    maxPlayers: 5, // Updated to support 5 players
+    maxPlayers: 5,
     minPlayers: 2,
     turnTimeout: 30,
     password: "",
@@ -889,7 +889,7 @@ export default function MainMenu() {
         {/* Sala activa (barra inferior) */}
         {activeRoom && (
           <motion.div
-            className='absolute bottom-2 left-2 right-2 sm:left-4 sm:right-4 rounded-t-xl backdrop-blur-md bg-[#1E3A8A]/80 text-[#F5F5F5] p-3 sm:p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4'
+            className='absolute bottom-2 left-2 right-2 sm:left-4 sm:right-4 rounded-t-xl backdrop-blur-md bg-[#1E3A8A]/80 text-[#F5F5F5] p-3 sm:p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 z-20'
             initial={{ y: 100 }}
             animate={{ y: 0 }}
             transition={{ duration: 0.5 }}
@@ -1071,7 +1071,7 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1E3A8A] text-[#F5F5F5] rounded-l-full hover:bg-[#3B82F6] text-sm sm:text-base'
+                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-l-full hover:bg-[#1A6642]/80 text-sm sm:text-base'
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >
@@ -1093,7 +1093,7 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1E3A8A] text-[#F5F5F5] rounded-r-full hover:bg-[#3B82F6] text-sm sm:text-base'
+                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-r-full hover:bg-[#1A6642]/80 text-sm sm:text-base'
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >
@@ -1122,7 +1122,7 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1E3A8A] text-[#F5F5F5] rounded-l-full hover:bg-[#3B82F6] text-sm sm:text-base'
+                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-l-full hover:bg-[#1A6642]/80 text-sm sm:text-base'
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >
@@ -1144,7 +1144,7 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1E3A8A] text-[#F5F5F5] rounded-r-full hover:bg-[#3B82F6] text-sm sm:text-base'
+                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-r-full hover:bg-[#1A6642]/80 text-sm sm:text-base'
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >
@@ -1189,7 +1189,7 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1E3A8A] text-[#F5F5F5] rounded-l-full hover:bg-[#3B82F6] text-sm sm:text-base'
+                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-l-full hover:bg-[#1A6642]/80 text-sm sm:text-base'
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >
@@ -1211,7 +1211,7 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1E3A8A] text-[#F5F5F5] rounded-r-full hover:bg-[#3B82F6] text-sm sm:text-base'
+                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-r-full hover:bg-[#1A6642]/80 text-sm sm:text-base'
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >

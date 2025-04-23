@@ -15,6 +15,8 @@ interface ScoreTableProps {
   isMyTurn: boolean;
   diceValues: number[];
   rollCount: number;
+  loadingSubmit: boolean;
+  setLoadingSubmit: (loading: boolean) => void;
 }
 
 const CATEGORIES = [
@@ -117,6 +119,8 @@ export default function ScoreTable({
   isMyTurn,
   diceValues,
   rollCount,
+  loadingSubmit,
+  setLoadingSubmit,
 }: ScoreTableProps) {
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
@@ -172,7 +176,7 @@ export default function ScoreTable({
   const handleSetScore = async (category: string, score: number) => {
     if (!isMyTurn) return;
     setLoading(true);
-
+    setLoadingSubmit(true);
     try {
       const res = await fetch(`/api/game/submit-score`, {
         method: "POST",
@@ -227,7 +231,7 @@ export default function ScoreTable({
       transition={{ duration: 0.4, ease: "easeInOut" }}
       className={`${styles.container} bg-[var(--color-pearl-white)] w-full h-full z-50 py-2 px-2 lg:px-4 overflow-y-auto`}
       style={{
-        backgroundImage: "url('/textures/paper.png')",
+        backgroundImage: "url('/textures/marfil.png')",
         backgroundSize: "cover",
       }}
     >
@@ -330,7 +334,8 @@ export default function ScoreTable({
                           !isAlreadySubmitted(
                             category.name as GameUserCategory,
                             player.userId
-                          )
+                          ) &&
+                          !loadingSubmit
                         ) {
                           handleSetScore(category.name, value as number);
                         }
