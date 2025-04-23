@@ -641,7 +641,7 @@ export default function MainMenu() {
                   setStatsToShow(session.user.stats);
                   setShowStats(true);
                 }}
-                className='bg-[#1E3A8A] text-[#F5F5F5] py-2 px-3 sm:px-4 rounded-xl shadow-md flex items-center hover:bg-[#3B82F6] text-sm sm:text-base'
+                className='bg-[#2E4A3D] text-[#F5F5F5] py-2 px-3 sm:px-4 rounded-xl shadow-md flex items-center hover:bg-[#2E4A3D]/80 text-sm sm:text-base'
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >
@@ -738,7 +738,7 @@ export default function MainMenu() {
                 Salas disponibles
               </h2>
               <motion.button
-                className='w-full sm:w-auto bg-[#1E3A8A] text-[#F5F5F5] font-poppins font-semibold py-2 px-4 sm:py-3 sm:px-6 rounded-xl shadow-md hover:bg-[#3B82F6]'
+                className='w-full sm:w-auto bg-[#2E4A3D] text-[#F5F5F5] font-poppins font-semibold py-2 px-4 sm:py-3 sm:px-6 rounded-xl shadow-md hover:bg-[#2E4A3D]/80'
                 onClick={() => setIsModalOpen(true)}
                 disabled={isLoadingRooms || activeRoom !== null}
                 whileHover={{ scale: 1.1 }}

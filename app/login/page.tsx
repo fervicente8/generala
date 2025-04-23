@@ -40,8 +40,8 @@ export default function Login() {
       />
 
       {/* Contenedor del login */}
-      <div className='relative z-10 flex flex-col items-center bg-[var(--color-beige)] p-8 rounded-2xl shadow-lg max-w-md text-center'>
-        <h1 className='text-4xl font-extrabold text-[var(--color-red)] mb-2 italic uppercase -tracking-tighter'>
+      <div className='relative z-10 flex flex-col items-center bg-[var(--color-white)] p-8 rounded-2xl shadow-lg max-w-md text-center'>
+        <h1 className='text-4xl font-extrabold text-[var(--color-ruby-red)] mb-2 italic uppercase -tracking-tighter'>
           Generala
         </h1>
 
@@ -129,7 +129,7 @@ export default function Login() {
           <input
             type='checkbox'
             id='terms-and-conditions'
-            className='mr-2'
+            className='mr-2 w-4 h-4'
             onChange={() => {
               setTermsAccepted(!termsAccepted);
             }}

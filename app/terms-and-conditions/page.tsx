@@ -8,7 +8,7 @@ export default function TermsAndConditions() {
   return (
     <main className='min-h-screen p-6 mx-auto text-base sm:text-lg space-y-8 bg-gradient-to-br from-[#1A1A1A] to-[#2E2E2E] text-[#1A1A1A] font-quicksand'>
       <motion.button
-        className='fixed top-3 left-3 bg-[#A91D2F] text-[#F5F5F5] px-4 py-2 rounded-full shadow-md border-2 border-[#D4A017] flex items-center font-poppins hover:bg-[#DC2626]'
+        className='fixed top-3 left-3 z-50 bg-[#A91D2F] text-[#F5F5F5] px-4 py-2 rounded-full shadow-md border-2 border-[#D4A017] flex items-center hover:bg-[#DC2626]'
         onClick={() => router.back()}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
