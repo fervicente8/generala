@@ -5,6 +5,7 @@ import CustomLoadingSpinner from "../ui/CustomLoadingSpinner";
 import { socket } from "@/lib/socket";
 import { useAlert } from "../ui/CustomAlert";
 import Image from "next/image";
+import { motion } from "framer-motion";
 
 interface Props {
   sessionUser: User;
@@ -23,23 +24,17 @@ export default function FriendCard({
   setFriendResults,
   onlineUserIds,
 }: Props) {
-  // Estados del componente
   const [loadingIsFriend, setLoadingIsFriend] = useState(true);
   const [isFriend, setIsFriend] = useState(false);
   const [invitationSent, setInvitationSent] = useState(false);
   const [loadingFriendRequest, setLoadingFriendRequest] = useState(true);
   const [friendRequestSent, setFriendRequestSent] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
-  // Alerta
   const { showAlert } = useAlert();
 
   useEffect(() => {
     const handleUserOnline = (onlineUserIds: string[]) => {
-      if (onlineUserIds.includes(user.id)) {
-        setIsOnline(true);
-      } else {
-        setIsOnline(false);
-      }
+      setIsOnline(onlineUserIds.includes(user.id));
     };
 
     if (onlineUserIds) {
@@ -89,24 +84,19 @@ export default function FriendCard({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ receiverId: user.id }),
       });
-
       const data = await res.json();
-
       if (!res.ok) {
         showAlert({
           type: "error",
-          message: data.error || "Error de conexión",
+          message: data.error || "Error de conexión",
         });
         return;
       }
-
       socket.emit("friendRequest", data);
-
       showAlert({
         type: "success",
-        message: "Solicitud de amistad enviada con éxito",
+        message: "Solicitud de amistad enviada con éxito",
       });
-
       setFriendRequestSent(true);
       setFriendResults && setFriendResults([]);
       setFriendSearch && setFriendSearch("");
@@ -122,24 +112,16 @@ export default function FriendCard({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ friendId: user.id }),
       });
-
       const data = await res.json();
-
       if (!res.ok) {
         showAlert({
           type: "error",
-          message: data.error || "Error de conexión",
+          message: data.error || "Error de conexión",
         });
         return;
       }
-
       setIsFriend(false);
-
-      showAlert({
-        type: "success",
-        message: "Amigo eliminado con éxito",
-      });
-
+      showAlert({ type: "success", message: "Amigo eliminado con éxito" });
       socket.emit("removeFriend", data);
     } catch (err) {
       console.error("Error eliminando amigo:", err);
@@ -148,31 +130,24 @@ export default function FriendCard({
 
   const onInvite = async () => {
     if (!activeRoom) return;
-
     try {
       const res = await fetch("/api/rooms/invite-room", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ roomId: activeRoom.id, userId: user.id }),
       });
-
       const data = await res.json();
-
       if (!res.ok) {
         showAlert({
           type: "error",
-          message: data.error || "Error de conexión",
+          message: data.error || "Error de conexión",
         });
         return;
       }
-
       showAlert({
         type: "success",
-        message: `Invitación enviada a ${user.name}`,
+        message: `Invitación enviada a ${user.name}`,
       });
-
       socket.emit("inviteGame", data);
     } catch (error) {
       console.error("Error al invitar a la sala", error);
@@ -188,18 +163,22 @@ export default function FriendCard({
           <Image
             src={user.image || "/default-avatar.png"}
             alt='Avatar'
-            width={48} // w-12 = 48px
-            height={48} // h-12 = 48px
-            className='rounded-full'
+            width={48}
+            height={48}
+            className='rounded-full border-2 border-[#D4A017]'
             unoptimized
           />
-          <div
+          <motion.div
             className={`absolute bottom-[2px] right-[2px] w-[14px] h-[14px] ${
-              isOnline ? "bg-[var(--color-green)]" : "bg-[var(--color-red)]"
-            } rounded-full border-1 border-white`}
-          ></div>
+              isOnline ? "bg-[#1A6642]" : "bg-[#A91D2F]"
+            } rounded-full border-2 border-[#F5F5F5]`}
+            animate={isOnline ? { scale: [1, 1.2, 1] } : {}}
+            transition={{ repeat: Infinity, duration: 1 }}
+          />
         </div>
-        <h3 className='text-[16px] font-semibold'>{user.name}</h3>
+        <h3 className='text-[16px] font-semibold font-poppins text-[#1A1A1A]'>
+          {user.name}
+        </h3>
       </div>
       {loadingIsFriend || loadingFriendRequest ? (
         <div className='pr-3.5'>
@@ -209,25 +188,31 @@ export default function FriendCard({
         <div className='flex items-center gap-2'>
           {activeRoom &&
             (isFriend && !invitationSent ? (
-              <SendHorizonal
-                className='w-6 h-6 text-[var(--color-blue)] hover:scale-110 transition-all duration-200 cursor-pointer'
-                onClick={onInvite}
-              />
+              <motion.div whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.9 }}>
+                <SendHorizonal
+                  className='w-6 h-6 text-[#1E3A8A] cursor-pointer hover:text-[#3B82F6]'
+                  onClick={onInvite}
+                />
+              </motion.div>
             ) : isFriend && invitationSent ? (
-              <MailCheck className='w-6 h-6 text-[var(--color-green)]' />
+              <MailCheck className='w-6 h-6 text-[#1A6642]' />
             ) : null)}
           {isFriend ? (
-            <CircleX
-              className='w-6 h-6 text-[var(--color-red)] hover:scale-110 transition-all duration-200 cursor-pointer'
-              onClick={handleRemoveFriend}
-            />
+            <motion.div whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.9 }}>
+              <CircleX
+                className='w-6 h-6 text-[#A91D2F] cursor-pointer hover:text-[#DC2626]'
+                onClick={handleRemoveFriend}
+              />
+            </motion.div>
           ) : friendRequestSent ? (
-            <MailCheck className='w-6 h-6 text-[var(--color-gray)]' />
+            <MailCheck className='w-6 h-6 text-[#B0B0B0]' />
           ) : (
-            <CirclePlus
-              className='w-6 h-6 text-[var(--color-green)] hover:scale-110 transition-all duration-200 cursor-pointer'
-              onClick={handleSendFriendRequest}
-            />
+            <motion.div whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.9 }}>
+              <CirclePlus
+                className='w-6 h-6 text-[#1A6642] cursor-pointer hover:text-[#2E8B57]'
+                onClick={handleSendFriendRequest}
+              />
+            </motion.div>
           )}
         </div>
       )}

@@ -118,10 +118,12 @@ export default function ScoreTable({
   diceValues,
   rollCount,
 }: ScoreTableProps) {
-  // Session
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
   const { showAlert } = useAlert();
+  const [avatarErrors, setAvatarErrors] = useState<{ [key: string]: boolean }>(
+    {}
+  );
 
   useEffect(() => {
     const pointer = document.querySelector(`.${styles.pointer}`) as HTMLElement;
@@ -149,10 +151,13 @@ export default function ScoreTable({
       }
     };
 
-    document.addEventListener("mousemove", trackPointer);
-    if (container) {
-      container.addEventListener("mouseenter", handleMouseEnter);
-      container.addEventListener("mouseleave", handleMouseLeave);
+    // Disable pointer on touch devices
+    if (!("ontouchstart" in window)) {
+      document.addEventListener("mousemove", trackPointer);
+      if (container) {
+        container.addEventListener("mouseenter", handleMouseEnter);
+        container.addEventListener("mouseleave", handleMouseLeave);
+      }
     }
 
     return () => {
@@ -184,7 +189,7 @@ export default function ScoreTable({
       if (!res.ok) {
         showAlert({
           type: "error",
-          message: data.error || "Error al guardar la puntuación",
+          message: data.error || "Error al guardar la puntuación",
         });
       }
 
@@ -197,7 +202,7 @@ export default function ScoreTable({
     } catch (error) {
       showAlert({
         type: "error",
-        message: "Error al guardar la puntuación",
+        message: "Error al guardar la puntuación",
       });
     } finally {
       setLoading(false);
@@ -211,45 +216,58 @@ export default function ScoreTable({
     return player[category] !== null && player[category] !== undefined;
   };
 
+  const handleImageError = (playerId: string) => {
+    setAvatarErrors((prev) => ({ ...prev, [playerId]: true }));
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4, ease: "easeInOut" }}
-      className={`${styles.container} bg-white max-w-[600px] h-[100vh] z-50 py-2 px-4`}
+      className={`${styles.container} bg-[var(--color-pearl-white)] w-full h-full z-50 py-2 px-2 lg:px-4 overflow-y-auto`}
       style={{
         backgroundImage: "url('/textures/paper.png')",
         backgroundSize: "cover",
       }}
     >
       <div className={styles.pointer} />
-      <div className='overflow-x-scroll'>
-        <h2 className='text-xl font-semibold mb-6 mt-2'>Anotador</h2>
+      <div className='overflow-x-auto'>
+        <h2 className='text-lg hidden lg:block sm:text-xl font-poppins font-semibold mb-4 sm:mb-6 mt-2 text-[var(--color-black-matte)]'>
+          Anotador
+        </h2>
 
-        <table className='w-full border-separate border-spacing-y-1 h-[88vh]'>
+        <table className='w-full border-separate border-spacing-y-1'>
           <thead>
             <tr>
-              <th className='text-left'></th>
+              <th className='text-left sticky left-0 z-10'></th>
               {players.map((player) => (
-                <th key={player.userId} className={``}>
+                <th key={player.userId} className='px-1 sm:px-2'>
                   <Image
-                    src={player.user.image || "/default-avatar.png"}
+                    src={
+                      avatarErrors[player.userId] || !player.user.image
+                        ? "/default-avatar.png"
+                        : player.user.image
+                    }
                     alt='Avatar'
-                    width={64}
-                    height={64}
-                    className='rounded-full m-auto'
+                    width={40}
+                    height={40}
+                    className='hidden lg:block rounded-full m-auto sm:w-12 sm:h-12'
                     unoptimized
+                    onError={() => handleImageError(player.userId)}
                   />
                 </th>
               ))}
             </tr>
             <tr>
-              <th className='text-left'></th>
+              <th className='text-left sticky left-0 z-10 py-1 sm:py-2'></th>
               {players.map((player) => (
                 <th
                   key={player.userId}
-                  className={`p-2 text-md ${
-                    session?.user?.id === player.userId ? "text-blue-500" : ""
+                  className={`px-1 sm:px-2 py-1 lg:py-2 text-sm lg:text-md font-quicksand ${
+                    session?.user?.id === player.userId
+                      ? "text-[var(--color-sapphire-blue)] font-bold"
+                      : "text-[var(--color-black-matte)]"
                   }`}
                 >
                   {player.user.name}
@@ -262,7 +280,7 @@ export default function ScoreTable({
             {CATEGORIES.map((category, index) => (
               <tr key={category.name}>
                 <td
-                  className={`p-2 text-[#333] min-w-[120px] border-b border-gray-400 text-lg font-bold ${
+                  className={`px-2 lg:px-3 py-1 lg:py-2 text-[var(--color-black-matte)] min-w-[100px] border-b border-[var(--color-silver-gray)]/50 text-sm md:text-md lg:text-lg font-poppins font-bold sticky left-0 z-10 ${
                     index === 0 && "border-t"
                   }`}
                 >
@@ -288,13 +306,13 @@ export default function ScoreTable({
                   return (
                     <td
                       key={player.id}
-                      className={`text-center min-w-[150px] border-b border-gray-400 select-none text-lg ${
+                      className={`text-center px-1 lg:px-2 py-1 lg:py-2 min-w-[150px] border-b border-[var(--color-silver-gray)]/50 select-none text-sm md:text-md lg:text-lg font-quicksand ${
                         index === 0 && "border-t"
                       } ${
                         isAlreadySubmitted(
                           category.name as GameUserCategory,
                           player.userId
-                        ) && "text-[#555]"
+                        ) && "text-[var(--color-silver-gray)]"
                       } ${
                         isMyTurn &&
                         player.userId === currentTurnId &&
@@ -302,7 +320,7 @@ export default function ScoreTable({
                           category.name as GameUserCategory,
                           player.userId
                         ) &&
-                        "transition duration-200 ease-in-out font-semibold text-blue-500 hover:text-blue-600"
+                        "transition duration-200 ease-in-out font-semibold text-[var(--color-sapphire-blue)] hover:text-[var(--color-sapphire-blue)]/80 cursor-none"
                       }`}
                       onClick={() => {
                         if (
@@ -325,11 +343,13 @@ export default function ScoreTable({
               </tr>
             ))}
             <tr>
-              <td className='p-2 font-bold'>Total</td>
+              <td className='px-2 lg:px-3 py-1 lg:py-2 font-poppins font-bold text-sm lg:text-lg text-[var(--color-black-matte)] sticky left-0 z-10'>
+                Total
+              </td>
               {players.map((player) => (
                 <td
                   key={player.id}
-                  className='p-2 text-center font-semibold text-blue-500'
+                  className='px-1 sm:px-2 py-1 sm:py-2 text-center font-quicksand font-semibold text-sm md:text-md lg:text-lg text-[var(--color-sapphire-blue)]'
                 >
                   {player.totalScore}
                 </td>

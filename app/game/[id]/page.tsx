@@ -1,19 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { GameUser } from "@/types";
 import CustomLoadingSpinner from "@/components/ui/CustomLoadingSpinner";
 import { useAlert } from "@/components/ui/CustomAlert";
 import { useSession } from "next-auth/react";
-import { useParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import PlayerSlot from "@/components/game/PlayerSlot";
 import Cup from "@/components/game/Cup";
 import DiceBoard from "@/components/game/DiceBoard";
 import { socket } from "@/lib/socket";
 import ScoreTable from "@/components/game/ScoreSheet";
 import { Pause, Play, Volume2, VolumeX } from "lucide-react";
+import { motion } from "framer-motion";
+import Image from "next/image";
 
 interface GameTableProps {
   id: string;
@@ -26,22 +26,16 @@ interface GameTableProps {
 }
 
 export default function GameTable() {
-  // Session
   const { data: session, status } = useSession();
-  // Estados del componente
   const [loadingGame, setLoadingGame] = useState(true);
   const [game, setGame] = useState<GameTableProps | null>(null);
   const [rollingLoading, setRollingLoading] = useState(false);
   const [dicesToReroll, setDicesToReroll] = useState<number[]>([]);
-  // Alerta
   const { showAlert } = useAlert();
-  // Params
   const { id: gameId } = useParams();
-  // Sonidos
   const [isMuted, setIsMuted] = useState(false);
   const [isSoundPlaying, setIsSoundPlaying] = useState(true);
   const backSoundRef = useRef<HTMLAudioElement | null>(null);
-  // Router
   const router = useRouter();
 
   const playBackSound = () => {
@@ -77,13 +71,12 @@ export default function GameTable() {
         const res = await fetch(
           `/api/rooms/get-room-by-id/${gameId}?userId=${session?.user.id}`
         );
-
         const data = await res.json();
 
         if (!res.ok) {
           showAlert({
             type: "error",
-            message: data.error || "Error de conexión",
+            message: data.error || "Error de conexión",
           });
           return;
         }
@@ -91,7 +84,7 @@ export default function GameTable() {
         setGame(data);
         setLoadingGame(false);
       } catch (error) {
-        showAlert({ type: "error", message: "Error de conexión" });
+        showAlert({ type: "error", message: "Error de conexión" });
       } finally {
         setLoadingGame(false);
       }
@@ -132,9 +125,7 @@ export default function GameTable() {
       dicesToReroll: number[];
     }) => {
       playDiceSound();
-
       setRollingLoading(true);
-
       setDicesToReroll(data.dicesToReroll);
 
       setGame((prevGame) => {
@@ -149,7 +140,6 @@ export default function GameTable() {
       });
 
       await new Promise((resolve) => setTimeout(resolve, 500));
-
       setRollingLoading(false);
       setDicesToReroll([]);
     };
@@ -186,27 +176,25 @@ export default function GameTable() {
     };
 
     socket.on("diceRolled", handleRoll);
-
     socket.on("scoreSubmitted", handleScoreSubmitted);
 
     return () => {
       socket.off("diceRolled", handleRoll);
-
       socket.off("scoreSubmitted", handleScoreSubmitted);
     };
   }, []);
 
   if (status === "loading") {
     return (
-      <div className='flex items-center justify-center h-screen bg-[var(--color-green)]'>
-        <CustomLoadingSpinner size='md' text='Cargando sesión...' />
+      <div className='flex items-center justify-center h-screen bg-[var(--color-black-matte)]'>
+        <CustomLoadingSpinner size='md' text='Cargando sesión...' />
       </div>
     );
   }
 
   if (loadingGame) {
     return (
-      <div className='flex items-center justify-center h-screen bg-[var(--color-green)]'>
+      <div className='flex items-center justify-center h-screen bg-[var(--color-black-matte)]'>
         <CustomLoadingSpinner size='md' text='Cargando juego...' />
       </div>
     );
@@ -214,8 +202,8 @@ export default function GameTable() {
 
   if (!game) {
     return (
-      <div className='flex items-center justify-center h-screen bg-[var(--color-green)]'>
-        <p className='text-2xl text-white'>
+      <div className='flex items-center justify-center h-screen bg-[var(--color-black-matte)]'>
+        <p className='text-lg sm:text-2xl text-[var(--color-pearl-white)] font-poppins'>
           El juego no existe o no tienes permiso de acceso
         </p>
       </div>
@@ -276,8 +264,8 @@ export default function GameTable() {
   const { winners, ranking } = getWinnersAndRanking();
 
   return (
-    <div className='relative flex flex-row w-full max-h-[100vh] overflow-hidden'>
-      <div className='flex-shrink-0 h-[100vh]'>
+    <div className='relative flex flex-col lg:flex-row w-full h-screen overflow-hidden bg-[var(--color-black-matte)] font-quicksand'>
+      <div className='w-full lg:w-2/5 lg:flex-shrink-0 h-1/2 lg:h-screen overflow-y-auto'>
         <ScoreTable
           players={game.players}
           currentTurnId={game.currentTurnId}
@@ -286,130 +274,118 @@ export default function GameTable() {
           rollCount={game.rollCount}
         />
       </div>
-      <div className='flex-1 relative'>
-        <div className='relative h-[100vh] bg-green-800 overflow-hidden shadow-xl'>
-          {/* Imagen para desktop */}
-        </div>
-        <div className='hidden lg:block w-full h-full'>
-          <Image
-            src='/table-desktop.png'
-            alt='Mesa de Generala - Desktop'
-            layout='fill'
-            className='relative object-fit-cover'
-          />
-        </div>
-
-        {/* Imagen para dispositivos móviles */}
-        <div className='lg:hidden w-full h-full'>
-          <Image
-            src='/table-mobile.png'
-            alt='Mesa de Generala - Mobile'
-            layout='fill'
-            className='relative object-fit-cover'
-          />
-        </div>
-
-        {game.players.map((player, index) => (
-          <PlayerSlot
-            key={player.userId}
-            player={player}
-            position={index}
-            isCurrentTurn={player.userId === game.currentTurnId}
-            currentTurnId={game.currentTurnId}
-            timePerTurn={game.turnTimeout ? game.turnTimeout : 0}
-            totalPlayers={game.players.length}
-            players={game.players}
-            rollCount={game.rollCount}
-            isMyTurn={session?.user?.id === game.currentTurnId}
-          />
-        ))}
-
-        {!verifyGameEnd() ? (
-          <>
-            <DiceBoard
-              game={game}
-              rollingLoading={rollingLoading}
-              dicesToReroll={dicesToReroll}
-              setDicesToReroll={setDicesToReroll}
-              rollCount={game.rollCount}
-              isMyTurn={session?.user?.id === game.currentTurnId}
-            />
-
-            <Cup
-              gamePlayers={game.players}
-              isMyTurn={session?.user?.id === game.currentTurnId}
-              rollCount={game.rollCount}
-              gameId={game.id}
-              rollingLoading={rollingLoading}
-              dicesToReroll={dicesToReroll}
-              setDicesToReroll={setDicesToReroll}
-            />
-          </>
-        ) : (
-          <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-6 select-none'>
-            <div className='flex flex-col items-center gap-4'>
-              <p className='text-2xl text-blue-500 font-bold'>
-                Juego terminado
-              </p>
-              {winners.length === 1 ? (
-                <p className='text-2xl text-white font-bold'>
-                  {winners[0].user.name} es el ganador!
-                </p>
-              ) : (
-                <p className='text-2xl text-white font-bold'>
-                  ¡Empate entre {winners.map((w) => w.user.name).join(", ")}!
-                </p>
-              )}
-            </div>
-
-            <div className='flex flex-col gap-2 items-center text-white'>
-              <p className='text-xl font-semibold underline'>Ranking</p>
-              {ranking.map((player, index) => (
-                <div
-                  key={player.id}
-                  className={`text-lg ${
-                    winners.some((w) => w.id === player.id)
-                      ? "text-blue-500 font-bold"
-                      : ""
-                  }`}
-                >
-                  {index + 1}. {player.user.name} - {player.totalScore} pts
-                </div>
-              ))}
-            </div>
-
-            <button
-              className='bg-blue-500 text-black py-2 px-4 rounded-lg font-semibold hover:bg-blue-500/80 transition-all duration-200 cursor-pointer'
-              onClick={() => {
-                router.push("/");
-              }}
-            >
-              Volver al lobby
-            </button>
-          </div>
-        )}
-
-        <div className='absolute top-4 right-4 flex flex-row gap-2'>
-          <button
-            className=' bg-white text-black px-3 py-1 rounded shadow hover:bg-gray-200 transition'
+      <div className='flex-1 relative h-1/2 lg:h-screen'>
+        <div className='absolute bottom-2 sm:bottom-4 right-2 sm:right-4 flex flex-row gap-2 z-50'>
+          <motion.button
+            className='bg-[var(--color-pearl-white)] text-[var(--color-black-matte)] p-2 sm:px-3 sm:py-1 rounded-full shadow-md border-2 border-[var(--color-metallic-gold)] hover:bg-[var(--color-silver-gray)] transition'
             onClick={() => setIsMuted(!isMuted)}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
           >
-            {!isMuted ? (
-              <VolumeX className='h-5 w-5 text-black' />
+            {isMuted ? (
+              <Volume2 className='h-4 w-4 sm:h-5 sm:w-5 text-[var(--color-black-matte)]' />
             ) : (
-              <Volume2 className='h-5 w-5 text-black' />
+              <VolumeX className='h-4 w-4 sm:h-5 sm:w-5 text-[var(--color-black-matte)]' />
             )}
-          </button>
-          <button
-            className=' bg-white text-black px-3 py-1 rounded shadow hover:bg-gray-200 transition'
+          </motion.button>
+          <motion.button
+            className='bg-[var(--color-pearl-white)] text-[var(--color-black-matte)] p-2 sm:px-3 sm:py-1 rounded-full shadow-md border-2 border-[var(--color-metallic-gold)] hover:bg-[var(--color-silver-gray)] transition'
             onClick={toggleBackSound}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
           >
-            {!isSoundPlaying ? (
-              <Play className='h-5 w-5 text-black' />
+            {isSoundPlaying ? (
+              <Pause className='h-4 w-4 sm:h-5 sm:w-5 text-[var(--color-black-matte)]' />
             ) : (
-              <Pause className='h-5 w-5 text-black' />
+              <Play className='h-4 w-4 sm:h-5 sm:w-5 text-[var(--color-black-matte)]' />
             )}
-          </button>
+          </motion.button>
+        </div>
+        <div className='relative w-full h-full overflow-hidden shadow-xl z-50 bg-[url("/table-mobile.png")] sm:bg-[url("/table-desktop.png")] bg-contain bg-no-repeat bg-center'>
+          {game.players.map((player, index) => (
+            <PlayerSlot
+              key={player.userId}
+              player={player}
+              position={index}
+              isCurrentTurn={player.userId === game.currentTurnId}
+              currentTurnId={game.currentTurnId}
+              timePerTurn={game.turnTimeout ? game.turnTimeout : 0}
+              totalPlayers={game.players.length}
+              players={game.players}
+              rollCount={game.rollCount}
+            />
+          ))}
+
+          {!verifyGameEnd() ? (
+            <>
+              <DiceBoard
+                game={game}
+                rollingLoading={rollingLoading}
+                dicesToReroll={dicesToReroll}
+                setDicesToReroll={setDicesToReroll}
+                rollCount={game.rollCount}
+                isMyTurn={session?.user?.id === game.currentTurnId}
+              />
+              <Cup
+                gamePlayers={game.players}
+                isMyTurn={session?.user?.id === game.currentTurnId}
+                rollCount={game.rollCount}
+                gameId={game.id}
+                rollingLoading={rollingLoading}
+                dicesToReroll={dicesToReroll}
+                setDicesToReroll={setDicesToReroll}
+              />
+            </>
+          ) : (
+            <motion.div
+              className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-4 sm:gap-6 select-none bg-[var(--color-pearl-white)] p-4 sm:p-6 rounded-xl shadow-lg border-2 border-[var(--color-metallic-gold)] w-11/12 sm:w-auto max-w-md'
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className='flex flex-col items-center gap-3 sm:gap-4'>
+                <p className='text-xl sm:text-3xl text-[var(--color-sapphire-blue)] font-poppins font-bold drop-shadow-[0_2px_2px_rgba(212,160,23,0.5)]'>
+                  ¡Juego terminado!
+                </p>
+                {winners.length === 1 ? (
+                  <p className='text-base sm:text-2xl text-[var(--color-black-matte)] font-poppins font-bold text-center'>
+                    {winners[0].user.name} es el ganador!
+                  </p>
+                ) : (
+                  <p className='text-base sm:text-2xl text-[var(--color-black-matte)] font-poppins font-bold text-center'>
+                    ¡Empate entre {winners.map((w) => w.user.name).join(", ")}!
+                  </p>
+                )}
+              </div>
+
+              <div className='flex flex-col gap-2 items-center text-[var(--color-black-matte)]'>
+                <p className='text-base sm:text-xl font-poppins font-semibold underline text-[var(--color-metallic-gold)]'>
+                  Ranking
+                </p>
+                {ranking.map((player, index) => (
+                  <div
+                    key={player.id}
+                    className={`text-sm sm:text-lg ${
+                      winners.some((w) => w.id === player.id)
+                        ? "text-[var(--color-sapphire-blue)] font-bold"
+                        : "text-[var(--color-silver-gray)]"
+                    } font-quicksand`}
+                  >
+                    {index + 1}. {player.user.name} - {player.totalScore} pts
+                  </div>
+                ))}
+              </div>
+
+              <motion.button
+                className='bg-[var(--color-ruby-red)] text-[var(--color-pearl-white)] py-2 px-4 sm:px-6 rounded-lg font-poppins font-semibold border-2 border-[var(--color-metallic-gold)] hover:bg-[#DC2626] transition-all duration-200 text-sm sm:text-base'
+                onClick={() => router.push("/")}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Volver al lobby
+              </motion.button>
+            </motion.div>
+          )}
         </div>
       </div>
     </div>

@@ -24,11 +24,8 @@ import { StatsModal } from "@/components/stats/StatsModal";
 import Image from "next/image";
 
 export default function MainMenu() {
-  // Session
   const { data: session, status } = useSession();
-  // Variables
   const router = useRouter();
-  // Estados del componente
   const [isLoadingRooms, setIsLoadingRooms] = useState(false);
   const [rooms, setRooms] = useState<Game[]>([]);
   const [friends, setFriends] = useState<UserFriendship[]>([]);
@@ -40,7 +37,6 @@ export default function MainMenu() {
   const [passwordModal, setPasswordModal] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  // Estados de creación de sala
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const [isDeletingRoom, setIsDeletingRoom] = useState(false);
   const [isJoiningRoom, setIsJoiningRoom] = useState(false);
@@ -55,19 +51,15 @@ export default function MainMenu() {
     password: string;
   }>({
     name: "",
-    maxPlayers: 4,
+    maxPlayers: 5, // Updated to support 5 players
     minPlayers: 2,
     turnTimeout: 30,
     password: "",
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // Sala activa
   const [activeRoom, setActiveRoom] = useState<Game | null>(null);
-  // Usuarios activos
   const [onlineUserIds, setOnlineUserIds] = useState<string[]>([]);
-  // Alerta
   const { showAlert } = useAlert();
-  // Stats
   const [showStats, setShowStats] = useState(false);
   const [statsToShow, setStatsToShow] = useState(null);
   const [isStatsLoading, setIsStatsLoading] = useState(false);
@@ -97,17 +89,10 @@ export default function MainMenu() {
         .then((data) => {
           const roomsDataWithUpdatedPassword = data?.map((room: Game) => {
             const { password, ...roomWithoutPassword } = room;
-
             const updatedPassword = password
               ? Math.random().toString(36).substring(2, 10)
               : "";
-
-            const roomWithUpdatedPassword = {
-              ...roomWithoutPassword,
-              password: updatedPassword,
-            };
-
-            return roomWithUpdatedPassword;
+            return { ...roomWithoutPassword, password: updatedPassword };
           });
           setRooms(roomsDataWithUpdatedPassword || []);
           setIsLoadingRooms(false);
@@ -191,21 +176,15 @@ export default function MainMenu() {
         data.receiverId === session?.user?.id ||
         data.requesterId === session?.user?.id
       ) {
-        let updatedFriends = friends;
-        updatedFriends = updatedFriends.filter(
-          (friend) => friend.id !== data.id
-        );
-        setFriends(updatedFriends);
+        setFriends(friends.filter((friend) => friend.id !== data.id));
       }
     };
 
     socket.on("gameCreated", handleCreateRoom);
     socket.on("gameDeleted", handleDeleteRoom);
-
     socket.on("userJoined", handleUserJoined);
     socket.on("userLeft", handleUserLeft);
     socket.on("playerKicked", handleUserKicked);
-
     socket.on("friendRemoved", handleRemoveFriend);
 
     socket.emit("userOnline", {
@@ -224,36 +203,29 @@ export default function MainMenu() {
     return () => {
       socket.off("gameCreated", handleCreateRoom);
       socket.off("gameDeleted", handleDeleteRoom);
-
       socket.off("userJoined", handleUserJoined);
       socket.off("userLeft", handleUserLeft);
       socket.off("playerKicked", handleUserKicked);
-
       socket.off("friendRemoved", handleRemoveFriend);
-
-      socket.off("updateOnlineUsers", (data: string[]) => {});
-
-      socket.off("gameStarted", (data: string) => {});
+      socket.off("updateOnlineUsers");
+      socket.off("gameStarted");
     };
   }, [session, activeRoom?.id]);
 
   useEffect(() => {
     const fetchActiveRoom = async () => {
       if (!session?.user?.id) return;
-
       try {
         const res = await fetch(
           `/api/rooms/active-room?userId=${session.user.id}`
         );
         const data = await res.json();
-
         if (!res.ok) {
           showAlert({
             type: "error",
-            message: data.error || "Error de conexión",
+            message: data.error || "Error de conexión",
           });
         }
-
         if (data.status === "finished") {
           setActiveRoom(null);
         } else if (data.status === "in_progress") {
@@ -263,7 +235,6 @@ export default function MainMenu() {
         }
       } catch (error) {}
     };
-
     fetchActiveRoom();
   }, [session]);
 
@@ -275,8 +246,8 @@ export default function MainMenu() {
 
   if (status === "loading") {
     return (
-      <div className='flex items-center justify-center h-screen bg-[var(--color-green)]'>
-        <CustomLoadingSpinner size='md' text='Verificando sesión...' />
+      <div className='flex items-center justify-center h-screen bg-[#1A1A1A]'>
+        <CustomLoadingSpinner size='md' text='Verificando sesión...' />
       </div>
     );
   }
@@ -292,7 +263,6 @@ export default function MainMenu() {
 
   const handleSearchFriends = async () => {
     if (!friendSearch.trim()) return;
-
     setIsSearchingFriends(true);
     try {
       const res = await fetch(`/api/friends/search?query=${friendSearch}`);
@@ -323,11 +293,7 @@ export default function MainMenu() {
       updatedName = "password";
       updatedValue = value;
     }
-
-    setGameSettings((prev) => ({
-      ...prev,
-      [updatedName]: updatedValue,
-    }));
+    setGameSettings((prev) => ({ ...prev, [updatedName]: updatedValue }));
   };
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -339,35 +305,27 @@ export default function MainMenu() {
 
   const handleCreateRoom = async (event: React.FormEvent) => {
     event.preventDefault();
-
     if (!gameSettings.name.trim()) return;
-
     setIsCreatingRoom(true);
     try {
       const res = await fetch("/api/rooms/create-room", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...gameSettings,
-          ownerId: session?.user?.id,
-        }),
+        body: JSON.stringify({ ...gameSettings, ownerId: session?.user?.id }),
       });
-
       const data = await res.json();
-
       if (!res.ok) {
         showAlert({
           type: "error",
-          message: data.error || "Error de conexión",
+          message: data.error || "Error de conexión",
         });
         return;
       }
-
       socket.emit("createGame", data);
       setIsModalOpen(false);
       setGameSettings({
         name: "",
-        maxPlayers: 4,
+        maxPlayers: 5, // Updated to support 5 players
         minPlayers: 2,
         turnTimeout: 30,
         password: "",
@@ -381,19 +339,15 @@ export default function MainMenu() {
 
   const handleDeleteRoom = async (roomId: string) => {
     if (!roomId) return;
-
     setIsDeletingRoom(true);
     try {
       const res = await fetch(`/api/rooms/delete-room?roomId=${roomId}`, {
         method: "DELETE",
       });
-
       const data = await res.json();
-
       if (!res.ok) {
         throw new Error(data.error || "Error al eliminar la sala");
       }
-
       socket.emit("deleteGame", data);
     } catch (error) {
       showAlert({ type: "error", message: "Error al eliminar la sala" });
@@ -404,29 +358,21 @@ export default function MainMenu() {
 
   const joinRoom = async (gameId: string, password?: string) => {
     if (!session?.user?.id) return;
-
     setIsJoiningRoom(true);
     try {
       const res = await fetch("/api/rooms/join-room", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: session.user.id,
-          gameId,
-          password,
-        }),
+        body: JSON.stringify({ userId: session.user.id, gameId, password }),
       });
-
       const data = await res.json();
-
       if (!res.ok) {
         showAlert({
           type: "error",
-          message: data.error || "Error de conexión",
+          message: data.error || "Error de conexión",
         });
         return;
       }
-
       let gameUser: GameUser = {
         id: session.user.id,
         user: session.user as User,
@@ -434,7 +380,6 @@ export default function MainMenu() {
         game: data,
         gameId: data.id,
       };
-
       socket.emit("joinGame", gameUser);
     } catch (error) {
       setPasswordModal(null);
@@ -446,28 +391,21 @@ export default function MainMenu() {
 
   const leaveRoom = async (gameId: string) => {
     if (!session?.user?.id) return;
-
     setIsLeavingRoom(true);
     try {
       const res = await fetch("/api/rooms/leave-room", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: session.user.id,
-          gameId,
-        }),
+        body: JSON.stringify({ userId: session.user.id, gameId }),
       });
-
       const data = await res.json();
-
       if (!res.ok) {
         showAlert({
           type: "error",
-          message: data.error || "Error de conexión",
+          message: data.error || "Error de conexión",
         });
         return;
       }
-
       let gameUser: GameUser = {
         id: session.user.id,
         user: session.user as User,
@@ -475,9 +413,7 @@ export default function MainMenu() {
         game: data,
         gameId: data.id,
       };
-
       setActiveRoom(null);
-
       socket.emit("leaveGame", gameUser);
     } catch (error) {
       showAlert({ type: "error", message: "Error de conexión" });
@@ -492,22 +428,16 @@ export default function MainMenu() {
       const res = await fetch("/api/rooms/kick-player", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          roomId: gameId,
-          playerId,
-        }),
+        body: JSON.stringify({ roomId: gameId, playerId }),
       });
-
       const data = await res.json();
-
       if (!res.ok) {
         showAlert({
           type: "error",
-          message: data.error || "Error de conexión",
+          message: data.error || "Error de conexión",
         });
         return;
       }
-
       socket.emit("kickPlayer", { game: data, kickedPlayerId: playerId });
     } catch (error) {
       showAlert({ type: "error", message: "Error de conexión" });
@@ -528,29 +458,21 @@ export default function MainMenu() {
       });
       return;
     }
-
     setIsStartingGame(true);
-
     try {
       const res = await fetch("/api/rooms/start-game", {
         method: "POST",
         body: JSON.stringify({ roomId: room.id }),
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
-
       const data = await res.json();
-
       if (!res.ok) {
         showAlert({
           type: "error",
-          message: data.error || "Error de conexión",
+          message: data.error || "Error de conexión",
         });
         return;
       }
-
-      // Emitimos por socket que el juego comenzó
       socket.emit("startGame", data);
     } catch (error) {
       console.error("Error al iniciar el juego:", error);
@@ -567,133 +489,137 @@ export default function MainMenu() {
       if (!res.ok) {
         showAlert({
           type: "error",
-          message: data.error || "Error al obtener estadisticas",
+          message: data.error || "Error al obtener estadísticas",
         });
       }
-
       setStatsToShow(data);
       setShowStats(true);
     } catch (error) {
-      showAlert({
-        type: "error",
-        message: "Error de conexión",
-      });
-      return null;
+      showAlert({ type: "error", message: "Error de conexión" });
     } finally {
       setIsStatsLoading(false);
     }
   };
 
   return (
-    <div className='flex min-h-screen bg-[var(--color-beige)] text-[var(--color-black)] overflow-hidden'>
-      {/* Lista de amigos */}
-      <aside className='relative w-full md:w-1/5 p-6 shadow-xl rounded-r-2xl bg-[var(--color-white)]'>
-        <h2 className='text-2xl font-bold mb-4 text-blue-500 '>Amigos</h2>
-        {/* Buscador de amigos */}
-        <div className='mt-4 relative'>
-          <div>
-            <input
-              type='text'
-              placeholder='Buscar amigos...'
-              value={friendSearch}
-              onChange={(e) => setFriendSearch(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearchFriends()}
-              className='w-full p-3 border border-[var(--color-black)]/20 rounded-md bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200'
+    <div className='flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-[#1A1A1A] to-[#2E2E2E] text-[#F5F5F5] font-quicksand overflow-hidden'>
+      {/* Sidebar: Amigos */}
+      <aside className='w-full md:w-2/5 lg:w-1/4 p-4 sm:p-6 bg-gradient-to-b from-[#2E4A3D] to-[#1A2A22] text-[#F5F5F5] rounded-b-2xl md:rounded-r-2xl shadow-xl border-b-2 md:border-b-0 md:border-r-2 border-[#D4A017]'>
+        <div className='flex items-center gap-2 mb-4'>
+          <motion.div
+            animate={{ rotate: [0, 360], scale: [1, 1.2, 1] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+          >
+            <Image
+              src='/dice-icon.png'
+              alt='Dado'
+              width={24}
+              height={24}
+              className='sm:w-8 sm:h-8'
             />
-            <Search
-              onClick={() => {
-                if (!isSearchingFriends) handleSearchFriends();
-              }}
-              className='absolute right-3 top-3 w-6 h-6 text-[var(--color-black)] cursor-pointer transition-all duration-200 hover:text-blue-500'
-            />
-          </div>
-          {friendResults && (
-            <div>
-              {isSearchingFriends ? (
-                <div className='mt-5'>
-                  <CustomLoadingSpinner
-                    size='sm'
-                    textColor='var(--color-black)'
-                    text='Buscando amigos'
-                  />
-                </div>
-              ) : (
-                Array.isArray(friendResults) &&
-                friendResults.length > 0 && (
-                  <ul className='mt-4 space-y-2 overflow-scroll scrollbar-none'>
-                    <AnimatePresence>
-                      {friendResults.map((user) => (
-                        <motion.li
-                          key={user.id}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          transition={{ duration: 0.3 }}
-                          className='p-3 bg-white rounded-lg transition-colors duration-200 border border-[var(--color-black)]/20'
-                        >
-                          <FriendCard
-                            sessionUser={session?.user as User}
-                            user={user}
-                            setFriendSearch={setFriendSearch}
-                            setFriendResults={setFriendResults}
-                            activeRoom={activeRoom ? activeRoom : undefined}
-                            onlineUserIds={onlineUserIds}
-                          />
-                        </motion.li>
-                      ))}
-                    </AnimatePresence>
-                  </ul>
-                )
-              )}
-            </div>
-          )}
+          </motion.div>
+          <h2 className='text-xl sm:text-2xl font-bold font-poppins'>Amigos</h2>
         </div>
-
-        {!isSearchingFriends && friendResults.length === 0 && (
+        {/* Buscador */}
+        <div className='relative mt-4'>
+          <input
+            type='text'
+            placeholder='Buscar amigos...'
+            value={friendSearch}
+            onChange={(e) => setFriendSearch(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearchFriends()}
+            className='w-full p-2 sm:p-3 bg-[#F5F5F5] border-2 border-[#D4A017] rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1A6642] transition-all duration-300 text-[#1A1A1A] text-sm sm:text-base'
+          />
+          <motion.div whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.9 }}>
+            <Search
+              onClick={() => !isSearchingFriends && handleSearchFriends()}
+              className='absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 sm:w-6 sm:h-6 text-[#1A1A1A] cursor-pointer'
+            />
+          </motion.div>
+        </div>
+        {/* Resultados de búsqueda */}
+        {friendResults.length > 0 && (
           <div>
-            {isLoadingFriends ? (
-              <div className='mt-5'>
+            {isSearchingFriends ? (
+              <div className='mt-4 sm:mt-5'>
                 <CustomLoadingSpinner
                   size='sm'
-                  textColor='var(--color-black)'
-                  text='Cargando amigos'
+                  text='Buscando amigos'
+                  textColor='#F5F5F5'
                 />
               </div>
-            ) : friends.length === 0 ? (
-              <p className='text-[var(--color-black)]/70 italic mt-5 text-center'>
-                No tienes amigos agregados.
-              </p>
             ) : (
-              <ul className='mt-4 space-y-3 overflow-scroll scrollbar-none'>
+              <ul className='mt-4 space-y-2 sm:space-y-3 max-h-[40vh] overflow-y-auto scrollbar-none'>
                 <AnimatePresence>
-                  {Array.isArray(friends) &&
-                    friends.map((friend) => (
-                      <motion.li
-                        key={friend.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.3 }}
-                        className='p-3 bg-white rounded-lg transition-colors duration-200 border border-[var(--color-black)]/20'
-                      >
-                        <FriendCard
-                          sessionUser={session?.user as User}
-                          user={
-                            friend.receiver.id === session?.user?.id
-                              ? friend.requester
-                              : friend.receiver
-                          }
-                          activeRoom={activeRoom ? activeRoom : undefined}
-                          onlineUserIds={onlineUserIds}
-                        />
-                      </motion.li>
-                    ))}
+                  {friendResults.map((user) => (
+                    <motion.li
+                      key={user.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.3 }}
+                      className='p-3 sm:p-4 bg-[#F5F5F5] rounded-xl shadow-sm border-2 border-[#D4A017]'
+                    >
+                      <FriendCard
+                        sessionUser={session?.user as User}
+                        user={user}
+                        setFriendSearch={setFriendSearch}
+                        setFriendResults={setFriendResults}
+                        activeRoom={activeRoom as Game}
+                        onlineUserIds={onlineUserIds}
+                      />
+                    </motion.li>
+                  ))}
                 </AnimatePresence>
               </ul>
             )}
           </div>
         )}
-        <div className='absolute bottom-2 w-[90%] left-1/2 transform -translate-x-1/2'>
+        {/* Lista de amigos */}
+        {!isSearchingFriends && friendResults.length === 0 && (
+          <div>
+            {isLoadingFriends ? (
+              <div className='mt-4 sm:mt-5'>
+                <CustomLoadingSpinner
+                  size='sm'
+                  text='Cargando amigos'
+                  textColor='#F5F5F5'
+                />
+              </div>
+            ) : friends.length === 0 ? (
+              <p className='text-[#B0B0B0] italic mt-4 sm:mt-5 text-center text-sm sm:text-base'>
+                No tienes amigos agregados.
+              </p>
+            ) : (
+              <ul className='mt-4 space-y-2 sm:space-y-3 max-h-[40vh] overflow-y-auto scrollbar-none'>
+                <AnimatePresence>
+                  {friends.map((friend) => (
+                    <motion.li
+                      key={friend.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.3 }}
+                      className='p-3 sm:p-4 bg-[#F5F5F5] rounded-xl shadow-sm border-2 border-[#D4A017]'
+                    >
+                      <FriendCard
+                        sessionUser={session?.user as User}
+                        user={
+                          friend.receiver.id === session?.user?.id
+                            ? friend.requester
+                            : friend.receiver
+                        }
+                        activeRoom={activeRoom as Game}
+                        onlineUserIds={onlineUserIds}
+                      />
+                    </motion.li>
+                  ))}
+                </AnimatePresence>
+              </ul>
+            )}
+          </div>
+        )}
+        <div className='mt-4 sm:mt-6'>
           <FriendsRequests
             friends={friends}
             setFriends={setFriends}
@@ -703,69 +629,87 @@ export default function MainMenu() {
       </aside>
 
       {/* Contenido principal */}
-      <main className='relative flex-1 p-6 md:p-10 overflow-y-scroll scrollbar-none bg-gradient-to-r from-[#fffaf0]/30 to-[#fffaf0]'>
-        <div className='w-full mx-auto'>
-          <div className='flex flex-row items-center mb-4'>
-            <h1 className='text-4xl font-extrabold text-[var(--color-black)] drop-shadow-md max-w-3/4 truncate'>
+      <main className='flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto scrollbar-none'>
+        <div className='w-full max-w-7xl mx-auto'>
+          <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-4'>
+            <h1 className='text-center text-lg sm:text-xl lg:text-2xl font-extrabold font-poppins text-[#F5F5F5] drop-shadow-lg truncate'>
               Bienvenido/a, {session.user?.name}
             </h1>
-            <button
-              onClick={() => {
-                setStatsToShow(session.user.stats);
-                setShowStats(true);
-              }}
-              className='ml-4 px-4 py-2 text-white bg-black/50 hover:bg-black/50 backdrop-blur-3xl rounded-lg shadow-lg transition-all duration-200 cursor-pointer'
-            >
-              Ver estadísticas
-            </button>
+            <div className='flex flex-row gap-2 sm:gap-4 items-center justify-center'>
+              <motion.button
+                onClick={() => {
+                  setStatsToShow(session.user.stats);
+                  setShowStats(true);
+                }}
+                className='bg-[#1E3A8A] text-[#F5F5F5] py-2 px-3 sm:px-4 rounded-xl shadow-md flex items-center hover:bg-[#3B82F6] text-sm sm:text-base'
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                Ver estadísticas
+              </motion.button>
+              <motion.button
+                onClick={handleCloseSession}
+                className='bg-[#A91D2F] text-[#F5F5F5] py-2 px-3 sm:px-4 rounded-xl shadow-md flex items-center hover:bg-[#DC2626] text-sm sm:text-base'
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <LogOut className='mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5' />
+                Cerrar sesión
+              </motion.button>
+            </div>
           </div>
 
           {/* Barra de búsqueda de salas */}
-          <div className='w-full flex items-center bg-white shadow rounded-lg border-[var(--color-black)]/20 border '>
-            <Search className='w-6 h-6 text-[var(--color-black)] mx-4' />
+          <div className='w-full flex items-center bg-[#F5F5F5] shadow-lg rounded-full border-2 border-[#D4A017] mb-4 sm:mb-6'>
+            <Search className='w-5 h-5 sm:w-6 sm:h-6 text-[#1A1A1A] mx-2 sm:mx-4' />
             <input
               type='text'
               placeholder='Buscar sala...'
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className='flex-1 p-4 rounded-r-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-[var(--color-black)] transition-all duration-200'
+              className='flex-1 p-2 sm:p-3 rounded-r-full focus:outline-none text-[#1A1A1A] font-quicksand text-sm sm:text-base'
             />
           </div>
-          {/* Tu sala */}
+
+          {/* Sala activa */}
           {activeRoom && (
-            <section className='mt-4'>
-              <h2 className='text-2xl font-bold italic text-[var(--color-black)] mb-4'>
+            <section className='mt-4 sm:mt-6'>
+              <h2 className='text-xl sm:text-2xl font-bold font-poppins text-[#F5F5F5] mb-4'>
                 Sala activa
               </h2>
-              <div className='flex items-center justify-between p-4 bg-white rounded-lg shadow-md border-[var(--color-black)]/20 border md:w-2/4'>
-                <div className='flex flex-col gap-2'>
-                  <p className='text-[var(--color-black)] text-lg italic'>
+              <motion.div
+                className='flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 bg-[#F5F5F5] rounded-xl shadow-md border-2 border-[#D4A017] w-full sm:w-3/4 md:w-2/3'
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <div className='flex flex-col gap-2 w-full sm:w-auto'>
+                  <p className='text-[#1A1A1A] text-base sm:text-lg font-poppins italic'>
                     {activeRoom.name}
                   </p>
-                  <div className='flex gap-2 items-center'>
+                  <div className='flex gap-2 items-center flex-wrap'>
                     {activeRoom.players.map((player) => (
                       <Image
                         key={player.id}
                         src={player.user.image || "/default-avatar.png"}
                         alt='Avatar'
-                        width={60}
-                        height={60}
-                        className='rounded-full'
+                        width={48}
+                        height={48}
+                        className='rounded-full border-2 border-[#D4A017] w-10 h-10 sm:w-12 sm:h-12'
                         unoptimized
                       />
                     ))}
                   </div>
                 </div>
-                <div className='flex flex-col gap-2'>
-                  <p className='text-[var(--color-black)] text-lg text-right font-bold'>
+                <div className='flex flex-col gap-2 mt-4 sm:mt-0 sm:items-end w-full sm:w-auto'>
+                  <p className='text-[#1A1A1A] text-base sm:text-lg font-bold font-poppins'>
                     {activeRoom.players.length}/{activeRoom.maxPlayers}{" "}
                     jugadores
                   </p>
-                  <button
-                    className={`bg-[var(--color-red)]  text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-200  text-sm ${
+                  <motion.button
+                    className={`w-full sm:w-auto bg-[#A91D2F] text-[#F5F5F5] font-poppins font-semibold py-2 px-4 sm:py-3 sm:px-6 rounded-xl shadow-md ${
                       isDeletingRoom || isLeavingRoom
                         ? "opacity-50 cursor-not-allowed"
-                        : "hover:bg-[var(--color-red)]/80 cursor-pointer"
+                        : "hover:bg-[#DC2626]"
                     }`}
                     onClick={() => {
                       if (isDeletingRoom || isLeavingRoom) return;
@@ -775,37 +719,36 @@ export default function MainMenu() {
                         leaveRoom(activeRoom.id);
                       }
                     }}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
                   >
                     {activeRoom.ownerId === session.user?.id
                       ? "Eliminar sala"
                       : "Salir de la sala"}
-                  </button>
+                  </motion.button>
                 </div>
-              </div>
+              </motion.div>
             </section>
           )}
 
           {/* Listado de salas */}
-          <section className='mt-4'>
-            <div className='flex justify-between items-center mb-4'>
-              <h2 className='text-2xl font-bold italic text-[var(--color-black)]'>
+          <section className='mt-4 sm:mt-6'>
+            <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4'>
+              <h2 className='text-xl sm:text-2xl font-bold font-poppins text-[#F5F5F5]'>
                 Salas disponibles
               </h2>
-              {/* Botón para agregar sala */}
-              <button
-                className='bg-blue-500 hover:bg-blue-500/80 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-200'
+              <motion.button
+                className='w-full sm:w-auto bg-[#1E3A8A] text-[#F5F5F5] font-poppins font-semibold py-2 px-4 sm:py-3 sm:px-6 rounded-xl shadow-md hover:bg-[#3B82F6]'
                 onClick={() => setIsModalOpen(true)}
                 disabled={isLoadingRooms || activeRoom !== null}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
                 style={{
-                  cursor:
-                    isLoadingRooms || activeRoom !== null
-                      ? "not-allowed"
-                      : "pointer",
                   opacity: isLoadingRooms || activeRoom !== null ? 0.5 : 1,
                 }}
               >
                 Crear sala
-              </button>
+              </motion.button>
             </div>
             {isLoadingRooms || isCreatingRoom ? (
               <CustomLoadingSpinner />
@@ -813,273 +756,284 @@ export default function MainMenu() {
                 (room) =>
                   activeRoom?.id !== room.id && room.status === "waiting"
               ).length === 0 ? (
-              <p className='text-[var(--color-black)]/70 italic'>
+              <p className='text-[#B0B0B0] italic font-quicksand text-sm sm:text-base'>
                 No hay salas disponibles.
               </p>
             ) : rooms.filter(
                 (room) =>
                   room.name.includes(search) && room.status === "waiting"
               ).length === 0 ? (
-              <p className='text-[var(--color-black)]/70 italic'>
+              <p className='text-[#B0B0B0] italic font-quicksand text-sm sm:text-base'>
                 No se encontraron salas con el nombre "{search}".
               </p>
             ) : (
-              <ul className='grid gap-4 md:grid-cols-2'>
+              <ul className='grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'>
                 <AnimatePresence>
-                  {Array.isArray(rooms) &&
-                    rooms
-                      .filter(
-                        (room) =>
-                          room.name.includes(search) &&
-                          activeRoom?.id !== room.id &&
-                          room.status === "waiting"
-                      )
-                      .map((room, index) =>
-                        !room ? (
-                          <div
-                            key={index}
-                            className='relative flex justify-center items-center p-4 py-6 bg-white rounded-lg shadow-md border border-[var(--color-black)]/20'
-                          >
-                            <CustomLoadingSpinner size='md' showText={false} />
-                          </div>
-                        ) : (
-                          <motion.li
-                            key={room.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.3 }}
-                            className={`relative flex items-center p-4 bg-white rounded-lg shadow border border-[var(--color-black)]/20 transition-transform duration-200 ${
-                              room.players.length >= room.maxPlayers ||
-                              isJoiningRoom
-                                ? "cursor-not-allowed grayscale"
-                                : "cursor-pointer hover:shadow-lg hover:scale-105"
-                            }`}
-                            onClick={() => {
-                              if (isJoiningRoom) return;
-                              if (activeRoom?.id === room.id) {
-                                showAlert({
-                                  type: "error",
-                                  message: "Ya estas en esta sala",
-                                });
-                              } else if (activeRoom?.id) {
-                                showAlert({
-                                  type: "error",
-                                  message: "Ya estás en una sala",
-                                });
-                              } else if (room.password) {
-                                setPasswordModal(room.id);
-                              } else if (
-                                room.players.length < room.maxPlayers
-                              ) {
-                                joinRoom(room.id);
-                              }
-                            }}
-                          >
-                            {/* Imagen del propietario */}
-                            <Image
-                              src={room.owner.image || "/default-avatar.png"}
-                              alt='Avatar'
-                              width={40}
-                              height={40}
-                              className='rounded-full mr-4'
-                              unoptimized
-                            />
-
-                            {/* Información de la sala */}
-                            <div className='flex flex-col flex-grow'>
-                              <span className='text-lg font-semibold'>
-                                {room?.name || "Sin nombre"}
-                              </span>
-                              <span className='text-sm text-gray-500'>
-                                {room?.minPlayers ?? 0} a{" "}
-                                {room?.maxPlayers ?? 0} jugadores
-                              </span>
-                            </div>
-
-                            {/* Cantidad de jugadores */}
-                            <span className='text-md font-semibold text-gray-700'>
-                              {room?.players?.length ?? 0}/
-                              {room?.maxPlayers ?? 0} jugadores
+                  {rooms
+                    .filter(
+                      (room) =>
+                        room.name.includes(search) &&
+                        activeRoom?.id !== room.id &&
+                        room.status === "waiting"
+                    )
+                    .map((room, index) =>
+                      !room ? (
+                        <div
+                          key={index}
+                          className='relative flex justify-center items-center p-3 sm:p-4 py-5 sm:py-6 bg-[#F5F5F5] rounded-xl shadow-md border-2 border-[#D4A017]'
+                        >
+                          <CustomLoadingSpinner size='md' showText={false} />
+                        </div>
+                      ) : (
+                        <motion.li
+                          key={room.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          transition={{ duration: 0.3 }}
+                          className={`relative flex items-center p-3 sm:p-4 bg-[#F5F5F5] rounded-xl shadow-md border-2 border-[#D4A017] ${
+                            room.players.length >= room.maxPlayers ||
+                            isJoiningRoom
+                              ? "cursor-not-allowed grayscale"
+                              : "cursor-pointer hover:shadow-xl hover:scale-105"
+                          }`}
+                          onClick={() => {
+                            if (isJoiningRoom) return;
+                            if (activeRoom?.id === room.id) {
+                              showAlert({
+                                type: "error",
+                                message: "Ya estás en esta sala",
+                              });
+                            } else if (activeRoom?.id) {
+                              showAlert({
+                                type: "error",
+                                message: "Ya estás en una sala",
+                              });
+                            } else if (room.password) {
+                              setPasswordModal(room.id);
+                            } else if (room.players.length < room.maxPlayers) {
+                              joinRoom(room.id);
+                            }
+                          }}
+                        >
+                          <Image
+                            src={room.owner.image || "/default-avatar.png"}
+                            alt='Avatar'
+                            width={32}
+                            height={32}
+                            className='rounded-full mr-3 sm:mr-4 border-2 border-[#D4A017] w-8 h-8 sm:w-10 sm:h-10'
+                            unoptimized
+                          />
+                          <div className='flex flex-col flex-grow'>
+                            <span className='text-base sm:text-lg font-semibold font-poppins text-[#1A1A1A]'>
+                              {room?.name || "Sin nombre"}
                             </span>
-
-                            {/* Icono de candado si la sala tiene contraseña */}
-                            {room?.password && (
-                              <span className='absolute top-2 right-2 text-gray-500'>
-                                <LockIcon size={20} />
-                              </span>
-                            )}
-
-                            {passwordModal === room.id && (
+                            <span className='text-xs sm:text-sm text-[#B0B0B0] font-quicksand'>
+                              {room?.minPlayers ?? 0} a {room?.maxPlayers ?? 0}{" "}
+                              jugadores
+                            </span>
+                          </div>
+                          <span className='text-sm sm:text-md font-semibold text-[#1A1A1A] font-poppins'>
+                            {room?.players?.length ?? 0}/{room?.maxPlayers ?? 0}
+                          </span>
+                          {room?.password && (
+                            <span className='absolute top-2 right-2 text-[#B0B0B0]'>
+                              <LockIcon size={16} className='sm:w-5 sm:h-5' />
+                            </span>
+                          )}
+                          {passwordModal === room.id && (
+                            <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className='absolute top-0 left-0 w-full h-full bg-black/50 rounded-xl flex items-center justify-center cursor-default'
+                            >
                               <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                exit={{ scale: 0 }}
                                 transition={{ duration: 0.3 }}
-                                className='absolute top-0 left-0 w-full h-full bg-black/50 rounded-lg flex items-center justify-center cursor-default'
+                                className='bg-[#F5F5F5] p-4 sm:p-6 rounded-xl shadow-md w-[90%] max-w-sm'
                               >
-                                <motion.div
-                                  initial={{ scale: 0 }}
-                                  animate={{ scale: 1 }}
-                                  exit={{ scale: 0 }}
-                                  transition={{ duration: 0.3 }}
-                                  className='bg-white p-4 rounded-lg shadow-md'
+                                <h2 className='text-base sm:text-lg font-semibold font-poppins text-[#1A1A1A] mb-2'>
+                                  Ingrese la contraseña
+                                </h2>
+                                <input
+                                  type='password'
+                                  placeholder='Contraseña'
+                                  className='border-2 border-[#D4A017] rounded-full px-2 py-1 sm:px-3 sm:py-2 w-full mb-2 font-quicksand focus:outline-none focus:ring-2 focus:ring-[#1A6642] text-[#1A1A1A] text-sm sm:text-base'
+                                  value={password}
+                                  onChange={(e) => setPassword(e.target.value)}
+                                />
+                                <motion.button
+                                  className='bg-[#1E3A8A] text-[#F5F5F5] px-3 py-1 sm:px-4 sm:py-2 rounded-full font-poppins hover:bg-[#3B82F6] w-full text-sm sm:text-base'
+                                  onClick={() => joinRoom(room.id, password)}
+                                  whileHover={{ scale: 1.1 }}
+                                  whileTap={{ scale: 0.9 }}
                                 >
-                                  <h2 className='text-lg font-semibold mb-2'>
-                                    Ingrese la contraseña
-                                  </h2>
-                                  <input
-                                    type='password'
-                                    placeholder='Contraseña'
-                                    className='border border-[var(--color-black)]/20 rounded-lg px-2 py-1 w-full mb-2'
-                                    value={password}
-                                    onChange={(e) =>
-                                      setPassword(e.target.value)
-                                    }
-                                  />
-                                  <button
-                                    className='bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-500/80 cursor-pointer'
-                                    onClick={() => joinRoom(room.id, password)}
-                                  >
-                                    Ingresar
-                                  </button>
-                                </motion.div>
+                                  Ingresar
+                                </motion.button>
                               </motion.div>
-                            )}
-                          </motion.li>
-                        )
-                      )}
+                            </motion.div>
+                          )}
+                        </motion.li>
+                      )
+                    )}
                 </AnimatePresence>
               </ul>
             )}
           </section>
         </div>
 
+        {/* Sala activa (barra inferior) */}
         {activeRoom && (
-          <div className='absolute bottom-2 left-[1%] w-[98%] bg-blue-500 text-white p-4 flex justify-between items-center rounded-lg'>
-            <div className='flex gap-16 items-center'>
+          <motion.div
+            className='absolute bottom-2 left-2 right-2 sm:left-4 sm:right-4 rounded-t-xl backdrop-blur-md bg-[#1E3A8A]/80 text-[#F5F5F5] p-3 sm:p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4'
+            initial={{ y: 100 }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className='flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6'>
               <div>
-                <h3 className='text-lg font-bold'>{activeRoom.name}</h3>
-                <p>
+                <h3 className='text-base sm:text-lg font-bold font-poppins'>
+                  {activeRoom.name}
+                </h3>
+                <p className='font-quicksand text-sm sm:text-base'>
                   {activeRoom.status === "waiting"
                     ? "Esperando jugadores..."
                     : "En juego"}
                 </p>
               </div>
-              <div className='flex gap-2'>
+              <div className='flex gap-2 flex-wrap'>
                 {activeRoom?.players?.map((player) => (
-                  <div
+                  <motion.div
                     key={player.id}
-                    className='relative flex flex-col gap-2 items-center justify-content-center bg-white p-4 rounded-lg'
+                    className='relative flex flex-col items-center bg-[#F5F5F5] p-2 sm:p-3 rounded-xl shadow-sm border-2 border-[#D4A017]'
+                    whileHover={{ scale: 1.05 }}
                   >
                     <Image
                       src={player.user.image || "/default-avatar.png"}
                       alt='Foto de perfil'
-                      width={60}
-                      height={60}
-                      className='rounded-full'
+                      width={40}
+                      height={40}
+                      className='rounded-full border-2 border-[#D4A017] w-8 h-8 sm:w-10 sm:h-10'
                       unoptimized
                     />
-                    <span className=' font-bold text-[var(--color-black)]'>
+                    <span className='font-bold text-[#1A1A1A] font-quicksand text-xs sm:text-sm truncate max-w-[80px] sm:max-w-[100px]'>
                       {player.user.name}
                     </span>
                     <ChartColumnIncreasing
-                      className={`absolute top-1 left-1 h-5 w-5 text-[var(--color-black)] transition-colors duration-200 hover:text-[var(--color-black)]/80 cursor-pointer`}
+                      className='absolute top-1 left-1 h-4 w-4 sm:h-5 sm:w-5 text-[#1A1A1A] cursor-pointer'
                       onClick={() => getPlayerStats(player.userId)}
                     />
-
                     {session.user.id === activeRoom.ownerId &&
                       player.user.id !== session?.user?.id && (
-                        <X
-                          className={`absolute top-1 right-1 h-5 w-5 text-[var(--color-red)]  transition-colors duration-200 ${
-                            isKickingUser
-                              ? "opacity-50 cursor-not-allowed"
-                              : "cursor-pointer hover:text-[var(--color-red)]/80"
-                          }`}
-                          onClick={() =>
-                            !isKickingUser &&
-                            handleKickPlayer(activeRoom.id, player.userId)
-                          }
-                        />
+                        <motion.div
+                          whileHover={{ scale: 1.2 }}
+                          whileTap={{ scale: 0.9 }}
+                        >
+                          <X
+                            className={`absolute top-1 right-1 h-4 w-4 sm:h-5 sm:w-5 text-[#A91D2F] ${
+                              isKickingUser
+                                ? "opacity-50 cursor-not-allowed"
+                                : "cursor-pointer"
+                            }`}
+                            onClick={() =>
+                              !isKickingUser &&
+                              handleKickPlayer(activeRoom.id, player.userId)
+                            }
+                          />
+                        </motion.div>
                       )}
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </div>
-            <div className='flex gap-4 items-center'>
-              <p>
+            <div className='flex flex-col sm:flex-row gap-2 sm:gap-4 items-start sm:items-center'>
+              <p className='font-quicksand text-sm sm:text-base'>
                 {activeRoom?.players?.length}/{activeRoom.maxPlayers} jugadores
               </p>
               {activeRoom.ownerId === session?.user?.id && (
-                <div className='flex gap-2 items-center'>
-                  <button
-                    onClick={() => {
+                <div className='flex gap-2 items-center w-full sm:w-auto'>
+                  <motion.button
+                    onClick={() =>
                       !isStartingGame &&
-                        !isDeletingRoom &&
-                        startGame(activeRoom);
-                    }}
-                    className={`bg-white text-blue-500 px-4 py-2 rounded font-bold transition-colors duration-200  ${
+                      !isDeletingRoom &&
+                      startGame(activeRoom)
+                    }
+                    className={`flex-1 sm:flex-none bg-[#1A6642] text-[#F5F5F5] px-3 py-1 sm:px-4 sm:py-2 rounded-xl font-bold font-poppins text-sm sm:text-base ${
                       isStartingGame || isDeletingRoom
                         ? "opacity-50 cursor-not-allowed"
-                        : "cursor-pointer hover:bg-blue-600 hover:text-white"
+                        : "hover:bg-[#2E8B57]"
                     }`}
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    whileTap={{ scale: 0.9 }}
                   >
                     Iniciar Partida
-                  </button>
-                  <Trash2
-                    className={`h-5 w-5 text-[var(--color-red)] transition-colors duration-200 ${
-                      isStartingGame || isDeletingRoom
-                        ? "opacity-50 cursor-not-allowed"
-                        : "cursor-pointer hover:text-[var(--color-red)]/80"
-                    }`}
-                    onClick={() => {
-                      !isDeletingRoom &&
+                  </motion.button>
+                  <motion.div
+                    whileHover={{ scale: 1.2 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <Trash2
+                      className={`h-4 w-4 sm:h-5 sm:w-5 text-[#A91D2F] ${
+                        isStartingGame || isDeletingRoom
+                          ? "opacity-50 cursor-not-allowed"
+                          : "cursor-pointer"
+                      }`}
+                      onClick={() =>
+                        !isDeletingRoom &&
                         !isStartingGame &&
-                        handleDeleteRoom(activeRoom.id);
-                    }}
-                  />
+                        handleDeleteRoom(activeRoom.id)
+                      }
+                    />
+                  </motion.div>
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
         )}
 
-        <button
+        <motion.button
           onClick={() => router.push("/how-to-play")}
-          className='absolute bottom-2 right-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-500/80 cursor-pointer'
+          className='absolute bottom-2 right-2 sm:bottom-4 sm:right-4 bg-[#1E3A8A] text-[#F5F5F5] px-3 py-1 sm:px-4 sm:py-2 rounded-xl font-poppins hover:bg-[#3B82F6] text-sm sm:text-base'
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
         >
-          ¿Como jugar?
-        </button>
+          ¿Cómo jugar?
+        </motion.button>
       </main>
 
-      {/* Botón de cierre de sesión */}
-      <div className='absolute top-4 right-4'>
-        <button
-          onClick={handleCloseSession}
-          className='bg-[var(--color-red)] hover:bg-[var(--color-red)]/80 text-white font-semibold py-3 px-4 rounded-lg shadow-md flex items-center transition-all duration-200'
-        >
-          <LogOut className='mr-2 h-5 w-5' />
-          Cerrar sesión
-        </button>
-      </div>
-
+      {/* Modal de Creación de Sala */}
       {isModalOpen && (
-        <div className='fixed inset-0 flex items-center justify-center bg-[var(--color-black)]/50'>
-          <div className='bg-white p-6 rounded-lg shadow-lg w-96'>
-            <form
-              action='POST'
-              onSubmit={(e) => {
-                !isCreatingRoom && handleCreateRoom(e);
-              }}
-            >
-              <div className='flex justify-between items-center'>
-                <h2 className='text-xl font-bold'>Crear nueva sala</h2>
-                <button onClick={() => setIsModalOpen(false)}>
-                  <X className='text-gray-600 hover:text-gray-800' />
-                </button>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className='fixed inset-0 flex items-center justify-center bg-black/60 z-50'
+        >
+          <motion.div
+            initial={{ scale: 0.8, y: 50 }}
+            animate={{ scale: 1, y: 0 }}
+            className='bg-[#F5F5F5] p-4 sm:p-6 rounded-2xl shadow-xl w-[90vw] sm:w-[400px] max-w-[95%] border-2 border-[#D4A017]'
+          >
+            <form onSubmit={(e) => !isCreatingRoom && handleCreateRoom(e)}>
+              <div className='flex justify-between items-center mb-4'>
+                <h2 className='text-lg sm:text-xl font-bold font-poppins text-[#1A1A1A]'>
+                  Crear nueva sala
+                </h2>
+                <motion.button
+                  whileHover={{ scale: 1.2 }}
+                  onClick={() => setIsModalOpen(false)}
+                >
+                  <X className='text-[#1A1A1A] w-5 h-5 sm:w-6 sm:h-6' />
+                </motion.button>
               </div>
-
-              <label className='block mb-2' htmlFor='roomName'>
+              <label
+                className='block mb-2 font-quicksand text-[#1A1A1A] text-sm sm:text-base'
+                htmlFor='roomName'
+              >
                 Nombre de la sala
               </label>
               <input
@@ -1089,23 +1043,22 @@ export default function MainMenu() {
                 id='roomName'
                 value={gameSettings.name}
                 onChange={handleChange}
-                className='w-full p-2 border rounded mb-3 border-[var(--color-black)]/20 focus:outline-none focus:ring-2 focus:ring-blue-500 text-[var(--color-black)] transition-all duration-200'
+                className='w-full p-2 sm:p-3 border-2 border-[#D4A017] rounded-full focus:outline-none focus:ring-2 focus:ring-[#1A6642] font-quicksand text-[#1A1A1A] text-sm sm:text-base'
                 placeholder={`Sala de ${session.user?.name}`}
                 required
                 minLength={3}
                 maxLength={25}
               />
-
-              <div className='flex justify-between items-center gap-5'>
-                <div className='w-1/2'>
+              <div className='flex flex-col sm:flex-row justify-between gap-4 mt-4'>
+                <div className='w-full sm:w-1/2'>
                   <label
-                    className='block mb-2 text-center'
+                    className='block mb-2 text-center font-quicksand text-[#1A1A1A] text-sm sm:text-base'
                     htmlFor='minPlayers'
                   >
                     Jugadores mínimos
                   </label>
-                  <div className='flex items-center justify-between border rounded mb-3 border-[var(--color-black)]/20 w-full'>
-                    <button
+                  <div className='flex items-center justify-between border-2 border-[#D4A017] rounded-full'>
+                    <motion.button
                       type='button'
                       onClick={() =>
                         handleChange({
@@ -1118,14 +1071,16 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-2 px-4 bg-blue-500 hover:bg-blue-500/80 text-white rounded-l'
+                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1E3A8A] text-[#F5F5F5] rounded-l-full hover:bg-[#3B82F6] text-sm sm:text-base'
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
                     >
                       -
-                    </button>
-                    <p className='text-[var(--color-black)]'>
+                    </motion.button>
+                    <p className='text-[#1A1A1A] font-quicksand text-sm sm:text-base'>
                       {gameSettings.minPlayers}
                     </p>
-                    <button
+                    <motion.button
                       type='button'
                       onClick={() =>
                         handleChange({
@@ -1138,22 +1093,23 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-2 px-4 bg-blue-500 hover:bg-blue-500/80 text-white rounded-r'
+                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1E3A8A] text-[#F5F5F5] rounded-r-full hover:bg-[#3B82F6] text-sm sm:text-base'
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
                     >
                       +
-                    </button>
+                    </motion.button>
                   </div>
                 </div>
-
-                <div className='w-1/2'>
+                <div className='w-full sm:w-1/2'>
                   <label
-                    className='block mb-2 text-center'
+                    className='block mb-2 text-center font-quicksand text-[#1A1A1A] text-sm sm:text-base'
                     htmlFor='maxPlayers'
                   >
                     Jugadores máximos
                   </label>
-                  <div className='flex items-center justify-between border rounded mb-3 border-[var(--color-black)]/20 w-full'>
-                    <button
+                  <div className='flex items-center justify-between border-2 border-[#D4A017] rounded-full'>
+                    <motion.button
                       type='button'
                       onClick={() =>
                         handleChange({
@@ -1166,14 +1122,16 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-2 px-4 bg-blue-500 hover:bg-blue-500/80 text-white rounded-l'
+                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1E3A8A] text-[#F5F5F5] rounded-l-full hover:bg-[#3B82F6] text-sm sm:text-base'
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
                     >
                       -
-                    </button>
-                    <p className='text-[var(--color-black)]'>
+                    </motion.button>
+                    <p className='text-[#1A1A1A] font-quicksand text-sm sm:text-base'>
                       {gameSettings.maxPlayers}
                     </p>
-                    <button
+                    <motion.button
                       type='button'
                       onClick={() =>
                         handleChange({
@@ -1186,15 +1144,19 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-2 px-4 bg-blue-500 hover:bg-blue-500/80 text-white rounded-r'
+                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1E3A8A] text-[#F5F5F5] rounded-r-full hover:bg-[#3B82F6] text-sm sm:text-base'
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
                     >
                       +
-                    </button>
+                    </motion.button>
                   </div>
                 </div>
               </div>
-
-              <label className='block mb-2' htmlFor='turnTimeout'>
+              <label
+                className='block mb-2 mt-4 font-quicksand text-[#1A1A1A] text-sm sm:text-base'
+                htmlFor='turnTimeout'
+              >
                 ¿Tiempo ilimitado por ronda?
               </label>
               <input
@@ -1203,16 +1165,18 @@ export default function MainMenu() {
                 id='turnTimeout'
                 checked={gameSettings.turnTimeout === null}
                 onChange={handleCheckboxChange}
-                className='mb-3 ml-2 size-4'
+                className='mb-3 ml-2 size-4 sm:size-5'
               />
-
               {gameSettings.turnTimeout !== null && (
                 <>
-                  <label className='block mb-2' htmlFor='turnTimeoutAmount'>
+                  <label
+                    className='block mb-2 font-quicksand text-[#1A1A1A] text-sm sm:text-base'
+                    htmlFor='turnTimeoutAmount'
+                  >
                     Tiempo por turno (segundos)
                   </label>
-                  <div className='flex items-center justify-between border rounded mb-3 border-[var(--color-black)]/20 w-40'>
-                    <button
+                  <div className='flex items-center justify-between border-2 border-[#D4A017] rounded-full w-32 sm:w-40'>
+                    <motion.button
                       type='button'
                       onClick={() =>
                         handleChange({
@@ -1225,14 +1189,16 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-2 px-4 bg-blue-500 hover:bg-blue-500/80 text-white rounded-l'
+                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1E3A8A] text-[#F5F5F5] rounded-l-full hover:bg-[#3B82F6] text-sm sm:text-base'
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
                     >
                       -
-                    </button>
-                    <p className=' text-[var(--color-black)]'>
+                    </motion.button>
+                    <p className='text-[#1A1A1A] font-quicksand text-sm sm:text-base'>
                       {gameSettings.turnTimeout}
                     </p>
-                    <button
+                    <motion.button
                       type='button'
                       onClick={() =>
                         handleChange({
@@ -1245,15 +1211,19 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-2 px-4 bg-blue-500 hover:bg-blue-500/80 text-white rounded-r'
+                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1E3A8A] text-[#F5F5F5] rounded-r-full hover:bg-[#3B82F6] text-sm sm:text-base'
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
                     >
                       +
-                    </button>
+                    </motion.button>
                   </div>
                 </>
               )}
-
-              <label className='block mb-2' htmlFor='roomPassword'>
+              <label
+                className='block mb-2 mt-4 font-quicksand text-[#1A1A1A] text-sm sm:text-base'
+                htmlFor='roomPassword'
+              >
                 Contraseña (opcional)
               </label>
               <div className='relative'>
@@ -1264,35 +1234,39 @@ export default function MainMenu() {
                   id='roomPassword'
                   value={gameSettings.password}
                   onChange={handleChange}
-                  className='w-full p-2 border rounded mb-3 border-[var(--color-black)]/20 focus:outline-none focus:ring-2 focus:ring-blue-500 text-[var(--color-black)] transition-all duration-200'
+                  className='w-full p-2 sm:p-3 border-2 border-[#D4A017] rounded-full focus:outline-none focus:ring-2 focus:ring-[#1A6642] font-quicksand text-[#1A1A1A] text-sm sm:text-base'
                 />
-                {showPassword ? (
-                  <Eye
-                    className='absolute top-[20%] right-2 cursor-pointer'
-                    onClick={() => setShowPassword(!showPassword)}
-                    size={20}
-                  />
-                ) : (
-                  <EyeOff
-                    className='absolute top-[20%] right-2 cursor-pointer'
-                    onClick={() => setShowPassword(!showPassword)}
-                    size={20}
-                  />
-                )}
+                <motion.div
+                  whileHover={{ scale: 1.2 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  {showPassword ? (
+                    <Eye
+                      className='absolute top-1/2 -translate-y-1/2 right-2 sm:right-3 cursor-pointer text-[#1A1A1A] w-4 h-4 sm:w-5 sm:h-5'
+                      onClick={() => setShowPassword(!showPassword)}
+                    />
+                  ) : (
+                    <EyeOff
+                      className='absolute top-1/2 -translate-y-1/2 right-2 sm:right-3 cursor-pointer text-[#1A1A1A] w-4 h-4 sm:w-5 sm:h-5'
+                      onClick={() => setShowPassword(!showPassword)}
+                    />
+                  )}
+                </motion.div>
               </div>
-
-              <button
-                className={`mt-4 w-full bg-blue-500 text-white py-2 px-4 rounded ${
+              <motion.button
+                className={`mt-4 w-full bg-[#1A6642] text-[#F5F5F5] py-2 sm:py-3 px-4 rounded-full font-poppins text-sm sm:text-base ${
                   isCreatingRoom
                     ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-blue-500/80 cursor-pointer"
+                    : "hover:bg-[#2E8B57]"
                 }`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 Crear
-              </button>
+              </motion.button>
             </form>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
 
       <StatsModal
