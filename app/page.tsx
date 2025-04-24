@@ -528,7 +528,7 @@ export default function MainMenu() {
             value={friendSearch}
             onChange={(e) => setFriendSearch(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearchFriends()}
-            className='w-full p-3 sm:px-4 bg-[#FBE9AE] rounded-lg shadow-sm focus:outline-none transition-all duration-300 text-[#1A1A1A] text-sm sm:text-base'
+            className='w-full p-3 sm:px-4 bg-[#F0E9D6] rounded-lg shadow-sm focus:outline-none transition-all duration-300 text-[#1A1A1A] text-sm sm:text-base'
           />
           <motion.div whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.9 }}>
             <Search
@@ -632,7 +632,7 @@ export default function MainMenu() {
       <main className='flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto scrollbar-none bg-gradient-to-br from-[#1A1A1A] to-[#2E2E2E] bg-[url("/background.png")] bg-cover bg-center'>
         <div className='w-full max-w-7xl mx-auto'>
           <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-4'>
-            <h1 className='text-center text-lg sm:text-xl lg:text-4xl font-extrabold font-poppins text-[#E5CD75] drop-shadow-lg truncate'>
+            <h1 className='text-center text-lg sm:text-xl lg:text-4xl font-extrabold font-poppins text-[#E2D8BA] drop-shadow-lg truncate'>
               Bienvenido/a, {session.user?.name}
             </h1>
             <div className='flex flex-row gap-2 sm:gap-4 items-center justify-center'>
@@ -660,21 +660,21 @@ export default function MainMenu() {
           </div>
 
           {/* Barra de búsqueda de salas */}
-          <div className='w-full flex items-center bg-[#FBE9AE] shadow-lg rounded-lg mb-4 sm:mb-6 md:max-w-2/4'>
+          <div className='w-full flex items-center py-3 bg-[#F0E9D6] shadow-lg rounded-lg mb-4 sm:mb-6 md:max-w-2/4'>
             <Search className='w-5 h-5 sm:w-6 sm:h-6 text-[#1A1A1A] mx-2 sm:mx-4' />
             <input
               type='text'
               placeholder='Buscar sala...'
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className='flex-1 p-3 focus:outline-none text-[#1A1A1A] font-quicksand text-sm sm:text-base'
+              className='flex-1 focus:outline-none text-[#1A1A1A] font-quicksand text-sm sm:text-base'
             />
           </div>
 
           {/* Sala activa */}
           {activeRoom && (
             <section className='mt-4 sm:mt-6'>
-              <h2 className='text-xl sm:text-2xl font-bold font-poppins text-[#FBE9AE] mb-4'>
+              <h2 className='text-xl sm:text-2xl font-bold font-poppins text-[#E2D8BA] mb-4'>
                 Sala activa
               </h2>
               <motion.div
@@ -734,7 +734,7 @@ export default function MainMenu() {
           {/* Listado de salas */}
           <section className='mt-4 sm:mt-6'>
             <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4'>
-              <h2 className='text-xl sm:text-2xl font-bold font-poppins text-[#E5CD75]'>
+              <h2 className='text-xl sm:text-2xl font-bold font-poppins text-[#E2D8BA]'>
                 Salas disponibles
               </h2>
               <motion.button
