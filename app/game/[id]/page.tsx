@@ -177,9 +177,9 @@ export default function GameTable() {
             }),
           };
         }
-        setLoadingSubmit(false);
         return prevGame;
       });
+      setLoadingSubmit(false);
     };
 
     socket.on("diceRolled", handleRoll);

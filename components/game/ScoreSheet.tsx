@@ -174,7 +174,7 @@ export default function ScoreTable({
   }, []);
 
   const handleSetScore = async (category: string, score: number) => {
-    if (!isMyTurn) return;
+    if (!isMyTurn && rollCount === 0) return;
     setLoading(true);
     setLoadingSubmit(true);
     try {
