@@ -32,7 +32,7 @@ Una versión web de Generala, desarrollada con **Next.js** y **WebSocket**, para
 
 ## 🧪 ¡Probalo ahora mismo!
 
-👉 [[https://generala.tudominio.com](https://generala.fly.dev/)]
+👉 [https://generala.fly.dev/]
 
 _No requiere instalación. Iniciá sesión con Google y empezá a jugar._
 
@@ -52,7 +52,7 @@ _No requiere instalación. Iniciá sesión con Google y empezá a jugar._
 
 ## 🧑‍💻 Autor
 
-Desarrollado por [Tu Nombre](https://github.com/tuusuario).
+Desarrollado por [Fermin Vicente](https://github.com/fervicente8).
 
 ---
 
