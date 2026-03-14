@@ -283,8 +283,8 @@ export default function GameTable() {
   const { winners, ranking } = getWinnersAndRanking();
 
   return (
-    <div className='relative flex flex-col lg:flex-row w-full h-screen overflow-hidden bg-[var(--color-black-matte)] font-quicksand'>
-      <div className='w-full lg:w-2/8 lg:flex-shrink-0 h-1/2 lg:h-screen overflow-y-auto'>
+    <div className='relative flex flex-col lg:flex-row w-full min-h-[100dvh] h-screen overflow-hidden bg-[var(--color-black-matte)] font-quicksand'>
+      <div className='w-full lg:w-2/8 lg:flex-shrink-0 h-1/2 lg:h-screen overflow-y-auto safe-area-top'>
         <ScoreTable
           players={game.players}
           currentTurnId={game.currentTurnId}
@@ -296,12 +296,13 @@ export default function GameTable() {
         />
       </div>
       <div className='flex-1 relative h-1/2 lg:h-screen'>
-        <div className='absolute bottom-2 sm:bottom-4 right-2 sm:right-4 flex flex-row gap-2 z-[100]'>
+        <div className='absolute bottom-2 sm:bottom-4 right-2 sm:right-4 flex flex-row gap-2 z-[100] safe-area-bottom'>
           <motion.button
-            className='bg-[var(--color-pearl-white)] text-[var(--color-black-matte)] p-2 sm:px-3 sm:py-1 rounded-full shadow-md border-2 border-[var(--color-metallic-gold)] hover:bg-[var(--color-silver-gray)] transition '
+            className='min-h-[44px] min-w-[44px] flex items-center justify-center bg-[var(--color-pearl-white)] text-[var(--color-black-matte)] p-2 rounded-full shadow-md border-2 border-[var(--color-metallic-gold)] hover:bg-[var(--color-silver-gray)] transition'
             onClick={toggleMute}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
+            aria-label={isMuted ? "Activar sonido" : "Silenciar"}
           >
             {isMuted ? (
               <Volume2 className='h-4 w-4 sm:h-5 sm:w-5 text-[var(--color-black-matte)]' />
@@ -310,10 +311,11 @@ export default function GameTable() {
             )}
           </motion.button>
           <motion.button
-            className='bg-[var(--color-pearl-white)] text-[var(--color-black-matte)] p-2 sm:px-3 sm:py-1 rounded-full shadow-md border-2 border-[var(--color-metallic-gold)] hover:bg-[var(--color-silver-gray)] transition'
+            className='min-h-[44px] min-w-[44px] flex items-center justify-center bg-[var(--color-pearl-white)] text-[var(--color-black-matte)] p-2 rounded-full shadow-md border-2 border-[var(--color-metallic-gold)] hover:bg-[var(--color-silver-gray)] transition'
             onClick={toggleBackSound}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
+            aria-label={isSoundPlaying ? "Pausar música" : "Reproducir música"}
           >
             {isSoundPlaying ? (
               <Pause className='h-4 w-4 sm:h-5 sm:w-5 text-[var(--color-black-matte)]' />
@@ -359,7 +361,7 @@ export default function GameTable() {
             </>
           ) : (
             <motion.div
-              className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-4 sm:gap-6 select-none bg-[var(--color-pearl-white)] p-4 sm:p-6 rounded-xl shadow-lg border-2 border-[var(--color-metallic-gold)] w-11/12 sm:w-auto max-w-md'
+              className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-4 sm:gap-6 select-none bg-[var(--color-pearl-white)] p-4 sm:p-6 rounded-xl shadow-lg border-2 border-[var(--color-metallic-gold)] w-[calc(100%-2rem)] max-w-md max-h-[90dvh] overflow-y-auto safe-area-x'
               initial={{ opacity: 0, scale: 0.85 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ type: "spring", stiffness: 300, damping: 22 }}
@@ -398,7 +400,7 @@ export default function GameTable() {
               </div>
 
               <motion.button
-                className='bg-[var(--color-ruby-red)] text-[var(--color-pearl-white)] py-2 px-4 sm:px-6 rounded-lg font-poppins font-semibold border-2 border-[var(--color-metallic-gold)] hover:bg-[#DC2626] transition-all duration-200 text-sm sm:text-base'
+                className='min-h-[48px] bg-[var(--color-ruby-red)] text-[var(--color-pearl-white)] py-2 px-4 sm:px-6 rounded-lg font-poppins font-semibold border-2 border-[var(--color-metallic-gold)] hover:bg-[#DC2626] transition-all duration-200 text-sm sm:text-base'
                 onClick={() => router.push("/")}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}

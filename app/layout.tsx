@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import SessionProviderWrapper from "./SessionProviderWrapper";
@@ -11,6 +11,13 @@ const poppins = Poppins({
 });
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://generala-8zq4.onrender.com";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
@@ -68,7 +75,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='es'>
-      <body className={`${poppins.variable} antialiased`}>
+      <body className={`${poppins.variable} antialiased safe-area-x`}>
         <AlertProvider>
           <SessionProviderWrapper>{children}</SessionProviderWrapper>
         </AlertProvider>

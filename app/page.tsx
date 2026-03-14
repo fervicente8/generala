@@ -502,9 +502,9 @@ export default function MainMenu() {
   };
 
   return (
-    <div className='flex flex-col md:flex-row min-h-screen bg-gradient-to-br from-[#1A1A1A] to-[#2E2E2E] text-[#F5F5F5] font-quicksand overflow-hidden'>
-      {/* Sidebar: Amigos */}
-      <aside className='w-full md:w-2/5 lg:w-1/4 p-4 sm:p-6 bg-gradient-to-b from-[#2E4A3D] to-[#1A2A22] text-[#F5F5F5] rounded-b-2xl md:rounded-r-2xl shadow-xl border-b-2 md:border-b-0 md:border-r-2 border-[#D4A017]'>
+    <div className='flex flex-col md:flex-row min-h-dvh bg-gradient-to-br from-[#1A1A1A] to-[#2E2E2E] text-[#F5F5F5] font-quicksand overflow-hidden'>
+      {/* Sidebar: Amigos - en móvil altura limitada y scroll para que se vea el main */}
+      <aside className='w-full md:w-2/5 lg:w-1/4 p-4 sm:p-6 bg-gradient-to-b from-[#2E4A3D] to-[#1A2A22] text-[#F5F5F5] rounded-b-2xl md:rounded-r-2xl shadow-xl border-b-2 md:border-b-0 md:border-r-2 border-[#D4A017] flex-shrink-0 max-h-[45vh] md:max-h-none overflow-y-auto scrollbar-none'>
         <div className='flex items-center gap-2 mb-4'>
           <motion.div
             animate={{ rotate: [0, 360], scale: [1, 1.2, 1] }}
@@ -530,12 +530,14 @@ export default function MainMenu() {
             onKeyDown={(e) => e.key === "Enter" && handleSearchFriends()}
             className='w-full p-3 sm:px-4 bg-[#F0E9D6] rounded-lg shadow-sm focus:outline-none transition-all duration-300 text-[#1A1A1A] text-sm sm:text-base'
           />
-          <motion.div whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.9 }}>
-            <Search
-              onClick={() => !isSearchingFriends && handleSearchFriends()}
-              className='absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 sm:w-6 sm:h-6 text-[#1A1A1A] cursor-pointer'
-            />
-          </motion.div>
+          <button
+            type="button"
+            onClick={() => !isSearchingFriends && handleSearchFriends()}
+            className='absolute right-1 top-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg'
+            aria-label="Buscar"
+          >
+            <Search className='w-5 h-5 sm:w-6 sm:h-6 text-[#1A1A1A]' />
+          </button>
         </div>
         {/* Resultados de búsqueda */}
         {friendResults.length > 0 && (
@@ -549,7 +551,7 @@ export default function MainMenu() {
                 />
               </div>
             ) : (
-              <ul className='mt-4 space-y-2 sm:space-y-3 max-h-[40vh] overflow-y-auto scrollbar-none'>
+              <ul className='mt-4 space-y-2 sm:space-y-3 max-h-[28vh] md:max-h-[40vh] overflow-y-auto scrollbar-none'>
                 <AnimatePresence>
                   {friendResults.map((user) => (
                     <motion.li
@@ -596,7 +598,7 @@ export default function MainMenu() {
                 </p>
               </div>
             ) : (
-              <ul className='mt-4 space-y-2 sm:space-y-3 max-h-[40vh] overflow-y-auto scrollbar-none'>
+              <ul className='mt-4 space-y-2 sm:space-y-3 max-h-[28vh] md:max-h-[40vh] overflow-y-auto scrollbar-none'>
                 <AnimatePresence>
                   {friends.map((friend) => (
                     <motion.li
@@ -642,19 +644,11 @@ export default function MainMenu() {
             </h1>
             <div className='flex flex-row gap-2 sm:gap-4 items-center justify-center flex-wrap'>
               <motion.button
-                onClick={() => router.push("/how-to-play")}
-                className='bg-[#1E3A8A] text-[#F5F5F5] py-2 px-3 sm:px-4 rounded-xl shadow-md flex items-center hover:bg-[#3B82F6] text-sm sm:text-base'
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                ¿Cómo jugar?
-              </motion.button>
-              <motion.button
                 onClick={() => {
                   setStatsToShow(session.user.stats);
                   setShowStats(true);
                 }}
-                className='bg-[#2E4A3D] text-[#F5F5F5] py-2 px-3 sm:px-4 rounded-xl shadow-md flex items-center hover:bg-[#2E4A3D]/80 text-sm sm:text-base'
+                className='bg-[#2E4A3D] text-[#F5F5F5] min-h-[44px] py-2 px-3 sm:px-4 rounded-xl shadow-md flex items-center justify-center hover:bg-[#2E4A3D]/80 text-sm sm:text-base'
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >
@@ -662,7 +656,7 @@ export default function MainMenu() {
               </motion.button>
               <motion.button
                 onClick={handleCloseSession}
-                className='bg-[#A91D2F] text-[#F5F5F5] py-2 px-3 sm:px-4 rounded-xl shadow-md flex items-center hover:bg-[#DC2626] text-sm sm:text-base'
+                className='bg-[#A91D2F] text-[#F5F5F5] min-h-[44px] py-2 px-3 sm:px-4 rounded-xl shadow-md flex items-center justify-center hover:bg-[#DC2626] text-sm sm:text-base'
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >
@@ -922,7 +916,7 @@ export default function MainMenu() {
         {/* Sala activa (barra inferior) */}
         {activeRoom && (
           <motion.div
-            className='absolute bottom-2 left-2 right-2 sm:left-4 sm:right-4 rounded-t-xl backdrop-blur-md bg-[#1E3A8A]/80 text-[#F5F5F5] p-3 sm:p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 z-20'
+            className='absolute bottom-0 left-0 right-0 sm:left-4 sm:right-4 sm:bottom-2 rounded-t-xl backdrop-blur-md bg-[#1E3A8A]/80 text-[#F5F5F5] p-3 sm:p-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 z-20 safe-area-bottom'
             initial={{ y: 100 }}
             animate={{ y: 0 }}
             transition={{ duration: 0.5 }}
@@ -1031,7 +1025,7 @@ export default function MainMenu() {
 
         <motion.button
           onClick={() => router.push("/how-to-play")}
-          className='absolute bottom-2 right-2 sm:bottom-6 sm:right-6 bg-[#1E3A8A] text-[#F5F5F5] px-3 py-1 sm:px-4 sm:py-2 rounded-xl font-poppins hover:bg-[#3B82F6] text-sm sm:text-base'
+          className='absolute bottom-2 right-2 sm:bottom-6 sm:right-6 min-h-[44px] min-w-[44px] flex items-center justify-center bg-[#1E3A8A] text-[#F5F5F5] px-3 py-2 sm:px-4 rounded-xl font-poppins hover:bg-[#3B82F6] text-sm sm:text-base safe-area-bottom'
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >
@@ -1045,12 +1039,12 @@ export default function MainMenu() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className='fixed inset-0 flex items-center justify-center bg-black/60 z-50'
+          className='fixed inset-0 flex items-end sm:items-center justify-center bg-black/60 z-50 p-0 sm:p-4 safe-area-x'
         >
           <motion.div
             initial={{ scale: 0.8, y: 50 }}
             animate={{ scale: 1, y: 0 }}
-            className='bg-[#F5F5F5] p-4 sm:p-6 rounded-2xl shadow-xl w-[90vw] sm:w-[400px] max-w-[95%] border-2 border-[#D4A017]'
+            className='bg-[#F5F5F5] p-4 sm:p-6 rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:w-[400px] sm:max-w-[95%] border-2 border-[#D4A017] max-h-[90dvh] overflow-y-auto safe-area-bottom'
           >
             <form onSubmit={(e) => !isCreatingRoom && handleCreateRoom(e)}>
               <div className='flex justify-between items-center mb-4'>
@@ -1058,8 +1052,11 @@ export default function MainMenu() {
                   Crear nueva sala
                 </h2>
                 <motion.button
+                  type="button"
                   whileHover={{ scale: 1.2 }}
                   onClick={() => setIsModalOpen(false)}
+                  className='min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg -mr-2'
+                  aria-label="Cerrar"
                 >
                   <X className='text-[#1A1A1A] w-5 h-5 sm:w-6 sm:h-6' />
                 </motion.button>
@@ -1105,7 +1102,7 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-l-full hover:bg-[#1A6642]/80 text-sm sm:text-base'
+                      className='min-h-[44px] min-w-[44px] py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-l-full hover:bg-[#1A6642]/80 text-sm sm:text-base flex items-center justify-center'
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >
@@ -1127,7 +1124,7 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-r-full hover:bg-[#1A6642]/80 text-sm sm:text-base'
+                      className='min-h-[44px] min-w-[44px] py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-r-full hover:bg-[#1A6642]/80 text-sm sm:text-base flex items-center justify-center'
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >
@@ -1156,7 +1153,7 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-l-full hover:bg-[#1A6642]/80 text-sm sm:text-base'
+                      className='min-h-[44px] min-w-[44px] py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-l-full hover:bg-[#1A6642]/80 text-sm sm:text-base flex items-center justify-center'
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >
@@ -1178,7 +1175,7 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-r-full hover:bg-[#1A6642]/80 text-sm sm:text-base'
+                      className='min-h-[44px] min-w-[44px] py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-r-full hover:bg-[#1A6642]/80 text-sm sm:text-base flex items-center justify-center'
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >
@@ -1223,7 +1220,7 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-l-full hover:bg-[#1A6642]/80 text-sm sm:text-base'
+                      className='min-h-[44px] min-w-[44px] py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-l-full hover:bg-[#1A6642]/80 text-sm sm:text-base flex items-center justify-center'
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >
@@ -1245,7 +1242,7 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className='py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-r-full hover:bg-[#1A6642]/80 text-sm sm:text-base'
+                      className='min-h-[44px] min-w-[44px] py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-r-full hover:bg-[#1A6642]/80 text-sm sm:text-base flex items-center justify-center'
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >
@@ -1288,7 +1285,8 @@ export default function MainMenu() {
                 </motion.div>
               </div>
               <motion.button
-                className={`mt-4 w-full bg-[#1A6642] text-[#F5F5F5] py-2 sm:py-3 px-4 rounded-full font-poppins text-sm sm:text-base ${
+                type="submit"
+                className={`mt-4 w-full min-h-[48px] bg-[#1A6642] text-[#F5F5F5] py-2 sm:py-3 px-4 rounded-full font-poppins text-sm sm:text-base ${
                   isCreatingRoom
                     ? "opacity-50 cursor-not-allowed"
                     : "hover:bg-[#2E8B57]"

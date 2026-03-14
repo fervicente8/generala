@@ -145,6 +145,48 @@ body {
 }
 
 .scrollbar-none {
-  -ms-overflow-style: none; /* Oculta la barra en IE y Edge */
-  scrollbar-width: none; /* Oculta la barra en Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Móvil: safe area para notches y barra de gestos */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-area-x {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+/* Alert fijo: que no quede bajo la barra de gestos (fallback para navegadores sin safe-area) */
+.alert-bottom {
+  bottom: 1.5rem;
+}
+@supports (padding: env(safe-area-inset-bottom)) {
+  .alert-bottom {
+    bottom: calc(1.5rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* Touch: sin delay de 300ms en tap */
+@media (pointer: coarse) {
+  button,
+  a,
+  [role="button"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Evitar zoom en inputs en iOS */
+@supports (-webkit-touch-callout: none) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }

@@ -31,7 +31,7 @@ export default function Login() {
   }, [status, session, router]);
 
   return (
-    <div className='relative flex h-screen items-center justify-center bg-[var(--color-green)]'>
+    <div className='relative flex min-h-dvh items-center justify-center bg-[var(--color-green)] p-4 safe-area-bottom safe-area-top'>
       {/* Fondo con imagen */}
       <Image
         src='/casino-table.png'
@@ -45,25 +45,25 @@ export default function Login() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 24 }}
-        className='relative z-10 flex flex-col items-center bg-[var(--color-white)] p-8 rounded-2xl shadow-lg max-w-md text-center'
+        className='relative z-10 flex w-full max-w-md flex-col items-center bg-[var(--color-white)] p-5 sm:p-8 rounded-2xl shadow-lg text-center max-h-[90dvh] overflow-y-auto'
       >
-        <h1 className='text-4xl font-extrabold text-[var(--color-ruby-red)] mb-2 italic uppercase -tracking-tighter'>
+        <h1 className='text-3xl sm:text-4xl font-extrabold text-[var(--color-ruby-red)] mb-2 italic uppercase -tracking-tighter'>
           Generala
         </h1>
 
-        <h2 className='text-xl font-bold text-[var(--color-black)] mb-2'>
+        <h2 className='text-lg sm:text-xl font-bold text-[var(--color-black)] mb-2'>
           Iniciar sesión
         </h2>
         <a
           href='/how-to-play'
-          className='text-sm text-[var(--color-black)] underline mb-4 inline-block hover:text-[var(--color-ruby-red)]'
+          className='text-sm text-[var(--color-black)] underline mb-4 inline-block hover:text-[var(--color-ruby-red)] min-h-[44px] flex items-center justify-center'
         >
           ¿Cómo se juega a la Generala?
         </a>
 
         {/* Botón de Google */}
         <Button
-          className='mb-2'
+          className='mb-2 w-full min-h-[48px] sm:min-h-[44px]'
           onClick={() => {
             termsAccepted
               ? signIn("google")
@@ -115,7 +115,7 @@ export default function Login() {
           // onClick={() => signIn("facebook")}
           backgroundColor='#1877F2'
           textColor='white'
-          className='opacity-50'
+          className='opacity-50 w-full min-h-[48px] sm:min-h-[44px]'
           style={{ cursor: "not-allowed", backgroundColor: "#1877F2" }}
           icon={
             <svg
@@ -137,11 +137,11 @@ export default function Login() {
         </Button>
 
         {/* Términos y condiciones */}
-        <div className='mt-4 flex items-center'>
+        <div className='mt-4 flex items-center gap-3'>
           <input
             type='checkbox'
             id='terms-and-conditions'
-            className='mr-2 w-4 h-4'
+            className='mr-0 w-5 h-5 sm:w-4 sm:h-4 flex-shrink-0'
             onChange={() => {
               setTermsAccepted(!termsAccepted);
             }}

@@ -40,7 +40,8 @@ export const AlertProvider = ({ children }: { children: React.ReactNode }) => {
             exit={{ y: 16, opacity: 0, scale: 0.98 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
             className={clsx(
-              "fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-4 rounded-2xl shadow-xl text-white flex items-center gap-3 z-50",
+              "fixed left-1/2 -translate-x-1/2 px-6 py-4 rounded-2xl shadow-xl text-white flex items-center gap-3 z-50",
+              "bottom-6 alert-bottom max-w-[calc(100vw-2rem)]",
               alert.type === "success" ? "bg-green-500" : "bg-red-500"
             )}
           >

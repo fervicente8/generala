@@ -185,38 +185,54 @@ export default function FriendCard({
           <CustomLoadingSpinner size='sm' showText={false} />
         </div>
       ) : (
-        <div className='flex items-center gap-2'>
+        <div className='flex items-center gap-1'>
           {activeRoom &&
             (isFriend && !invitationSent ? (
-              <motion.div whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.9 }}>
-                <SendHorizonal
-                  className='w-6 h-6 text-[#1E3A8A] cursor-pointer hover:text-[#3B82F6]'
-                  onClick={onInvite}
-                />
-              </motion.div>
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.2 }}
+                whileTap={{ scale: 0.9 }}
+                className='min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg -m-1'
+                onClick={onInvite}
+                aria-label="Invitar a la sala"
+              >
+                <SendHorizonal className='w-6 h-6 text-[#1E3A8A] hover:text-[#3B82F6]' />
+              </motion.button>
             ) : isFriend && invitationSent ? (
-              <MailCheck className='w-6 h-6 text-[#1A6642]' />
+              <span className='min-w-[44px] min-h-[44px] flex items-center justify-center' aria-hidden>
+                <MailCheck className='w-6 h-6 text-[#1A6642]' />
+              </span>
             ) : null)}
           {isFriend ? (
-            <motion.div whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.9 }}>
-              <CircleX
-                className='w-6 h-6 text-[#A91D2F] cursor-pointer hover:text-[#DC2626]'
-                onClick={() => {
-                  if (typeof window !== "undefined" && window.confirm(`¿Eliminar a ${user.name} de tus amigos?`)) {
-                    handleRemoveFriend();
-                  }
-                }}
-              />
-            </motion.div>
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.2 }}
+              whileTap={{ scale: 0.9 }}
+              className='min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg -m-1'
+              onClick={() => {
+                if (typeof window !== "undefined" && window.confirm(`¿Eliminar a ${user.name} de tus amigos?`)) {
+                  handleRemoveFriend();
+                }
+              }}
+              aria-label={`Eliminar a ${user.name} de amigos`}
+            >
+              <CircleX className='w-6 h-6 text-[#A91D2F] hover:text-[#DC2626]' />
+            </motion.button>
           ) : friendRequestSent ? (
-            <MailCheck className='w-6 h-6 text-[#B0B0B0]' />
+            <span className='min-w-[44px] min-h-[44px] flex items-center justify-center' aria-hidden>
+              <MailCheck className='w-6 h-6 text-[#B0B0B0]' />
+            </span>
           ) : (
-            <motion.div whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.9 }}>
-              <CirclePlus
-                className='w-6 h-6 text-[#1A6642] cursor-pointer hover:text-[#2E8B57]'
-                onClick={handleSendFriendRequest}
-              />
-            </motion.div>
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.2 }}
+              whileTap={{ scale: 0.9 }}
+              className='min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg -m-1'
+              onClick={handleSendFriendRequest}
+              aria-label={`Enviar solicitud a ${user.name}`}
+            >
+              <CirclePlus className='w-6 h-6 text-[#1A6642] hover:text-[#2E8B57]' />
+            </motion.button>
           )}
         </div>
       )}

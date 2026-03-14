@@ -22,16 +22,16 @@ export default function HowToPlay() {
   ];
 
   return (
-    <main className='min-h-screen p-6 pb-12 text-[#1A1A1A] bg-gradient-to-br from-[#1A1A1A] to-[#2E2E2E] font-quicksand'>
+    <main className='min-h-screen min-h-[100dvh] p-4 sm:p-6 pb-12 text-[#1A1A1A] bg-gradient-to-br from-[#1A1A1A] to-[#2E2E2E] font-quicksand safe-area-bottom'>
       <div className='max-w-3xl mx-auto'>
         {/* Header */}
         <motion.header
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className='flex items-center justify-between mb-8'
+          className='flex items-center justify-between mb-6 sm:mb-8'
         >
           <motion.button
-            className='bg-[#A91D2F] text-[#F5F5F5] px-4 py-2 rounded-full shadow-md border-2 border-[#D4A017] hover:bg-[#DC2626] flex items-center gap-2'
+            className='min-h-[44px] bg-[#A91D2F] text-[#F5F5F5] px-4 py-2 rounded-full shadow-md border-2 border-[#D4A017] hover:bg-[#DC2626] flex items-center gap-2'
             onClick={() => router.back()}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.98 }}
@@ -159,7 +159,7 @@ export default function HowToPlay() {
           </p>
           <Link
             href='/'
-            className='inline-block bg-[#2E4A3D] text-[#F5F5F5] font-poppins font-semibold py-3 px-6 rounded-xl shadow-md border-2 border-[#D4A017] hover:bg-[#2E4A3D]/90'
+            className='inline-flex items-center justify-center min-h-[48px] bg-[#2E4A3D] text-[#F5F5F5] font-poppins font-semibold py-3 px-6 rounded-xl shadow-md border-2 border-[#D4A017] hover:bg-[#2E4A3D]/90'
           >
             Ir al lobby
           </Link>
