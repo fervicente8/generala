@@ -24,13 +24,13 @@ Asegurate de que el repo esté en GitHub y que tengas el `render.yaml` en la ra�
    - **Runtime:** Node
 5. En **Environment** agregá estas variables (las que tienen `sync: false` en el blueprint te las va a pedir al aplicar el blueprint; si no, agregalas a mano):
 
-   | Variable | Dónde sacarla |
-   |----------|----------------|
-   | `DATABASE_URL` | Neon → Connection string (con password) |
-   | `NEXTAUTH_SECRET` | Generar: `openssl rand -base64 32` |
-   | `NEXTAUTH_URL` | **Después del primer deploy:** `https://tu-app.onrender.com` (la URL que te da Render) |
-   | `GOOGLE_CLIENT_ID` | Google Cloud Console → Credentials → Client ID |
-   | `GOOGLE_CLIENT_SECRET` | Google Cloud Console → Credentials → Client secret |
+   | Variable               | Dónde sacarla                                                                          |
+   | ---------------------- | -------------------------------------------------------------------------------------- |
+   | `DATABASE_URL`         | Neon → Connection string (con password)                                                |
+   | `NEXTAUTH_SECRET`      | Generar: `openssl rand -base64 32`                                                     |
+   | `NEXTAUTH_URL`         | **Después del primer deploy:** `https://tu-app.onrender.com` (la URL que te da Render) |
+   | `GOOGLE_CLIENT_ID`     | Google Cloud Console → Credentials → Client ID                                         |
+   | `GOOGLE_CLIENT_SECRET` | Google Cloud Console → Credentials → Client secret                                     |
 
 6. **Create Web Service** (o **Save** si ya existía). Render va a hacer el primer build y deploy.
 
