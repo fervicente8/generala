@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { upsertUser } from "./upsertUser";
 
 export const authOptions = {
+    trustHost: true, // necesario detrás del proxy de Render (cookies y redirects)
     providers: [
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID || "",
