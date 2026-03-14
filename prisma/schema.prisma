@@ -10,9 +10,9 @@ generator client {
   binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
+// En Prisma 7 la URL se configura en prisma.config.ts
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
