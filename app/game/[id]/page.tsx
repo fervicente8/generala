@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { GameUser } from "@/types";
 import CustomLoadingSpinner from "@/components/ui/CustomLoadingSpinner";
 import { useAlert } from "@/components/ui/CustomAlert";
@@ -53,21 +53,21 @@ export default function GameTable() {
     backSoundRef.current = backSound;
   };
 
-  const playDiceSound = () => {
+  const playDiceSound = useCallback(() => {
     if (isMuted) return;
     const diceRollSound = new Audio("/sounds/dice-roll.mp3");
     diceRollSound.volume = 0.2;
     diceRollSound.currentTime = 0;
     diceRollSound.play();
-  };
+  }, [isMuted]);
 
-  const playPencilSound = () => {
+  const playPencilSound = useCallback(() => {
     if (isMuted) return;
     const pencilSound = new Audio("/sounds/pencil.mp3");
     pencilSound.volume = 0.2;
     pencilSound.currentTime = 0;
     pencilSound.play();
-  };
+  }, [isMuted]);
 
   useEffect(() => {
     if (!session?.user?.id || !gameId) return;
@@ -97,7 +97,7 @@ export default function GameTable() {
     };
 
     fetchGame();
-  }, [gameId, session?.user.id]);
+  }, [gameId, session?.user?.id, showAlert]);
 
   useEffect(() => {
     playBackSound();
@@ -189,7 +189,7 @@ export default function GameTable() {
       socket.off("diceRolled", handleRoll);
       socket.off("scoreSubmitted", handleScoreSubmitted);
     };
-  }, []);
+  }, [playDiceSound, playPencilSound]);
 
   if (status === "loading") {
     return (
@@ -348,9 +348,9 @@ export default function GameTable() {
           ) : (
             <motion.div
               className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-4 sm:gap-6 select-none bg-[var(--color-pearl-white)] p-4 sm:p-6 rounded-xl shadow-lg border-2 border-[var(--color-metallic-gold)] w-11/12 sm:w-auto max-w-md'
-              initial={{ opacity: 0, scale: 0.8 }}
+              initial={{ opacity: 0, scale: 0.85 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
+              transition={{ type: "spring", stiffness: 300, damping: 22 }}
             >
               <div className='flex flex-col items-center gap-3 sm:gap-4'>
                 <p className='text-xl sm:text-3xl text-[var(--color-sapphire-blue)] font-poppins font-bold drop-shadow-[0_2px_2px_rgba(212,160,23,0.5)]'>

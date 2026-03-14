@@ -30,11 +30,9 @@ Una versión web de Generala, desarrollada con **Next.js** y **WebSocket**, para
 
 ---
 
-## 🧪 ¡Probalo ahora mismo!
+## 🧪 Probalo
 
-👉 [Jugá ahora](https://generala.fly.dev/)
-
-_No requiere instalación. Iniciá sesión con Google y empezá a jugar._
+Deployá en **Render** (ver [DEPLOY.md](DEPLOY.md)) y accedé a la URL de tu app. Iniciá sesión con Google y empezá a jugar.
 
 ---
 

@@ -176,7 +176,7 @@ export default function MainMenu() {
         data.receiverId === session?.user?.id ||
         data.requesterId === session?.user?.id
       ) {
-        setFriends(friends.filter((friend) => friend.id !== data.id));
+        setFriends((prev) => prev.filter((friend) => friend.id !== data.id));
       }
     };
 
@@ -210,7 +210,7 @@ export default function MainMenu() {
       socket.off("updateOnlineUsers");
       socket.off("gameStarted");
     };
-  }, [session, activeRoom?.id]);
+  }, [session, activeRoom?.id, router, showAlert]);
 
   useEffect(() => {
     const fetchActiveRoom = async () => {
@@ -236,7 +236,7 @@ export default function MainMenu() {
       } catch (error) {}
     };
     fetchActiveRoom();
-  }, [session]);
+  }, [session, router, showAlert]);
 
   useEffect(() => {
     if (!friendSearch.trim()) {

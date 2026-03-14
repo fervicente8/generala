@@ -21,7 +21,7 @@ function SocketManager() {
       socket.off("connect", () => {});
       socket.off("disconnect", () => {});
     };
-  }, []);
+  }, [session]);
 
   return null;
 }

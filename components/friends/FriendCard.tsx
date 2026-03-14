@@ -33,14 +33,14 @@ export default function FriendCard({
   const { showAlert } = useAlert();
 
   useEffect(() => {
-    const handleUserOnline = (onlineUserIds: string[]) => {
-      setIsOnline(onlineUserIds.includes(user.id));
+    const handleUserOnline = (ids: string[]) => {
+      setIsOnline(ids.includes(user.id));
     };
 
     if (onlineUserIds) {
       handleUserOnline(onlineUserIds);
     }
-  }, [onlineUserIds]);
+  }, [onlineUserIds, user.id]);
 
   const checkIfRequestSent = async (receiverId: string) => {
     setLoadingFriendRequest(true);

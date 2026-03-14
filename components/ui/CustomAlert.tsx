@@ -35,10 +35,10 @@ export const AlertProvider = ({ children }: { children: React.ReactNode }) => {
         {alert && (
           <motion.div
             key='alert'
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            initial={{ y: 24, opacity: 0, scale: 0.96 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 16, opacity: 0, scale: 0.98 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
             className={clsx(
               "fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-4 rounded-2xl shadow-xl text-white flex items-center gap-3 z-50",
               alert.type === "success" ? "bg-green-500" : "bg-red-500"

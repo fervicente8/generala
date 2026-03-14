@@ -4,7 +4,8 @@ import { Server } from "socket.io";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
-const port = 3000;
+// Render inyecta PORT (ej. 10000); la app debe escuchar en ese puerto
+const port = parseInt(process.env.PORT || "3000", 10);
 const app = next({ dev, hostname, port });
 const handler = app.getRequestHandler();
 
@@ -110,8 +111,6 @@ app.prepare().then(() => {
 
       if (receiverData) {
         io.to(receiverData.socketId).emit("gameInvited", data);
-      } else {
-        console.log(`El usuario ${data.receiver.name} no está conectado`);
       }
     });
 
@@ -125,8 +124,6 @@ app.prepare().then(() => {
 
         if (playerSocketId) {
           io.to(playerSocketId).emit("userJoined", data);
-        } else {
-          console.log(`El usuario ${gameUser.user.name} no está conectado`);
         }
       });
     });
@@ -253,7 +250,7 @@ app.prepare().then(() => {
       console.error(err);
       process.exit(1);
     })
-    .listen(port, () => {
-      console.log(`> Ready on http://${hostname}:${port}`);
+    .listen(port, "0.0.0.0", () => {
+      console.log(`> Ready on http://0.0.0.0:${port} (PORT=${process.env.PORT || port})`);
     });
 });

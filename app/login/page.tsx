@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import Image from "next/image";
+import { motion } from "framer-motion";
 import Button from "@/components/ui/Button";
 import { useAlert } from "@/components/ui/CustomAlert";
 
@@ -40,7 +41,12 @@ export default function Login() {
       />
 
       {/* Contenedor del login */}
-      <div className='relative z-10 flex flex-col items-center bg-[var(--color-white)] p-8 rounded-2xl shadow-lg max-w-md text-center'>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 24 }}
+        className='relative z-10 flex flex-col items-center bg-[var(--color-white)] p-8 rounded-2xl shadow-lg max-w-md text-center'
+      >
         <h1 className='text-4xl font-extrabold text-[var(--color-ruby-red)] mb-2 italic uppercase -tracking-tighter'>
           Generala
         </h1>
@@ -147,7 +153,7 @@ export default function Login() {
             </a>
           </label>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

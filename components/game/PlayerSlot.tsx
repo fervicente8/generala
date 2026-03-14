@@ -67,7 +67,7 @@ export default function PlayerSlot({
 
   useEffect(() => {
     setTimeLeft(timePerTurn);
-  }, [rollCount]);
+  }, [rollCount, timePerTurn]);
 
   const getCategoryToStrike = () => {
     const currentPlayer = players.find(

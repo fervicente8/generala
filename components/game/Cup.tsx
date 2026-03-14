@@ -90,8 +90,10 @@ export default function Cup({
       } ${
         (!isMyTurn || rollCount >= 3 || rollingLoading) && "pointer-events-none"
       }`}
-      whileTap={{ scale: 0.9 }}
+      whileHover={isMyTurn && rollCount < 3 && !sendingRoll ? { scale: 1.05 } : undefined}
+      whileTap={{ scale: 0.92 }}
       animate={controls}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
     >
       <motion.img src='/cup.png' alt='Cubilete' className='w-30 h-33' />
     </motion.div>

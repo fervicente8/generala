@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 
 interface Props {
   friends: UserFriendship[];
-  setFriends: (friends: UserFriendship[]) => void;
+  setFriends: React.Dispatch<React.SetStateAction<UserFriendship[]>>;
   setIsJoiningRoom?: (isJoiningRoom: boolean) => void;
 }
 
@@ -52,7 +52,7 @@ export default function FriendsRequests({
         data.requesterId === session?.user?.id
       ) {
         setIncomingRequests((prev) => prev.filter((r) => r.id !== data.id));
-        setFriends([...friends, data]);
+        setFriends((prev) => [...prev, data]);
         showAlert({ type: "success", message: "Solicitud aceptada" });
       }
     };
@@ -77,7 +77,7 @@ export default function FriendsRequests({
       socket.off("requestAccepted", handleRequestAccepted);
       socket.off("requestRejected", handleRequestRejected);
     };
-  }, [session, friends]);
+  }, [session, friends, setFriends, showAlert]);
 
   useEffect(() => {
     const fetchIncomingRequests = async () => {
