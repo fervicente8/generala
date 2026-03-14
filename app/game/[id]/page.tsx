@@ -37,10 +37,22 @@ export default function GameTable() {
   const { showAlert } = useAlert();
   // Params
   const { id: gameId } = useParams();
-  // Sound
+  // Sound (mute persistido en localStorage)
   const [isMuted, setIsMuted] = useState(false);
   const [isSoundPlaying, setIsSoundPlaying] = useState(true);
   const backSoundRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const saved = localStorage.getItem("generala-muted");
+    if (saved !== null) setIsMuted(saved === "true");
+  }, []);
+
+  const toggleMute = () => {
+    const next = !isMuted;
+    setIsMuted(next);
+    if (typeof window !== "undefined") localStorage.setItem("generala-muted", String(next));
+  };
   // Variables
   const router = useRouter();
 
@@ -287,7 +299,7 @@ export default function GameTable() {
         <div className='absolute bottom-2 sm:bottom-4 right-2 sm:right-4 flex flex-row gap-2 z-[100]'>
           <motion.button
             className='bg-[var(--color-pearl-white)] text-[var(--color-black-matte)] p-2 sm:px-3 sm:py-1 rounded-full shadow-md border-2 border-[var(--color-metallic-gold)] hover:bg-[var(--color-silver-gray)] transition '
-            onClick={() => setIsMuted(!isMuted)}
+            onClick={toggleMute}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >

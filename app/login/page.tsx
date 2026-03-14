@@ -51,9 +51,15 @@ export default function Login() {
           Generala
         </h1>
 
-        <h2 className='text-xl font-bold text-[var(--color-black)] mb-4'>
+        <h2 className='text-xl font-bold text-[var(--color-black)] mb-2'>
           Iniciar sesión
         </h2>
+        <a
+          href='/how-to-play'
+          className='text-sm text-[var(--color-black)] underline mb-4 inline-block hover:text-[var(--color-ruby-red)]'
+        >
+          ¿Cómo se juega a la Generala?
+        </a>
 
         {/* Botón de Google */}
         <Button

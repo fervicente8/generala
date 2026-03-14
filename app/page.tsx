@@ -587,9 +587,14 @@ export default function MainMenu() {
                 />
               </div>
             ) : friends.length === 0 ? (
-              <p className='text-[#B0B0B0] italic mt-4 sm:mt-5 text-center text-sm sm:text-base'>
-                No tienes amigos agregados.
-              </p>
+              <div className='mt-4 sm:mt-5 text-center'>
+                <p className='text-[#B0B0B0] italic text-sm sm:text-base'>
+                  No tenés amigos agregados.
+                </p>
+                <p className='text-[#D4A017] text-xs sm:text-sm mt-2'>
+                  Usá el buscador de arriba para agregar amigos.
+                </p>
+              </div>
             ) : (
               <ul className='mt-4 space-y-2 sm:space-y-3 max-h-[40vh] overflow-y-auto scrollbar-none'>
                 <AnimatePresence>
@@ -635,7 +640,15 @@ export default function MainMenu() {
             <h1 className='text-center text-lg sm:text-xl lg:text-4xl font-extrabold font-poppins text-[#E2D8BA] drop-shadow-lg truncate'>
               Bienvenido/a, {session.user?.name}
             </h1>
-            <div className='flex flex-row gap-2 sm:gap-4 items-center justify-center'>
+            <div className='flex flex-row gap-2 sm:gap-4 items-center justify-center flex-wrap'>
+              <motion.button
+                onClick={() => router.push("/how-to-play")}
+                className='bg-[#1E3A8A] text-[#F5F5F5] py-2 px-3 sm:px-4 rounded-xl shadow-md flex items-center hover:bg-[#3B82F6] text-sm sm:text-base'
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                ¿Cómo jugar?
+              </motion.button>
               <motion.button
                 onClick={() => {
                   setStatsToShow(session.user.stats);
@@ -714,7 +727,9 @@ export default function MainMenu() {
                     onClick={() => {
                       if (isDeletingRoom || isLeavingRoom) return;
                       if (activeRoom.ownerId === session.user?.id) {
-                        handleDeleteRoom(activeRoom.id);
+                        if (window.confirm("¿Eliminar la sala? Los jugadores serán expulsados.")) {
+                          handleDeleteRoom(activeRoom.id);
+                        }
                       } else {
                         leaveRoom(activeRoom.id);
                       }
@@ -756,9 +771,27 @@ export default function MainMenu() {
                 (room) =>
                   activeRoom?.id !== room.id && room.status === "waiting"
               ).length === 0 ? (
-              <p className='text-[#B0B0B0] italic font-quicksand text-sm sm:text-base'>
-                No hay salas disponibles.
-              </p>
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                className='p-6 sm:p-8 rounded-xl bg-[#2E4A3D]/40 border-2 border-[#D4A017]/50 text-center'
+              >
+                <p className='text-[#E2D8BA] font-quicksand text-base sm:text-lg mb-2'>
+                  No hay salas disponibles.
+                </p>
+                <p className='text-[#B0B0B0] text-sm sm:text-base mb-4'>
+                  Creá una sala e invitá a tus amigos a jugar.
+                </p>
+                <motion.button
+                  className='bg-[#2E4A3D] text-[#F5F5F5] font-poppins font-semibold py-3 px-6 rounded-xl shadow-md hover:bg-[#2E4A3D]/90 border-2 border-[#D4A017]'
+                  onClick={() => setIsModalOpen(true)}
+                  disabled={activeRoom !== null}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Crear sala
+                </motion.button>
+              </motion.div>
             ) : rooms.filter(
                 (room) =>
                   room.name.includes(search) && room.status === "waiting"
@@ -982,11 +1015,12 @@ export default function MainMenu() {
                           ? "opacity-50 cursor-not-allowed"
                           : "cursor-pointer"
                       }`}
-                      onClick={() =>
-                        !isDeletingRoom &&
-                        !isStartingGame &&
-                        handleDeleteRoom(activeRoom.id)
-                      }
+                      onClick={() => {
+                        if (isDeletingRoom || isStartingGame) return;
+                        if (window.confirm("¿Eliminar la sala? Los jugadores serán expulsados.")) {
+                          handleDeleteRoom(activeRoom.id);
+                        }
+                      }}
                     />
                   </motion.div>
                 </div>

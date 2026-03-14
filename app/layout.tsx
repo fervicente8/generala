@@ -10,7 +10,10 @@ const poppins = Poppins({
   weight: ["400", "500", "600", "700"],
 });
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://generala-8zq4.onrender.com";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(appUrl),
   title: "Generala Online - Juega con Amigos",
   description:
     "Disfruta de la clásica Generala en línea. Crea salas, juega con amigos y compite en partidas emocionantes.",
@@ -25,19 +28,36 @@ export const metadata: Metadata = {
     title: "Generala Online - Juega con Amigos",
     description:
       "Disfruta de la clásica Generala en línea. Crea salas, juega con amigos y compite en partidas emocionantes.",
-    url: "https://lagenerala.vercel.app",
+    url: "/",
     type: "website",
+    siteName: "Generala Online",
     images: [
       {
-        url: "https://lagenerala.vercel.app/preview.jpg",
+        url: "/background.png",
         width: 1200,
         height: 630,
-        alt: "Generala Online",
+        alt: "Generala Online - Juega con amigos",
       },
     ],
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Generala Online - Juega con Amigos",
+    description: "Disfruta de la clásica Generala en línea. Crea salas, juega con amigos y compite en partidas emocionantes.",
+    images: ["/background.png"],
+  },
   alternates: {
-    canonical: "https://lagenerala.vercel.app",
+    canonical: "/",
+  },
+  themeColor: "#2E4A3D",
+  appleWebApp: {
+    capable: true,
+    title: "Generala",
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    icon: "/dice-icon.png",
+    apple: "/dice-icon.png",
   },
 };
 

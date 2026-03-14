@@ -201,7 +201,11 @@ export default function FriendCard({
             <motion.div whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.9 }}>
               <CircleX
                 className='w-6 h-6 text-[#A91D2F] cursor-pointer hover:text-[#DC2626]'
-                onClick={handleRemoveFriend}
+                onClick={() => {
+                  if (typeof window !== "undefined" && window.confirm(`¿Eliminar a ${user.name} de tus amigos?`)) {
+                    handleRemoveFriend();
+                  }
+                }}
               />
             </motion.div>
           ) : friendRequestSent ? (

@@ -15,6 +15,7 @@ Una versión web de Generala, desarrollada con **Next.js** y **WebSocket**, para
   - Porcentaje de victorias
   - Valores más frecuentes
   - Estadísticas por categoría
+- 📱 **PWA instalable**: agregar a la pantalla de inicio en el celular o en el escritorio
 - 🔜 **Sistema de ELO** (en desarrollo)
 
 ---
@@ -44,7 +45,7 @@ Deployá en **Render** (ver [DEPLOY.md](DEPLOY.md)) y accedé a la URL de tu app
 - [x] Historial de partidas
 - [ ] Sistema de ELO
 - [ ] Leaderboard
-- [ ] App móvil
+- [x] PWA instalable (agregar a inicio)
 
 ---
 

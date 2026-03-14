@@ -1,181 +1,169 @@
 "use client";
+
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export default function HowToPlay() {
   const router = useRouter();
 
+  const combinations = [
+    { name: "1", desc: "Suma de todos los 1", pts: "1 × cantidad de 1", servida: "5" },
+    { name: "2", desc: "Suma de todos los 2", pts: "2 × cantidad de 2", servida: "10" },
+    { name: "3", desc: "Suma de todos los 3", pts: "3 × cantidad de 3", servida: "15" },
+    { name: "4", desc: "Suma de todos los 4", pts: "4 × cantidad de 4", servida: "20" },
+    { name: "5", desc: "Suma de todos los 5", pts: "5 × cantidad de 5", servida: "25" },
+    { name: "6", desc: "Suma de todos los 6", pts: "6 × cantidad de 6", servida: "30" },
+    { name: "Escalera", desc: "1-2-3-4-5 o 2-3-4-5-6 (en cualquier orden)", pts: "20", servida: "25" },
+    { name: "Full", desc: "Tres de un número + dos de otro (ej: 4-4-4-2-2)", pts: "30", servida: "35" },
+    { name: "Poker", desc: "Cuatro iguales + uno distinto (ej: 6-6-6-6-2)", pts: "40", servida: "45" },
+    { name: "Generala", desc: "Cinco dados iguales", pts: "50", servida: "¡Ganás!" },
+    { name: "Doble Generala", desc: "Solo si ya anotaste Generala; cinco iguales de nuevo", pts: "100", servida: "¡Ganás!" },
+  ];
+
   return (
-    <main className='min-h-screen p-6 text-base sm:text-lg space-y-8 bg-gradient-to-br from-[#1A1A1A] to-[#2E2E2E] text-[#1A1A1A] font-quicksand'>
-      <motion.button
-        className='fixed top-3 left-3 z-50 bg-[#A91D2F] text-[#F5F5F5] px-4 py-2 rounded-full shadow-md border-2 border-[#D4A017] flex items-center hover:bg-[#DC2626]'
-        onClick={() => router.back()}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-      >
-        ⬅️ Volver
-      </motion.button>
+    <main className='min-h-screen p-6 pb-12 text-[#1A1A1A] bg-gradient-to-br from-[#1A1A1A] to-[#2E2E2E] font-quicksand'>
+      <div className='max-w-3xl mx-auto'>
+        {/* Header */}
+        <motion.header
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className='flex items-center justify-between mb-8'
+        >
+          <motion.button
+            className='bg-[#A91D2F] text-[#F5F5F5] px-4 py-2 rounded-full shadow-md border-2 border-[#D4A017] hover:bg-[#DC2626] flex items-center gap-2'
+            onClick={() => router.back()}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            ← Volver
+          </motion.button>
+          <h1 className='text-2xl sm:text-3xl font-bold text-[#F5F5F5] font-poppins drop-shadow-[0_2px_2px_rgba(212,160,23,0.5)]'>
+            🎲 Cómo jugar
+          </h1>
+          <div className='w-20' />
+        </motion.header>
 
-      <h1 className='text-4xl font-bold text-center text-[#F5F5F5] font-poppins mb-6 drop-shadow-[0_2px_2px_rgba(212,160,23,0.5)]'>
-        🎲 Cómo Jugar a la Generala
-      </h1>
-
-      <div className='max-w-4xl mx-auto flex flex-col gap-8'>
-        <section className='p-6 bg-[#F5F5F5] rounded-xl shadow-md border-2 border-[#D4A017]'>
-          <h2 className='text-xl font-semibold text-[#F5F5F5] bg-[#2E4A3D] p-3 rounded-t-lg font-poppins mb-2'>
-            📌 Objetivo del Juego
+        {/* Objetivo */}
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className='p-5 sm:p-6 bg-[#F5F5F5] rounded-xl shadow-md border-2 border-[#D4A017] mb-6'
+        >
+          <h2 className='text-lg font-bold text-[#2E4A3D] font-poppins mb-2'>
+            Objetivo
           </h2>
-          <p>
-            El objetivo es sumar la mayor cantidad de puntos posibles
-            completando combinaciones con 5 dados a lo largo de la partida.
+          <p className='text-[#1A1A1A]'>
+            Sumar la mayor cantidad de puntos anotando once jugadas con 5 dados. Cada jugada se anota en una categoría distinta; al final gana quien tenga más puntos.
           </p>
-        </section>
+        </motion.section>
 
-        <section className='p-6 bg-[#F5F5F5] rounded-xl shadow-md border-2 border-[#D4A017]'>
-          <h2 className='text-xl font-semibold text-[#F5F5F5] bg-[#2E4A3D] p-3 rounded-t-lg font-poppins mb-2'>
-            🎮 Turnos y Tiradas
+        {/* Un turno en 4 pasos */}
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className='p-5 sm:p-6 bg-[#F5F5F5] rounded-xl shadow-md border-2 border-[#D4A017] mb-6'
+        >
+          <h2 className='text-lg font-bold text-[#2E4A3D] font-poppins mb-3'>
+            Un turno en 4 pasos
           </h2>
-          <ul className='list-disc list-inside space-y-2 text-[gray]'>
-            <li>En cada turno lanzás 5 dados.</li>
-            <li>Podés tirar hasta 3 veces por turno.</li>
-            <li>
-              Después de cada tirada, podés elegir qué dados guardar y volver a
-              lanzar los restantes.
-            </li>
-            <li>
-              Al final del turno, debés anotar una jugada (aunque sea con 0
-              puntos si no tenés ninguna válida).
-            </li>
-          </ul>
-        </section>
-
-        <section className='p-6 bg-[#F5F5F5] rounded-xl shadow-md border-2 border-[#D4A017]'>
-          <h2 className='text-xl font-semibold text-[#F5F5F5] bg-[#2E4A3D] p-3 rounded-t-lg font-poppins mb-2'>
-            🏅 Jugadas y Puntajes
-          </h2>
-          <div className='space-y-4'>
-            <div>
-              <h3 className='font-semibold text-[#1A1A1A] font-poppins'>
-                🔢 Números (del 1 al 6)
-              </h3>
-              <p>Sumás la cantidad de dados que coincidan con ese número.</p>
-              <p className='italic text-[gray]'>
-                Ejemplo: dados 🎲 2 - 2 - 4 - 2 - 6 → si anotás en el “2”, sumás
-                6 puntos porque hay 3 dados con ese número (el “2” ya no podrá
-                ser usado para otra jugada).
-              </p>
-            </div>
-
-            <div>
-              <h3 className='font-semibold text-[#1A1A1A] font-poppins'>
-                📈 Escalera (20 puntos)
-              </h3>
-              <p>Conseguí una secuencia de cinco números seguidos.</p>
-              <p className='italic text-[gray]'>
-                Ejemplos válidos: 🎲 1 - 2 - 3 - 4 - 5 🎲 2 - 3 - 4 - 5 - 6 🎲 3
-                - 4 - 5 - 6 - 1
-              </p>
-              <p>
-                Si la lográs en la primera tirada (servida), sumás 25 puntos.
-              </p>
-            </div>
-
-            <div>
-              <h3 className='font-semibold text-[#1A1A1A] font-poppins'>
-                🏠 Full (30 puntos)
-              </h3>
-              <p>Tres dados del mismo valor + dos dados de otro valor.</p>
-              <p className='italic text-[gray]'>
-                Ejemplo: 🎲 4 - 4 - 4 - 2 - 2
-              </p>
-              <p>Full servido: 35 puntos.</p>
-            </div>
-
-            <div>
-              <h3 className='font-semibold text-[#1A1A1A] font-poppins'>
-                🃏 Poker (40 puntos)
-              </h3>
-              <p>Cuatro dados iguales + uno distinto.</p>
-              <p className='italic text-[gray]'>
-                Ejemplo: 🎲 6 - 6 - 6 - 6 - 2
-              </p>
-              <p>Poker servido: 45 puntos.</p>
-            </div>
-
-            <div>
-              <h3 className='font-semibold text-[#1A1A1A] font-poppins'>
-                💣 Generala (50 puntos)
-              </h3>
-              <p>Cinco dados iguales. La jugada más difícil y valiosa.</p>
-              <p className='italic text-[gray]'>
-                Ejemplo: 🎲 3 - 3 - 3 - 3 - 3
-              </p>
-              <p>Generala servida: Ganaste el juego.</p>
-            </div>
-
-            <div>
-              <h3 className='font-semibold text-[#1A1A1A] font-poppins'>
-                🔥 Doble Generala (100 puntos)
-              </h3>
-              <p>
-                Solo se puede anotar si ya hiciste una Generala antes. ¡Muy
-                rara!
-              </p>
-              <p className='italic text-[gray]'>
-                Doble Generala servida: Ganaste el juego.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section className='p-6 bg-[#F5F5F5] rounded-xl shadow-md border-2 border-[#D4A017]'>
-          <h2 className='text-xl font-semibold text-[#F5F5F5] bg-[#2E4A3D] p-3 rounded-t-lg font-poppins mb-2'>
-            ✅ Reglas adicionales
-          </h2>
-          <ul className='list-disc list-inside space-y-2 text-[gray]'>
-            <li>
-              Si no podés o no querés anotar una jugada válida, debés tachar
-              alguna categoría (anotar 0), pero no se te sumarán puntos, siempre
-              se recomienda tachar categorías que no puedan sumar mucho, ejemplo
-              el "1", ya que el máximo puntaje que se puede sacar del "1" es 5.
-            </li>
-            <li>
-              El bonus de <strong>jugada servida</strong> (+5 puntos) se aplica
-              si hacés la jugada en la primera tirada del turno.
-            </li>
-            <li>
-              Gana el jugador con más puntos al completar todas las categorías.
-            </li>
-          </ul>
-        </section>
-
-        <section className='p-6 bg-[#F5F5F5] rounded-xl shadow-md border-2 border-[#D4A017]'>
-          <h2 className='text-xl font-semibold text-[#F5F5F5] bg-[#2E4A3D] p-3 rounded-t-lg font-poppins mb-2'>
-            🎯 Consejos
-          </h2>
-          <ul className='list-disc list-inside space-y-2 text-[gray]'>
-            <li>
-              Intentá anotar los números altos (5 y 6) cuando tengas varias
-              repeticiones.
-            </li>
-            <li>
-              No taches combinaciones valiosas al principio: puede que las
-              consigas más adelante.
-            </li>
-            <li>Recordá que el turno cambia al completar una jugada.</li>
-          </ul>
-        </section>
-
-        <section className='border-t-2 border-[#D4A017] pt-6 mt-6 text-center'>
-          <h2 className='text-2xl font-bold text-[#F5F5F5] font-poppins'>
-            ✨ ¡Importante!
-          </h2>
-          <p className='mt-2 text-lg text-[gray]'>
-            No te olvides de{" "}
-            <span className='font-semibold text-[#1A6642]'>divertirte</span> 😄.
-            ¡La Generala es para pasarla bien con amigos y reírse mucho!
+          <ol className='list-decimal list-inside space-y-2 text-[#1A1A1A]'>
+            <li><strong>Tirar.</strong> Lanzás los 5 dados (o solo los que no hayas elegido guardar).</li>
+            <li><strong>Guardar dados (opcional).</strong> Tocás los dados que querés conservar; en la siguiente tirada solo se vuelven a tirar los demás.</li>
+            <li><strong>Repetir hasta 3 tiradas.</strong> Podés tirar hasta 3 veces en el mismo turno. Después de cada tirada podés seguir guardando o cambiando qué dados guardar.</li>
+            <li><strong>Anotar.</strong> Al final del turno tenés que anotar en una categoría que todavía no usaste: el puntaje que corresponda o tachar (0 puntos) si no hay jugada válida.</li>
+          </ol>
+          <p className='mt-3 text-sm text-[#666]'>
+            Si lográs una jugada en la <strong>primera tirada</strong> del turno (sin usar la 2.ª ni la 3.ª), es <em>servida</em> y sumás el bonus indicado en la tabla.
           </p>
-        </section>
+        </motion.section>
+
+        {/* Tabla de jugadas */}
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className='p-5 sm:p-6 bg-[#F5F5F5] rounded-xl shadow-md border-2 border-[#D4A017] mb-6 overflow-x-auto'
+        >
+          <h2 className='text-lg font-bold text-[#2E4A3D] font-poppins mb-3'>
+            Jugadas y puntajes
+          </h2>
+          <table className='w-full text-sm sm:text-base border-collapse'>
+            <thead>
+              <tr className='border-b-2 border-[#D4A017]'>
+                <th className='text-left py-2 px-2 font-poppins font-semibold text-[#1A1A1A]'>Jugada</th>
+                <th className='text-left py-2 px-2 font-poppins font-semibold text-[#1A1A1A]'>Qué es</th>
+                <th className='text-left py-2 px-2 font-poppins font-semibold text-[#1A1A1A]'>Puntos</th>
+                <th className='text-left py-2 px-2 font-poppins font-semibold text-[#1A1A1A]'>Servida</th>
+              </tr>
+            </thead>
+            <tbody>
+              {combinations.map((row, i) => (
+                <tr key={row.name} className='border-b border-[#E5E5E5]'>
+                  <td className='py-2 px-2 font-semibold text-[#2E4A3D]'>{row.name}</td>
+                  <td className='py-2 px-2 text-[#444]'>{row.desc}</td>
+                  <td className='py-2 px-2'>{row.pts}</td>
+                  <td className='py-2 px-2 font-semibold text-[#1A6642]'>{row.servida}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </motion.section>
+
+        {/* Reglas importantes */}
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className='p-5 sm:p-6 bg-[#F5F5F5] rounded-xl shadow-md border-2 border-[#D4A017] mb-6'
+        >
+          <h2 className='text-lg font-bold text-[#2E4A3D] font-poppins mb-3'>
+            Reglas importantes
+          </h2>
+          <ul className='space-y-2 text-[#1A1A1A] list-disc list-inside'>
+            <li>Cada categoría se usa una sola vez por partida.</li>
+            <li>Si no tenés ninguna jugada válida, tenés que <strong>tachar</strong> una categoría (anotar 0). Conviene tachar las que dan poco, por ejemplo el 1 (máximo 5 puntos).</li>
+            <li>La escalera puede ser 1-2-3-4-5 o 2-3-4-5-6; el orden de los dados no importa.</li>
+            <li>Generala servida (cinco iguales en la primera tirada) termina la partida y ganás. Doble Generala servida también gana al instante.</li>
+          </ul>
+        </motion.section>
+
+        {/* Consejos */}
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className='p-5 sm:p-6 bg-[#F0E9D6] rounded-xl shadow-md border-2 border-[#D4A017] mb-6'
+        >
+          <h2 className='text-lg font-bold text-[#2E4A3D] font-poppins mb-3'>
+            Consejos
+          </h2>
+          <ul className='space-y-2 text-[#1A1A1A] list-disc list-inside'>
+            <li>Priorizá anotar 5 y 6 cuando tengas varios dados iguales; dan más puntos.</li>
+            <li>No taches Full, Poker o Generala al principio: es mejor guardar esas categorías por si las sacás después.</li>
+            <li>Para la escalera necesitás 5 números distintos; si te quedan dos repetidos, en la siguiente tirada buscá cambiar uno.</li>
+          </ul>
+        </motion.section>
+
+        {/* CTA */}
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className='text-center pt-4'
+        >
+          <p className='text-[#E2D8BA] mb-4'>
+            ¿Listo para jugar?
+          </p>
+          <Link
+            href='/'
+            className='inline-block bg-[#2E4A3D] text-[#F5F5F5] font-poppins font-semibold py-3 px-6 rounded-xl shadow-md border-2 border-[#D4A017] hover:bg-[#2E4A3D]/90'
+          >
+            Ir al lobby
+          </Link>
+        </motion.section>
       </div>
     </main>
   );
