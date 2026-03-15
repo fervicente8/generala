@@ -11,15 +11,16 @@ const devProvider =
               name: "Desarrollo (sin cuenta)",
               credentials: { dev: { label: "Dev", type: "text" } },
               async authorize() {
-                  await upsertUser({
+                  const user = await upsertUser({
                       googleId: "dev-generala-local",
                       name: "Dev",
                       email: "dev@generala.local",
                   });
                   return {
-                      email: "dev@generala.local",
-                      name: "Dev",
-                      image: undefined,
+                      id: user.id,
+                      email: user.email ?? "dev@generala.local",
+                      name: user.name ?? "Dev",
+                      image: user.image ?? undefined,
                   };
               },
           })
