@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "UserStats" ADD COLUMN IF NOT EXISTS "doubleGeneralas" INTEGER NOT NULL DEFAULT 0;

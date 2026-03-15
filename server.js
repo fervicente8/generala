@@ -243,6 +243,22 @@ app.prepare().then(() => {
       });
     });
 
+    socket.on("gameReaction", (data) => {
+      const playerIds = data.playerIds || (data.players || []).map((p) => p.id || p.userId);
+      playerIds.forEach((playerId) => {
+        const playerSocketId = onlineUsers.get(playerId)?.socketId;
+        if (playerSocketId) {
+          io.to(playerSocketId).emit("gameReaction", {
+            targetUserId: data.targetUserId,
+            fromUserId: data.fromUserId,
+            fromUserName: data.fromUserName,
+            type: data.type,
+            value: data.value,
+          });
+        }
+      });
+    });
+
   });
 
   httpServer

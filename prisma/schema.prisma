@@ -28,7 +28,8 @@ model User {
   friendOf    UserFriendship[] @relation("FriendOf")
   sentInvitations     GameInvitation[] @relation("InvitationSender")
   receivedInvitations GameInvitation[] @relation("InvitationReceiver")
-  ownedGames   Game[]       @relation("GameOwner") 
+  ownedGames   Game[]       @relation("GameOwner")
+  achievements UserAchievement[]
 }
 
 model UserFriendship {
@@ -50,9 +51,12 @@ model UserStats {
   gamesPlayed     Int     @default(0)
   gamesWon        Int     @default(0)
   gamesLost       Int     @default(0)
+  currentWinStreak Int   @default(0)
+  maxWinStreak    Int     @default(0)
   highestScore    Int     @default(0)
-  generalaServed  Int     @default(0)
-  straights       Int     @default(0)
+  generalaServed   Int     @default(0)
+  doubleGeneralas  Int     @default(0)
+  straights        Int     @default(0)
   fullHouses      Int     @default(0)
   pokers          Int     @default(0)
   generalas       Int     @default(0)
@@ -62,6 +66,15 @@ model UserStats {
   lastGameDate    DateTime?
   elo             Int     @default(0)
   eloChange       Int     @default(0) 
+}
+
+model UserAchievement {
+  id            String   @id @default(uuid())
+  userId        String
+  achievementId String
+  unlockedAt    DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id])
+  @@unique([userId, achievementId])
 }
 
 model Game {

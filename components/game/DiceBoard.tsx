@@ -31,8 +31,8 @@ export default function DiceBoard({
   isMyTurn,
 }: DiceBoardProps) {
   return (
-    <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-6 select-none'>
-      <div className='flex gap-4'>
+    <div className="absolute top-[50%] sm:top-[55%] left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-6 select-none">
+      <div className="flex gap-4">
         {isMyTurn &&
           game.diceValues.length === 0 &&
           Array(5)

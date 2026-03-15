@@ -7,12 +7,19 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import Button from "@/components/ui/Button";
 import { useAlert } from "@/components/ui/CustomAlert";
+import LoadingOverlay from "@/components/ui/LoadingOverlay";
+import CustomLoadingSpinner from "@/components/ui/CustomLoadingSpinner";
 
 export default function Login() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [isSigningInWithGoogle, setIsSigningInWithGoogle] = useState(false);
   const { showAlert } = useAlert();
+
+  useEffect(() => {
+    if (status === "unauthenticated") setIsSigningInWithGoogle(false);
+  }, [status]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -30,8 +37,22 @@ export default function Login() {
     }
   }, [status, session, router]);
 
+  if (status === "loading") {
+    return (
+      <div className="relative flex min-h-dvh items-center justify-center bg-(--color-green)">
+        <Image
+          src="/casino-table.png"
+          alt=""
+          fill
+          className="object-cover opacity-50"
+        />
+        <LoadingOverlay text="Completando inicio de sesión..." backdropOpacity={0.9} />
+      </div>
+    );
+  }
+
   return (
-    <div className='relative flex min-h-dvh items-center justify-center bg-[var(--color-green)] p-4 safe-area-bottom safe-area-top'>
+    <div className='relative flex min-h-dvh items-center justify-center bg-(--color-green) p-4 safe-area-bottom safe-area-top'>
       {/* Fondo con imagen */}
       <Image
         src='/casino-table.png'
@@ -45,18 +66,18 @@ export default function Login() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 24 }}
-        className='relative z-10 flex w-full max-w-md flex-col items-center bg-[var(--color-white)] p-5 sm:p-8 rounded-2xl shadow-lg text-center max-h-[90dvh] overflow-y-auto'
+        className='relative z-10 flex w-full max-w-md flex-col items-center bg-(--color-white) p-5 sm:p-8 rounded-2xl shadow-lg text-center max-h-[90dvh] overflow-y-auto'
       >
-        <h1 className='text-3xl sm:text-4xl font-extrabold text-[var(--color-ruby-red)] mb-2 italic uppercase -tracking-tighter'>
+        <h1 className='text-3xl sm:text-4xl font-extrabold text-(--color-ruby-red) mb-2 italic uppercase -tracking-tighter'>
           Generala
         </h1>
 
-        <h2 className='text-lg sm:text-xl font-bold text-[var(--color-black)] mb-2'>
+        <h2 className='text-lg sm:text-xl font-bold text-(--color-black) mb-2'>
           Iniciar sesión
         </h2>
         <a
           href='/how-to-play'
-          className='text-sm text-[var(--color-black)] underline mb-4 inline-block hover:text-[var(--color-ruby-red)] min-h-[44px] flex items-center justify-center'
+          className='text-sm text-(--color-black) underline mb-4 inline-block hover:text-(--color-ruby-red) min-h-[44px] flex items-center justify-center'
         >
           ¿Cómo se juega a la Generala?
         </a>
@@ -65,17 +86,24 @@ export default function Login() {
         <Button
           className='mb-2 w-full min-h-[48px] sm:min-h-[44px]'
           onClick={() => {
-            termsAccepted
-              ? signIn("google")
-              : showAlert({
-                  type: "error",
-                  message:
-                    "Debes aceptar los términos y condiciones para iniciar sesión con Google.",
-                });
+            if (!termsAccepted) {
+              showAlert({
+                type: "error",
+                message:
+                  "Debes aceptar los términos y condiciones para iniciar sesión con Google.",
+              });
+              return;
+            }
+            setIsSigningInWithGoogle(true);
+            signIn("google", { callbackUrl: "/" });
           }}
+          disabled={isSigningInWithGoogle}
           backgroundColor='#DB4437'
           textColor='white'
           icon={
+            isSigningInWithGoogle ? (
+              <CustomLoadingSpinner size="sm" showText={false} color="#fff" />
+            ) : (
             <svg
               xmlns='http://www.w3.org/2000/svg'
               width='20'
@@ -105,10 +133,21 @@ export default function Login() {
           C44,22.659,43.862,21.35,43.611,20.083z'
               />
             </svg>
+            )
           }
         >
-          Iniciar sesión con Google
+          {isSigningInWithGoogle ? "Conectando..." : "Iniciar sesión con Google"}
         </Button>
+
+        {process.env.NEXT_PUBLIC_DEV_MODE === "true" && (
+          <Button
+            className='mb-2 w-full min-h-[48px] sm:min-h-[44px] bg-[#2E4A3D]'
+            textColor='white'
+            onClick={() => signIn("development", { dev: "true", callbackUrl: "/" })}
+          >
+            Entrar sin cuenta (desarrollo)
+          </Button>
+        )}
 
         {/* Botón de Facebook */}
         <Button
@@ -148,12 +187,12 @@ export default function Login() {
           />
           <label
             htmlFor='terms-and-conditions'
-            className='text-sm text-[var(--color-black)]'
+            className='text-sm text-(--color-black)'
           >
             Acepto los{" "}
             <a
               href='/terms-and-conditions'
-              className='text-[var(--color-red)] underline'
+              className='text-(--color-red) underline'
             >
               términos y condiciones
             </a>

@@ -1,11 +1,34 @@
 import GoogleProvider from "next-auth/providers/google";
 import FacebookProvider from "next-auth/providers/facebook";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import { upsertUser } from "./upsertUser";
+
+const devProvider =
+    process.env.DEV_MODE === "true"
+        ? CredentialsProvider({
+              id: "development",
+              name: "Desarrollo (sin cuenta)",
+              credentials: { dev: { label: "Dev", type: "text" } },
+              async authorize() {
+                  await upsertUser({
+                      googleId: "dev-generala-local",
+                      name: "Dev",
+                      email: "dev@generala.local",
+                  });
+                  return {
+                      email: "dev@generala.local",
+                      name: "Dev",
+                      image: undefined,
+                  };
+              },
+          })
+        : null;
 
 export const authOptions = {
     trustHost: true, // necesario detrás del proxy de Render (cookies y redirects)
     providers: [
+        ...(devProvider ? [devProvider] : []),
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID || "",
             clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
@@ -16,7 +39,11 @@ export const authOptions = {
         }),
     ],
     callbacks: {
-        async signIn({ user } : any) {
+        async signIn({ user, account } : any) {
+            // Desarrollo (Credentials): el usuario ya se creó en authorize; no llamar upsertUser
+            if (account?.provider === "development" || user?.email === "dev@generala.local") {
+                return true;
+            }
             try {
                 await upsertUser({
                     googleId: user.id,

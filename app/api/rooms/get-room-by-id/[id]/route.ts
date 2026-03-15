@@ -33,8 +33,9 @@ export async function GET(
     }
 
     const isUserInGame = game.players.some((player) => player.userId === userId);
+    const canView = isUserInGame || game.status === "finished";
 
-    if (!isUserInGame) {
+    if (!canView) {
       return NextResponse.json({ error: "No estás en esta sala" }, { status: 403 });
     }
 

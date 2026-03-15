@@ -29,6 +29,11 @@ export type UserFriendship = $Result.DefaultSelection<Prisma.$UserFriendshipPayl
  */
 export type UserStats = $Result.DefaultSelection<Prisma.$UserStatsPayload>
 /**
+ * Model UserAchievement
+ * 
+ */
+export type UserAchievement = $Result.DefaultSelection<Prisma.$UserAchievementPayload>
+/**
  * Model Game
  * 
  */
@@ -194,6 +199,16 @@ export class PrismaClient<
     * ```
     */
   get userStats(): Prisma.UserStatsDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.userAchievement`: Exposes CRUD operations for the **UserAchievement** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more UserAchievements
+    * const userAchievements = await prisma.userAchievement.findMany()
+    * ```
+    */
+  get userAchievement(): Prisma.UserAchievementDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.game`: Exposes CRUD operations for the **Game** model.
@@ -661,6 +676,7 @@ export namespace Prisma {
     User: 'User',
     UserFriendship: 'UserFriendship',
     UserStats: 'UserStats',
+    UserAchievement: 'UserAchievement',
     Game: 'Game',
     GameUser: 'GameUser',
     GameInvitation: 'GameInvitation'
@@ -679,7 +695,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "userFriendship" | "userStats" | "game" | "gameUser" | "gameInvitation"
+      modelProps: "user" | "userFriendship" | "userStats" | "userAchievement" | "game" | "gameUser" | "gameInvitation"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -902,6 +918,80 @@ export namespace Prisma {
           count: {
             args: Prisma.UserStatsCountArgs<ExtArgs>
             result: $Utils.Optional<UserStatsCountAggregateOutputType> | number
+          }
+        }
+      }
+      UserAchievement: {
+        payload: Prisma.$UserAchievementPayload<ExtArgs>
+        fields: Prisma.UserAchievementFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.UserAchievementFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserAchievementPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.UserAchievementFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserAchievementPayload>
+          }
+          findFirst: {
+            args: Prisma.UserAchievementFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserAchievementPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.UserAchievementFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserAchievementPayload>
+          }
+          findMany: {
+            args: Prisma.UserAchievementFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserAchievementPayload>[]
+          }
+          create: {
+            args: Prisma.UserAchievementCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserAchievementPayload>
+          }
+          createMany: {
+            args: Prisma.UserAchievementCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.UserAchievementCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserAchievementPayload>[]
+          }
+          delete: {
+            args: Prisma.UserAchievementDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserAchievementPayload>
+          }
+          update: {
+            args: Prisma.UserAchievementUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserAchievementPayload>
+          }
+          deleteMany: {
+            args: Prisma.UserAchievementDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.UserAchievementUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.UserAchievementUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserAchievementPayload>[]
+          }
+          upsert: {
+            args: Prisma.UserAchievementUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserAchievementPayload>
+          }
+          aggregate: {
+            args: Prisma.UserAchievementAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateUserAchievement>
+          }
+          groupBy: {
+            args: Prisma.UserAchievementGroupByArgs<ExtArgs>
+            result: $Utils.Optional<UserAchievementGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.UserAchievementCountArgs<ExtArgs>
+            result: $Utils.Optional<UserAchievementCountAggregateOutputType> | number
           }
         }
       }
@@ -1238,6 +1328,7 @@ export namespace Prisma {
     user?: UserOmit
     userFriendship?: UserFriendshipOmit
     userStats?: UserStatsOmit
+    userAchievement?: UserAchievementOmit
     game?: GameOmit
     gameUser?: GameUserOmit
     gameInvitation?: GameInvitationOmit
@@ -1327,6 +1418,7 @@ export namespace Prisma {
     sentInvitations: number
     receivedInvitations: number
     ownedGames: number
+    achievements: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1336,6 +1428,7 @@ export namespace Prisma {
     sentInvitations?: boolean | UserCountOutputTypeCountSentInvitationsArgs
     receivedInvitations?: boolean | UserCountOutputTypeCountReceivedInvitationsArgs
     ownedGames?: boolean | UserCountOutputTypeCountOwnedGamesArgs
+    achievements?: boolean | UserCountOutputTypeCountAchievementsArgs
   }
 
   // Custom InputTypes
@@ -1389,6 +1482,13 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountOwnedGamesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: GameWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountAchievementsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserAchievementWhereInput
   }
 
 
@@ -1615,6 +1715,7 @@ export namespace Prisma {
     sentInvitations?: boolean | User$sentInvitationsArgs<ExtArgs>
     receivedInvitations?: boolean | User$receivedInvitationsArgs<ExtArgs>
     ownedGames?: boolean | User$ownedGamesArgs<ExtArgs>
+    achievements?: boolean | User$achievementsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -1654,6 +1755,7 @@ export namespace Prisma {
     sentInvitations?: boolean | User$sentInvitationsArgs<ExtArgs>
     receivedInvitations?: boolean | User$receivedInvitationsArgs<ExtArgs>
     ownedGames?: boolean | User$ownedGamesArgs<ExtArgs>
+    achievements?: boolean | User$achievementsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -1669,6 +1771,7 @@ export namespace Prisma {
       sentInvitations: Prisma.$GameInvitationPayload<ExtArgs>[]
       receivedInvitations: Prisma.$GameInvitationPayload<ExtArgs>[]
       ownedGames: Prisma.$GamePayload<ExtArgs>[]
+      achievements: Prisma.$UserAchievementPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -2078,6 +2181,7 @@ export namespace Prisma {
     sentInvitations<T extends User$sentInvitationsArgs<ExtArgs> = {}>(args?: Subset<T, User$sentInvitationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GameInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     receivedInvitations<T extends User$receivedInvitationsArgs<ExtArgs> = {}>(args?: Subset<T, User$receivedInvitationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GameInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     ownedGames<T extends User$ownedGamesArgs<ExtArgs> = {}>(args?: Subset<T, User$ownedGamesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GamePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    achievements<T extends User$achievementsArgs<ExtArgs> = {}>(args?: Subset<T, User$achievementsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserAchievementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2666,6 +2770,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: GameScalarFieldEnum | GameScalarFieldEnum[]
+  }
+
+  /**
+   * User.achievements
+   */
+  export type User$achievementsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserAchievement
+     */
+    select?: UserAchievementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserAchievement
+     */
+    omit?: UserAchievementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserAchievementInclude<ExtArgs> | null
+    where?: UserAchievementWhereInput
+    orderBy?: UserAchievementOrderByWithRelationInput | UserAchievementOrderByWithRelationInput[]
+    cursor?: UserAchievementWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: UserAchievementScalarFieldEnum | UserAchievementScalarFieldEnum[]
   }
 
   /**
@@ -3787,8 +3915,11 @@ export namespace Prisma {
     gamesPlayed: number | null
     gamesWon: number | null
     gamesLost: number | null
+    currentWinStreak: number | null
+    maxWinStreak: number | null
     highestScore: number | null
     generalaServed: number | null
+    doubleGeneralas: number | null
     straights: number | null
     fullHouses: number | null
     pokers: number | null
@@ -3804,8 +3935,11 @@ export namespace Prisma {
     gamesPlayed: number | null
     gamesWon: number | null
     gamesLost: number | null
+    currentWinStreak: number | null
+    maxWinStreak: number | null
     highestScore: number | null
     generalaServed: number | null
+    doubleGeneralas: number | null
     straights: number | null
     fullHouses: number | null
     pokers: number | null
@@ -3823,8 +3957,11 @@ export namespace Prisma {
     gamesPlayed: number | null
     gamesWon: number | null
     gamesLost: number | null
+    currentWinStreak: number | null
+    maxWinStreak: number | null
     highestScore: number | null
     generalaServed: number | null
+    doubleGeneralas: number | null
     straights: number | null
     fullHouses: number | null
     pokers: number | null
@@ -3843,8 +3980,11 @@ export namespace Prisma {
     gamesPlayed: number | null
     gamesWon: number | null
     gamesLost: number | null
+    currentWinStreak: number | null
+    maxWinStreak: number | null
     highestScore: number | null
     generalaServed: number | null
+    doubleGeneralas: number | null
     straights: number | null
     fullHouses: number | null
     pokers: number | null
@@ -3863,8 +4003,11 @@ export namespace Prisma {
     gamesPlayed: number
     gamesWon: number
     gamesLost: number
+    currentWinStreak: number
+    maxWinStreak: number
     highestScore: number
     generalaServed: number
+    doubleGeneralas: number
     straights: number
     fullHouses: number
     pokers: number
@@ -3883,8 +4026,11 @@ export namespace Prisma {
     gamesPlayed?: true
     gamesWon?: true
     gamesLost?: true
+    currentWinStreak?: true
+    maxWinStreak?: true
     highestScore?: true
     generalaServed?: true
+    doubleGeneralas?: true
     straights?: true
     fullHouses?: true
     pokers?: true
@@ -3900,8 +4046,11 @@ export namespace Prisma {
     gamesPlayed?: true
     gamesWon?: true
     gamesLost?: true
+    currentWinStreak?: true
+    maxWinStreak?: true
     highestScore?: true
     generalaServed?: true
+    doubleGeneralas?: true
     straights?: true
     fullHouses?: true
     pokers?: true
@@ -3919,8 +4068,11 @@ export namespace Prisma {
     gamesPlayed?: true
     gamesWon?: true
     gamesLost?: true
+    currentWinStreak?: true
+    maxWinStreak?: true
     highestScore?: true
     generalaServed?: true
+    doubleGeneralas?: true
     straights?: true
     fullHouses?: true
     pokers?: true
@@ -3939,8 +4091,11 @@ export namespace Prisma {
     gamesPlayed?: true
     gamesWon?: true
     gamesLost?: true
+    currentWinStreak?: true
+    maxWinStreak?: true
     highestScore?: true
     generalaServed?: true
+    doubleGeneralas?: true
     straights?: true
     fullHouses?: true
     pokers?: true
@@ -3959,8 +4114,11 @@ export namespace Prisma {
     gamesPlayed?: true
     gamesWon?: true
     gamesLost?: true
+    currentWinStreak?: true
+    maxWinStreak?: true
     highestScore?: true
     generalaServed?: true
+    doubleGeneralas?: true
     straights?: true
     fullHouses?: true
     pokers?: true
@@ -4066,8 +4224,11 @@ export namespace Prisma {
     gamesPlayed: number
     gamesWon: number
     gamesLost: number
+    currentWinStreak: number
+    maxWinStreak: number
     highestScore: number
     generalaServed: number
+    doubleGeneralas: number
     straights: number
     fullHouses: number
     pokers: number
@@ -4105,8 +4266,11 @@ export namespace Prisma {
     gamesPlayed?: boolean
     gamesWon?: boolean
     gamesLost?: boolean
+    currentWinStreak?: boolean
+    maxWinStreak?: boolean
     highestScore?: boolean
     generalaServed?: boolean
+    doubleGeneralas?: boolean
     straights?: boolean
     fullHouses?: boolean
     pokers?: boolean
@@ -4126,8 +4290,11 @@ export namespace Prisma {
     gamesPlayed?: boolean
     gamesWon?: boolean
     gamesLost?: boolean
+    currentWinStreak?: boolean
+    maxWinStreak?: boolean
     highestScore?: boolean
     generalaServed?: boolean
+    doubleGeneralas?: boolean
     straights?: boolean
     fullHouses?: boolean
     pokers?: boolean
@@ -4147,8 +4314,11 @@ export namespace Prisma {
     gamesPlayed?: boolean
     gamesWon?: boolean
     gamesLost?: boolean
+    currentWinStreak?: boolean
+    maxWinStreak?: boolean
     highestScore?: boolean
     generalaServed?: boolean
+    doubleGeneralas?: boolean
     straights?: boolean
     fullHouses?: boolean
     pokers?: boolean
@@ -4168,8 +4338,11 @@ export namespace Prisma {
     gamesPlayed?: boolean
     gamesWon?: boolean
     gamesLost?: boolean
+    currentWinStreak?: boolean
+    maxWinStreak?: boolean
     highestScore?: boolean
     generalaServed?: boolean
+    doubleGeneralas?: boolean
     straights?: boolean
     fullHouses?: boolean
     pokers?: boolean
@@ -4182,7 +4355,7 @@ export namespace Prisma {
     eloChange?: boolean
   }
 
-  export type UserStatsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "gamesPlayed" | "gamesWon" | "gamesLost" | "highestScore" | "generalaServed" | "straights" | "fullHouses" | "pokers" | "generalas" | "averageScore" | "winRate" | "totalTimePlayed" | "lastGameDate" | "elo" | "eloChange", ExtArgs["result"]["userStats"]>
+  export type UserStatsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "gamesPlayed" | "gamesWon" | "gamesLost" | "currentWinStreak" | "maxWinStreak" | "highestScore" | "generalaServed" | "doubleGeneralas" | "straights" | "fullHouses" | "pokers" | "generalas" | "averageScore" | "winRate" | "totalTimePlayed" | "lastGameDate" | "elo" | "eloChange", ExtArgs["result"]["userStats"]>
   export type UserStatsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }
@@ -4204,8 +4377,11 @@ export namespace Prisma {
       gamesPlayed: number
       gamesWon: number
       gamesLost: number
+      currentWinStreak: number
+      maxWinStreak: number
       highestScore: number
       generalaServed: number
+      doubleGeneralas: number
       straights: number
       fullHouses: number
       pokers: number
@@ -4645,8 +4821,11 @@ export namespace Prisma {
     readonly gamesPlayed: FieldRef<"UserStats", 'Int'>
     readonly gamesWon: FieldRef<"UserStats", 'Int'>
     readonly gamesLost: FieldRef<"UserStats", 'Int'>
+    readonly currentWinStreak: FieldRef<"UserStats", 'Int'>
+    readonly maxWinStreak: FieldRef<"UserStats", 'Int'>
     readonly highestScore: FieldRef<"UserStats", 'Int'>
     readonly generalaServed: FieldRef<"UserStats", 'Int'>
+    readonly doubleGeneralas: FieldRef<"UserStats", 'Int'>
     readonly straights: FieldRef<"UserStats", 'Int'>
     readonly fullHouses: FieldRef<"UserStats", 'Int'>
     readonly pokers: FieldRef<"UserStats", 'Int'>
@@ -5073,6 +5252,1056 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: UserStatsInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model UserAchievement
+   */
+
+  export type AggregateUserAchievement = {
+    _count: UserAchievementCountAggregateOutputType | null
+    _min: UserAchievementMinAggregateOutputType | null
+    _max: UserAchievementMaxAggregateOutputType | null
+  }
+
+  export type UserAchievementMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    achievementId: string | null
+    unlockedAt: Date | null
+  }
+
+  export type UserAchievementMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    achievementId: string | null
+    unlockedAt: Date | null
+  }
+
+  export type UserAchievementCountAggregateOutputType = {
+    id: number
+    userId: number
+    achievementId: number
+    unlockedAt: number
+    _all: number
+  }
+
+
+  export type UserAchievementMinAggregateInputType = {
+    id?: true
+    userId?: true
+    achievementId?: true
+    unlockedAt?: true
+  }
+
+  export type UserAchievementMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    achievementId?: true
+    unlockedAt?: true
+  }
+
+  export type UserAchievementCountAggregateInputType = {
+    id?: true
+    userId?: true
+    achievementId?: true
+    unlockedAt?: true
+    _all?: true
+  }
+
+  export type UserAchievementAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserAchievement to aggregate.
+     */
+    where?: UserAchievementWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserAchievements to fetch.
+     */
+    orderBy?: UserAchievementOrderByWithRelationInput | UserAchievementOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: UserAchievementWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserAchievements from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserAchievements.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned UserAchievements
+    **/
+    _count?: true | UserAchievementCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: UserAchievementMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: UserAchievementMaxAggregateInputType
+  }
+
+  export type GetUserAchievementAggregateType<T extends UserAchievementAggregateArgs> = {
+        [P in keyof T & keyof AggregateUserAchievement]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateUserAchievement[P]>
+      : GetScalarType<T[P], AggregateUserAchievement[P]>
+  }
+
+
+
+
+  export type UserAchievementGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserAchievementWhereInput
+    orderBy?: UserAchievementOrderByWithAggregationInput | UserAchievementOrderByWithAggregationInput[]
+    by: UserAchievementScalarFieldEnum[] | UserAchievementScalarFieldEnum
+    having?: UserAchievementScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: UserAchievementCountAggregateInputType | true
+    _min?: UserAchievementMinAggregateInputType
+    _max?: UserAchievementMaxAggregateInputType
+  }
+
+  export type UserAchievementGroupByOutputType = {
+    id: string
+    userId: string
+    achievementId: string
+    unlockedAt: Date
+    _count: UserAchievementCountAggregateOutputType | null
+    _min: UserAchievementMinAggregateOutputType | null
+    _max: UserAchievementMaxAggregateOutputType | null
+  }
+
+  type GetUserAchievementGroupByPayload<T extends UserAchievementGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<UserAchievementGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof UserAchievementGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], UserAchievementGroupByOutputType[P]>
+            : GetScalarType<T[P], UserAchievementGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type UserAchievementSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    achievementId?: boolean
+    unlockedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userAchievement"]>
+
+  export type UserAchievementSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    achievementId?: boolean
+    unlockedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userAchievement"]>
+
+  export type UserAchievementSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    achievementId?: boolean
+    unlockedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userAchievement"]>
+
+  export type UserAchievementSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    achievementId?: boolean
+    unlockedAt?: boolean
+  }
+
+  export type UserAchievementOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "achievementId" | "unlockedAt", ExtArgs["result"]["userAchievement"]>
+  export type UserAchievementInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type UserAchievementIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type UserAchievementIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $UserAchievementPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "UserAchievement"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      achievementId: string
+      unlockedAt: Date
+    }, ExtArgs["result"]["userAchievement"]>
+    composites: {}
+  }
+
+  type UserAchievementGetPayload<S extends boolean | null | undefined | UserAchievementDefaultArgs> = $Result.GetResult<Prisma.$UserAchievementPayload, S>
+
+  type UserAchievementCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<UserAchievementFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: UserAchievementCountAggregateInputType | true
+    }
+
+  export interface UserAchievementDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['UserAchievement'], meta: { name: 'UserAchievement' } }
+    /**
+     * Find zero or one UserAchievement that matches the filter.
+     * @param {UserAchievementFindUniqueArgs} args - Arguments to find a UserAchievement
+     * @example
+     * // Get one UserAchievement
+     * const userAchievement = await prisma.userAchievement.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends UserAchievementFindUniqueArgs>(args: SelectSubset<T, UserAchievementFindUniqueArgs<ExtArgs>>): Prisma__UserAchievementClient<$Result.GetResult<Prisma.$UserAchievementPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one UserAchievement that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {UserAchievementFindUniqueOrThrowArgs} args - Arguments to find a UserAchievement
+     * @example
+     * // Get one UserAchievement
+     * const userAchievement = await prisma.userAchievement.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends UserAchievementFindUniqueOrThrowArgs>(args: SelectSubset<T, UserAchievementFindUniqueOrThrowArgs<ExtArgs>>): Prisma__UserAchievementClient<$Result.GetResult<Prisma.$UserAchievementPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first UserAchievement that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserAchievementFindFirstArgs} args - Arguments to find a UserAchievement
+     * @example
+     * // Get one UserAchievement
+     * const userAchievement = await prisma.userAchievement.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends UserAchievementFindFirstArgs>(args?: SelectSubset<T, UserAchievementFindFirstArgs<ExtArgs>>): Prisma__UserAchievementClient<$Result.GetResult<Prisma.$UserAchievementPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first UserAchievement that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserAchievementFindFirstOrThrowArgs} args - Arguments to find a UserAchievement
+     * @example
+     * // Get one UserAchievement
+     * const userAchievement = await prisma.userAchievement.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends UserAchievementFindFirstOrThrowArgs>(args?: SelectSubset<T, UserAchievementFindFirstOrThrowArgs<ExtArgs>>): Prisma__UserAchievementClient<$Result.GetResult<Prisma.$UserAchievementPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more UserAchievements that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserAchievementFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all UserAchievements
+     * const userAchievements = await prisma.userAchievement.findMany()
+     * 
+     * // Get first 10 UserAchievements
+     * const userAchievements = await prisma.userAchievement.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const userAchievementWithIdOnly = await prisma.userAchievement.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends UserAchievementFindManyArgs>(args?: SelectSubset<T, UserAchievementFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserAchievementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a UserAchievement.
+     * @param {UserAchievementCreateArgs} args - Arguments to create a UserAchievement.
+     * @example
+     * // Create one UserAchievement
+     * const UserAchievement = await prisma.userAchievement.create({
+     *   data: {
+     *     // ... data to create a UserAchievement
+     *   }
+     * })
+     * 
+     */
+    create<T extends UserAchievementCreateArgs>(args: SelectSubset<T, UserAchievementCreateArgs<ExtArgs>>): Prisma__UserAchievementClient<$Result.GetResult<Prisma.$UserAchievementPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many UserAchievements.
+     * @param {UserAchievementCreateManyArgs} args - Arguments to create many UserAchievements.
+     * @example
+     * // Create many UserAchievements
+     * const userAchievement = await prisma.userAchievement.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends UserAchievementCreateManyArgs>(args?: SelectSubset<T, UserAchievementCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many UserAchievements and returns the data saved in the database.
+     * @param {UserAchievementCreateManyAndReturnArgs} args - Arguments to create many UserAchievements.
+     * @example
+     * // Create many UserAchievements
+     * const userAchievement = await prisma.userAchievement.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many UserAchievements and only return the `id`
+     * const userAchievementWithIdOnly = await prisma.userAchievement.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends UserAchievementCreateManyAndReturnArgs>(args?: SelectSubset<T, UserAchievementCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserAchievementPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a UserAchievement.
+     * @param {UserAchievementDeleteArgs} args - Arguments to delete one UserAchievement.
+     * @example
+     * // Delete one UserAchievement
+     * const UserAchievement = await prisma.userAchievement.delete({
+     *   where: {
+     *     // ... filter to delete one UserAchievement
+     *   }
+     * })
+     * 
+     */
+    delete<T extends UserAchievementDeleteArgs>(args: SelectSubset<T, UserAchievementDeleteArgs<ExtArgs>>): Prisma__UserAchievementClient<$Result.GetResult<Prisma.$UserAchievementPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one UserAchievement.
+     * @param {UserAchievementUpdateArgs} args - Arguments to update one UserAchievement.
+     * @example
+     * // Update one UserAchievement
+     * const userAchievement = await prisma.userAchievement.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends UserAchievementUpdateArgs>(args: SelectSubset<T, UserAchievementUpdateArgs<ExtArgs>>): Prisma__UserAchievementClient<$Result.GetResult<Prisma.$UserAchievementPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more UserAchievements.
+     * @param {UserAchievementDeleteManyArgs} args - Arguments to filter UserAchievements to delete.
+     * @example
+     * // Delete a few UserAchievements
+     * const { count } = await prisma.userAchievement.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends UserAchievementDeleteManyArgs>(args?: SelectSubset<T, UserAchievementDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserAchievements.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserAchievementUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many UserAchievements
+     * const userAchievement = await prisma.userAchievement.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends UserAchievementUpdateManyArgs>(args: SelectSubset<T, UserAchievementUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserAchievements and returns the data updated in the database.
+     * @param {UserAchievementUpdateManyAndReturnArgs} args - Arguments to update many UserAchievements.
+     * @example
+     * // Update many UserAchievements
+     * const userAchievement = await prisma.userAchievement.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more UserAchievements and only return the `id`
+     * const userAchievementWithIdOnly = await prisma.userAchievement.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends UserAchievementUpdateManyAndReturnArgs>(args: SelectSubset<T, UserAchievementUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserAchievementPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one UserAchievement.
+     * @param {UserAchievementUpsertArgs} args - Arguments to update or create a UserAchievement.
+     * @example
+     * // Update or create a UserAchievement
+     * const userAchievement = await prisma.userAchievement.upsert({
+     *   create: {
+     *     // ... data to create a UserAchievement
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the UserAchievement we want to update
+     *   }
+     * })
+     */
+    upsert<T extends UserAchievementUpsertArgs>(args: SelectSubset<T, UserAchievementUpsertArgs<ExtArgs>>): Prisma__UserAchievementClient<$Result.GetResult<Prisma.$UserAchievementPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of UserAchievements.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserAchievementCountArgs} args - Arguments to filter UserAchievements to count.
+     * @example
+     * // Count the number of UserAchievements
+     * const count = await prisma.userAchievement.count({
+     *   where: {
+     *     // ... the filter for the UserAchievements we want to count
+     *   }
+     * })
+    **/
+    count<T extends UserAchievementCountArgs>(
+      args?: Subset<T, UserAchievementCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], UserAchievementCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a UserAchievement.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserAchievementAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends UserAchievementAggregateArgs>(args: Subset<T, UserAchievementAggregateArgs>): Prisma.PrismaPromise<GetUserAchievementAggregateType<T>>
+
+    /**
+     * Group by UserAchievement.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserAchievementGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends UserAchievementGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: UserAchievementGroupByArgs['orderBy'] }
+        : { orderBy?: UserAchievementGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, UserAchievementGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserAchievementGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the UserAchievement model
+   */
+  readonly fields: UserAchievementFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for UserAchievement.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__UserAchievementClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the UserAchievement model
+   */
+  interface UserAchievementFieldRefs {
+    readonly id: FieldRef<"UserAchievement", 'String'>
+    readonly userId: FieldRef<"UserAchievement", 'String'>
+    readonly achievementId: FieldRef<"UserAchievement", 'String'>
+    readonly unlockedAt: FieldRef<"UserAchievement", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * UserAchievement findUnique
+   */
+  export type UserAchievementFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserAchievement
+     */
+    select?: UserAchievementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserAchievement
+     */
+    omit?: UserAchievementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserAchievementInclude<ExtArgs> | null
+    /**
+     * Filter, which UserAchievement to fetch.
+     */
+    where: UserAchievementWhereUniqueInput
+  }
+
+  /**
+   * UserAchievement findUniqueOrThrow
+   */
+  export type UserAchievementFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserAchievement
+     */
+    select?: UserAchievementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserAchievement
+     */
+    omit?: UserAchievementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserAchievementInclude<ExtArgs> | null
+    /**
+     * Filter, which UserAchievement to fetch.
+     */
+    where: UserAchievementWhereUniqueInput
+  }
+
+  /**
+   * UserAchievement findFirst
+   */
+  export type UserAchievementFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserAchievement
+     */
+    select?: UserAchievementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserAchievement
+     */
+    omit?: UserAchievementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserAchievementInclude<ExtArgs> | null
+    /**
+     * Filter, which UserAchievement to fetch.
+     */
+    where?: UserAchievementWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserAchievements to fetch.
+     */
+    orderBy?: UserAchievementOrderByWithRelationInput | UserAchievementOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserAchievements.
+     */
+    cursor?: UserAchievementWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserAchievements from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserAchievements.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserAchievements.
+     */
+    distinct?: UserAchievementScalarFieldEnum | UserAchievementScalarFieldEnum[]
+  }
+
+  /**
+   * UserAchievement findFirstOrThrow
+   */
+  export type UserAchievementFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserAchievement
+     */
+    select?: UserAchievementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserAchievement
+     */
+    omit?: UserAchievementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserAchievementInclude<ExtArgs> | null
+    /**
+     * Filter, which UserAchievement to fetch.
+     */
+    where?: UserAchievementWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserAchievements to fetch.
+     */
+    orderBy?: UserAchievementOrderByWithRelationInput | UserAchievementOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserAchievements.
+     */
+    cursor?: UserAchievementWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserAchievements from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserAchievements.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserAchievements.
+     */
+    distinct?: UserAchievementScalarFieldEnum | UserAchievementScalarFieldEnum[]
+  }
+
+  /**
+   * UserAchievement findMany
+   */
+  export type UserAchievementFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserAchievement
+     */
+    select?: UserAchievementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserAchievement
+     */
+    omit?: UserAchievementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserAchievementInclude<ExtArgs> | null
+    /**
+     * Filter, which UserAchievements to fetch.
+     */
+    where?: UserAchievementWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserAchievements to fetch.
+     */
+    orderBy?: UserAchievementOrderByWithRelationInput | UserAchievementOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing UserAchievements.
+     */
+    cursor?: UserAchievementWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserAchievements from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserAchievements.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserAchievements.
+     */
+    distinct?: UserAchievementScalarFieldEnum | UserAchievementScalarFieldEnum[]
+  }
+
+  /**
+   * UserAchievement create
+   */
+  export type UserAchievementCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserAchievement
+     */
+    select?: UserAchievementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserAchievement
+     */
+    omit?: UserAchievementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserAchievementInclude<ExtArgs> | null
+    /**
+     * The data needed to create a UserAchievement.
+     */
+    data: XOR<UserAchievementCreateInput, UserAchievementUncheckedCreateInput>
+  }
+
+  /**
+   * UserAchievement createMany
+   */
+  export type UserAchievementCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many UserAchievements.
+     */
+    data: UserAchievementCreateManyInput | UserAchievementCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * UserAchievement createManyAndReturn
+   */
+  export type UserAchievementCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserAchievement
+     */
+    select?: UserAchievementSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserAchievement
+     */
+    omit?: UserAchievementOmit<ExtArgs> | null
+    /**
+     * The data used to create many UserAchievements.
+     */
+    data: UserAchievementCreateManyInput | UserAchievementCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserAchievementIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UserAchievement update
+   */
+  export type UserAchievementUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserAchievement
+     */
+    select?: UserAchievementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserAchievement
+     */
+    omit?: UserAchievementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserAchievementInclude<ExtArgs> | null
+    /**
+     * The data needed to update a UserAchievement.
+     */
+    data: XOR<UserAchievementUpdateInput, UserAchievementUncheckedUpdateInput>
+    /**
+     * Choose, which UserAchievement to update.
+     */
+    where: UserAchievementWhereUniqueInput
+  }
+
+  /**
+   * UserAchievement updateMany
+   */
+  export type UserAchievementUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update UserAchievements.
+     */
+    data: XOR<UserAchievementUpdateManyMutationInput, UserAchievementUncheckedUpdateManyInput>
+    /**
+     * Filter which UserAchievements to update
+     */
+    where?: UserAchievementWhereInput
+    /**
+     * Limit how many UserAchievements to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserAchievement updateManyAndReturn
+   */
+  export type UserAchievementUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserAchievement
+     */
+    select?: UserAchievementSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserAchievement
+     */
+    omit?: UserAchievementOmit<ExtArgs> | null
+    /**
+     * The data used to update UserAchievements.
+     */
+    data: XOR<UserAchievementUpdateManyMutationInput, UserAchievementUncheckedUpdateManyInput>
+    /**
+     * Filter which UserAchievements to update
+     */
+    where?: UserAchievementWhereInput
+    /**
+     * Limit how many UserAchievements to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserAchievementIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UserAchievement upsert
+   */
+  export type UserAchievementUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserAchievement
+     */
+    select?: UserAchievementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserAchievement
+     */
+    omit?: UserAchievementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserAchievementInclude<ExtArgs> | null
+    /**
+     * The filter to search for the UserAchievement to update in case it exists.
+     */
+    where: UserAchievementWhereUniqueInput
+    /**
+     * In case the UserAchievement found by the `where` argument doesn't exist, create a new UserAchievement with this data.
+     */
+    create: XOR<UserAchievementCreateInput, UserAchievementUncheckedCreateInput>
+    /**
+     * In case the UserAchievement was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<UserAchievementUpdateInput, UserAchievementUncheckedUpdateInput>
+  }
+
+  /**
+   * UserAchievement delete
+   */
+  export type UserAchievementDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserAchievement
+     */
+    select?: UserAchievementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserAchievement
+     */
+    omit?: UserAchievementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserAchievementInclude<ExtArgs> | null
+    /**
+     * Filter which UserAchievement to delete.
+     */
+    where: UserAchievementWhereUniqueInput
+  }
+
+  /**
+   * UserAchievement deleteMany
+   */
+  export type UserAchievementDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserAchievements to delete
+     */
+    where?: UserAchievementWhereInput
+    /**
+     * Limit how many UserAchievements to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserAchievement without action
+   */
+  export type UserAchievementDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserAchievement
+     */
+    select?: UserAchievementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserAchievement
+     */
+    omit?: UserAchievementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserAchievementInclude<ExtArgs> | null
   }
 
 
@@ -8749,8 +9978,11 @@ export namespace Prisma {
     gamesPlayed: 'gamesPlayed',
     gamesWon: 'gamesWon',
     gamesLost: 'gamesLost',
+    currentWinStreak: 'currentWinStreak',
+    maxWinStreak: 'maxWinStreak',
     highestScore: 'highestScore',
     generalaServed: 'generalaServed',
+    doubleGeneralas: 'doubleGeneralas',
     straights: 'straights',
     fullHouses: 'fullHouses',
     pokers: 'pokers',
@@ -8764,6 +9996,16 @@ export namespace Prisma {
   };
 
   export type UserStatsScalarFieldEnum = (typeof UserStatsScalarFieldEnum)[keyof typeof UserStatsScalarFieldEnum]
+
+
+  export const UserAchievementScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    achievementId: 'achievementId',
+    unlockedAt: 'unlockedAt'
+  };
+
+  export type UserAchievementScalarFieldEnum = (typeof UserAchievementScalarFieldEnum)[keyof typeof UserAchievementScalarFieldEnum]
 
 
   export const GameScalarFieldEnum: {
@@ -8922,6 +10164,7 @@ export namespace Prisma {
     sentInvitations?: GameInvitationListRelationFilter
     receivedInvitations?: GameInvitationListRelationFilter
     ownedGames?: GameListRelationFilter
+    achievements?: UserAchievementListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -8938,6 +10181,7 @@ export namespace Prisma {
     sentInvitations?: GameInvitationOrderByRelationAggregateInput
     receivedInvitations?: GameInvitationOrderByRelationAggregateInput
     ownedGames?: GameOrderByRelationAggregateInput
+    achievements?: UserAchievementOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -8957,6 +10201,7 @@ export namespace Prisma {
     sentInvitations?: GameInvitationListRelationFilter
     receivedInvitations?: GameInvitationListRelationFilter
     ownedGames?: GameListRelationFilter
+    achievements?: UserAchievementListRelationFilter
   }, "id" | "googleId" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -9056,8 +10301,11 @@ export namespace Prisma {
     gamesPlayed?: IntFilter<"UserStats"> | number
     gamesWon?: IntFilter<"UserStats"> | number
     gamesLost?: IntFilter<"UserStats"> | number
+    currentWinStreak?: IntFilter<"UserStats"> | number
+    maxWinStreak?: IntFilter<"UserStats"> | number
     highestScore?: IntFilter<"UserStats"> | number
     generalaServed?: IntFilter<"UserStats"> | number
+    doubleGeneralas?: IntFilter<"UserStats"> | number
     straights?: IntFilter<"UserStats"> | number
     fullHouses?: IntFilter<"UserStats"> | number
     pokers?: IntFilter<"UserStats"> | number
@@ -9077,8 +10325,11 @@ export namespace Prisma {
     gamesPlayed?: SortOrder
     gamesWon?: SortOrder
     gamesLost?: SortOrder
+    currentWinStreak?: SortOrder
+    maxWinStreak?: SortOrder
     highestScore?: SortOrder
     generalaServed?: SortOrder
+    doubleGeneralas?: SortOrder
     straights?: SortOrder
     fullHouses?: SortOrder
     pokers?: SortOrder
@@ -9101,8 +10352,11 @@ export namespace Prisma {
     gamesPlayed?: IntFilter<"UserStats"> | number
     gamesWon?: IntFilter<"UserStats"> | number
     gamesLost?: IntFilter<"UserStats"> | number
+    currentWinStreak?: IntFilter<"UserStats"> | number
+    maxWinStreak?: IntFilter<"UserStats"> | number
     highestScore?: IntFilter<"UserStats"> | number
     generalaServed?: IntFilter<"UserStats"> | number
+    doubleGeneralas?: IntFilter<"UserStats"> | number
     straights?: IntFilter<"UserStats"> | number
     fullHouses?: IntFilter<"UserStats"> | number
     pokers?: IntFilter<"UserStats"> | number
@@ -9122,8 +10376,11 @@ export namespace Prisma {
     gamesPlayed?: SortOrder
     gamesWon?: SortOrder
     gamesLost?: SortOrder
+    currentWinStreak?: SortOrder
+    maxWinStreak?: SortOrder
     highestScore?: SortOrder
     generalaServed?: SortOrder
+    doubleGeneralas?: SortOrder
     straights?: SortOrder
     fullHouses?: SortOrder
     pokers?: SortOrder
@@ -9150,8 +10407,11 @@ export namespace Prisma {
     gamesPlayed?: IntWithAggregatesFilter<"UserStats"> | number
     gamesWon?: IntWithAggregatesFilter<"UserStats"> | number
     gamesLost?: IntWithAggregatesFilter<"UserStats"> | number
+    currentWinStreak?: IntWithAggregatesFilter<"UserStats"> | number
+    maxWinStreak?: IntWithAggregatesFilter<"UserStats"> | number
     highestScore?: IntWithAggregatesFilter<"UserStats"> | number
     generalaServed?: IntWithAggregatesFilter<"UserStats"> | number
+    doubleGeneralas?: IntWithAggregatesFilter<"UserStats"> | number
     straights?: IntWithAggregatesFilter<"UserStats"> | number
     fullHouses?: IntWithAggregatesFilter<"UserStats"> | number
     pokers?: IntWithAggregatesFilter<"UserStats"> | number
@@ -9162,6 +10422,57 @@ export namespace Prisma {
     lastGameDate?: DateTimeNullableWithAggregatesFilter<"UserStats"> | Date | string | null
     elo?: IntWithAggregatesFilter<"UserStats"> | number
     eloChange?: IntWithAggregatesFilter<"UserStats"> | number
+  }
+
+  export type UserAchievementWhereInput = {
+    AND?: UserAchievementWhereInput | UserAchievementWhereInput[]
+    OR?: UserAchievementWhereInput[]
+    NOT?: UserAchievementWhereInput | UserAchievementWhereInput[]
+    id?: StringFilter<"UserAchievement"> | string
+    userId?: StringFilter<"UserAchievement"> | string
+    achievementId?: StringFilter<"UserAchievement"> | string
+    unlockedAt?: DateTimeFilter<"UserAchievement"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type UserAchievementOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    achievementId?: SortOrder
+    unlockedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type UserAchievementWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    userId_achievementId?: UserAchievementUserIdAchievementIdCompoundUniqueInput
+    AND?: UserAchievementWhereInput | UserAchievementWhereInput[]
+    OR?: UserAchievementWhereInput[]
+    NOT?: UserAchievementWhereInput | UserAchievementWhereInput[]
+    userId?: StringFilter<"UserAchievement"> | string
+    achievementId?: StringFilter<"UserAchievement"> | string
+    unlockedAt?: DateTimeFilter<"UserAchievement"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id" | "userId_achievementId">
+
+  export type UserAchievementOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    achievementId?: SortOrder
+    unlockedAt?: SortOrder
+    _count?: UserAchievementCountOrderByAggregateInput
+    _max?: UserAchievementMaxOrderByAggregateInput
+    _min?: UserAchievementMinOrderByAggregateInput
+  }
+
+  export type UserAchievementScalarWhereWithAggregatesInput = {
+    AND?: UserAchievementScalarWhereWithAggregatesInput | UserAchievementScalarWhereWithAggregatesInput[]
+    OR?: UserAchievementScalarWhereWithAggregatesInput[]
+    NOT?: UserAchievementScalarWhereWithAggregatesInput | UserAchievementScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"UserAchievement"> | string
+    userId?: StringWithAggregatesFilter<"UserAchievement"> | string
+    achievementId?: StringWithAggregatesFilter<"UserAchievement"> | string
+    unlockedAt?: DateTimeWithAggregatesFilter<"UserAchievement"> | Date | string
   }
 
   export type GameWhereInput = {
@@ -9454,6 +10765,7 @@ export namespace Prisma {
     sentInvitations?: GameInvitationCreateNestedManyWithoutSenderInput
     receivedInvitations?: GameInvitationCreateNestedManyWithoutReceiverInput
     ownedGames?: GameCreateNestedManyWithoutOwnerInput
+    achievements?: UserAchievementCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -9470,6 +10782,7 @@ export namespace Prisma {
     sentInvitations?: GameInvitationUncheckedCreateNestedManyWithoutSenderInput
     receivedInvitations?: GameInvitationUncheckedCreateNestedManyWithoutReceiverInput
     ownedGames?: GameUncheckedCreateNestedManyWithoutOwnerInput
+    achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -9486,6 +10799,7 @@ export namespace Prisma {
     sentInvitations?: GameInvitationUpdateManyWithoutSenderNestedInput
     receivedInvitations?: GameInvitationUpdateManyWithoutReceiverNestedInput
     ownedGames?: GameUpdateManyWithoutOwnerNestedInput
+    achievements?: UserAchievementUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -9502,6 +10816,7 @@ export namespace Prisma {
     sentInvitations?: GameInvitationUncheckedUpdateManyWithoutSenderNestedInput
     receivedInvitations?: GameInvitationUncheckedUpdateManyWithoutReceiverNestedInput
     ownedGames?: GameUncheckedUpdateManyWithoutOwnerNestedInput
+    achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -9597,8 +10912,11 @@ export namespace Prisma {
     gamesPlayed?: number
     gamesWon?: number
     gamesLost?: number
+    currentWinStreak?: number
+    maxWinStreak?: number
     highestScore?: number
     generalaServed?: number
+    doubleGeneralas?: number
     straights?: number
     fullHouses?: number
     pokers?: number
@@ -9618,8 +10936,11 @@ export namespace Prisma {
     gamesPlayed?: number
     gamesWon?: number
     gamesLost?: number
+    currentWinStreak?: number
+    maxWinStreak?: number
     highestScore?: number
     generalaServed?: number
+    doubleGeneralas?: number
     straights?: number
     fullHouses?: number
     pokers?: number
@@ -9637,8 +10958,11 @@ export namespace Prisma {
     gamesPlayed?: IntFieldUpdateOperationsInput | number
     gamesWon?: IntFieldUpdateOperationsInput | number
     gamesLost?: IntFieldUpdateOperationsInput | number
+    currentWinStreak?: IntFieldUpdateOperationsInput | number
+    maxWinStreak?: IntFieldUpdateOperationsInput | number
     highestScore?: IntFieldUpdateOperationsInput | number
     generalaServed?: IntFieldUpdateOperationsInput | number
+    doubleGeneralas?: IntFieldUpdateOperationsInput | number
     straights?: IntFieldUpdateOperationsInput | number
     fullHouses?: IntFieldUpdateOperationsInput | number
     pokers?: IntFieldUpdateOperationsInput | number
@@ -9658,8 +10982,11 @@ export namespace Prisma {
     gamesPlayed?: IntFieldUpdateOperationsInput | number
     gamesWon?: IntFieldUpdateOperationsInput | number
     gamesLost?: IntFieldUpdateOperationsInput | number
+    currentWinStreak?: IntFieldUpdateOperationsInput | number
+    maxWinStreak?: IntFieldUpdateOperationsInput | number
     highestScore?: IntFieldUpdateOperationsInput | number
     generalaServed?: IntFieldUpdateOperationsInput | number
+    doubleGeneralas?: IntFieldUpdateOperationsInput | number
     straights?: IntFieldUpdateOperationsInput | number
     fullHouses?: IntFieldUpdateOperationsInput | number
     pokers?: IntFieldUpdateOperationsInput | number
@@ -9678,8 +11005,11 @@ export namespace Prisma {
     gamesPlayed?: number
     gamesWon?: number
     gamesLost?: number
+    currentWinStreak?: number
+    maxWinStreak?: number
     highestScore?: number
     generalaServed?: number
+    doubleGeneralas?: number
     straights?: number
     fullHouses?: number
     pokers?: number
@@ -9697,8 +11027,11 @@ export namespace Prisma {
     gamesPlayed?: IntFieldUpdateOperationsInput | number
     gamesWon?: IntFieldUpdateOperationsInput | number
     gamesLost?: IntFieldUpdateOperationsInput | number
+    currentWinStreak?: IntFieldUpdateOperationsInput | number
+    maxWinStreak?: IntFieldUpdateOperationsInput | number
     highestScore?: IntFieldUpdateOperationsInput | number
     generalaServed?: IntFieldUpdateOperationsInput | number
+    doubleGeneralas?: IntFieldUpdateOperationsInput | number
     straights?: IntFieldUpdateOperationsInput | number
     fullHouses?: IntFieldUpdateOperationsInput | number
     pokers?: IntFieldUpdateOperationsInput | number
@@ -9717,8 +11050,11 @@ export namespace Prisma {
     gamesPlayed?: IntFieldUpdateOperationsInput | number
     gamesWon?: IntFieldUpdateOperationsInput | number
     gamesLost?: IntFieldUpdateOperationsInput | number
+    currentWinStreak?: IntFieldUpdateOperationsInput | number
+    maxWinStreak?: IntFieldUpdateOperationsInput | number
     highestScore?: IntFieldUpdateOperationsInput | number
     generalaServed?: IntFieldUpdateOperationsInput | number
+    doubleGeneralas?: IntFieldUpdateOperationsInput | number
     straights?: IntFieldUpdateOperationsInput | number
     fullHouses?: IntFieldUpdateOperationsInput | number
     pokers?: IntFieldUpdateOperationsInput | number
@@ -9729,6 +11065,54 @@ export namespace Prisma {
     lastGameDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     elo?: IntFieldUpdateOperationsInput | number
     eloChange?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type UserAchievementCreateInput = {
+    id?: string
+    achievementId: string
+    unlockedAt?: Date | string
+    user: UserCreateNestedOneWithoutAchievementsInput
+  }
+
+  export type UserAchievementUncheckedCreateInput = {
+    id?: string
+    userId: string
+    achievementId: string
+    unlockedAt?: Date | string
+  }
+
+  export type UserAchievementUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    achievementId?: StringFieldUpdateOperationsInput | string
+    unlockedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutAchievementsNestedInput
+  }
+
+  export type UserAchievementUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    achievementId?: StringFieldUpdateOperationsInput | string
+    unlockedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserAchievementCreateManyInput = {
+    id?: string
+    userId: string
+    achievementId: string
+    unlockedAt?: Date | string
+  }
+
+  export type UserAchievementUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    achievementId?: StringFieldUpdateOperationsInput | string
+    unlockedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserAchievementUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    achievementId?: StringFieldUpdateOperationsInput | string
+    unlockedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type GameCreateInput = {
@@ -10086,6 +11470,12 @@ export namespace Prisma {
     none?: GameWhereInput
   }
 
+  export type UserAchievementListRelationFilter = {
+    every?: UserAchievementWhereInput
+    some?: UserAchievementWhereInput
+    none?: UserAchievementWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -10104,6 +11494,10 @@ export namespace Prisma {
   }
 
   export type GameOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type UserAchievementOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -10271,8 +11665,11 @@ export namespace Prisma {
     gamesPlayed?: SortOrder
     gamesWon?: SortOrder
     gamesLost?: SortOrder
+    currentWinStreak?: SortOrder
+    maxWinStreak?: SortOrder
     highestScore?: SortOrder
     generalaServed?: SortOrder
+    doubleGeneralas?: SortOrder
     straights?: SortOrder
     fullHouses?: SortOrder
     pokers?: SortOrder
@@ -10289,8 +11686,11 @@ export namespace Prisma {
     gamesPlayed?: SortOrder
     gamesWon?: SortOrder
     gamesLost?: SortOrder
+    currentWinStreak?: SortOrder
+    maxWinStreak?: SortOrder
     highestScore?: SortOrder
     generalaServed?: SortOrder
+    doubleGeneralas?: SortOrder
     straights?: SortOrder
     fullHouses?: SortOrder
     pokers?: SortOrder
@@ -10308,8 +11708,11 @@ export namespace Prisma {
     gamesPlayed?: SortOrder
     gamesWon?: SortOrder
     gamesLost?: SortOrder
+    currentWinStreak?: SortOrder
+    maxWinStreak?: SortOrder
     highestScore?: SortOrder
     generalaServed?: SortOrder
+    doubleGeneralas?: SortOrder
     straights?: SortOrder
     fullHouses?: SortOrder
     pokers?: SortOrder
@@ -10328,8 +11731,11 @@ export namespace Prisma {
     gamesPlayed?: SortOrder
     gamesWon?: SortOrder
     gamesLost?: SortOrder
+    currentWinStreak?: SortOrder
+    maxWinStreak?: SortOrder
     highestScore?: SortOrder
     generalaServed?: SortOrder
+    doubleGeneralas?: SortOrder
     straights?: SortOrder
     fullHouses?: SortOrder
     pokers?: SortOrder
@@ -10346,8 +11752,11 @@ export namespace Prisma {
     gamesPlayed?: SortOrder
     gamesWon?: SortOrder
     gamesLost?: SortOrder
+    currentWinStreak?: SortOrder
+    maxWinStreak?: SortOrder
     highestScore?: SortOrder
     generalaServed?: SortOrder
+    doubleGeneralas?: SortOrder
     straights?: SortOrder
     fullHouses?: SortOrder
     pokers?: SortOrder
@@ -10403,6 +11812,32 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedDateTimeNullableFilter<$PrismaModel>
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
+  export type UserAchievementUserIdAchievementIdCompoundUniqueInput = {
+    userId: string
+    achievementId: string
+  }
+
+  export type UserAchievementCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    achievementId?: SortOrder
+    unlockedAt?: SortOrder
+  }
+
+  export type UserAchievementMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    achievementId?: SortOrder
+    unlockedAt?: SortOrder
+  }
+
+  export type UserAchievementMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    achievementId?: SortOrder
+    unlockedAt?: SortOrder
   }
 
   export type IntNullableFilter<$PrismaModel = never> = {
@@ -10673,6 +12108,13 @@ export namespace Prisma {
     connect?: GameWhereUniqueInput | GameWhereUniqueInput[]
   }
 
+  export type UserAchievementCreateNestedManyWithoutUserInput = {
+    create?: XOR<UserAchievementCreateWithoutUserInput, UserAchievementUncheckedCreateWithoutUserInput> | UserAchievementCreateWithoutUserInput[] | UserAchievementUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserAchievementCreateOrConnectWithoutUserInput | UserAchievementCreateOrConnectWithoutUserInput[]
+    createMany?: UserAchievementCreateManyUserInputEnvelope
+    connect?: UserAchievementWhereUniqueInput | UserAchievementWhereUniqueInput[]
+  }
+
   export type UserStatsUncheckedCreateNestedOneWithoutUserInput = {
     create?: XOR<UserStatsCreateWithoutUserInput, UserStatsUncheckedCreateWithoutUserInput>
     connectOrCreate?: UserStatsCreateOrConnectWithoutUserInput
@@ -10719,6 +12161,13 @@ export namespace Prisma {
     connectOrCreate?: GameCreateOrConnectWithoutOwnerInput | GameCreateOrConnectWithoutOwnerInput[]
     createMany?: GameCreateManyOwnerInputEnvelope
     connect?: GameWhereUniqueInput | GameWhereUniqueInput[]
+  }
+
+  export type UserAchievementUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<UserAchievementCreateWithoutUserInput, UserAchievementUncheckedCreateWithoutUserInput> | UserAchievementCreateWithoutUserInput[] | UserAchievementUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserAchievementCreateOrConnectWithoutUserInput | UserAchievementCreateOrConnectWithoutUserInput[]
+    createMany?: UserAchievementCreateManyUserInputEnvelope
+    connect?: UserAchievementWhereUniqueInput | UserAchievementWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -10823,6 +12272,20 @@ export namespace Prisma {
     deleteMany?: GameScalarWhereInput | GameScalarWhereInput[]
   }
 
+  export type UserAchievementUpdateManyWithoutUserNestedInput = {
+    create?: XOR<UserAchievementCreateWithoutUserInput, UserAchievementUncheckedCreateWithoutUserInput> | UserAchievementCreateWithoutUserInput[] | UserAchievementUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserAchievementCreateOrConnectWithoutUserInput | UserAchievementCreateOrConnectWithoutUserInput[]
+    upsert?: UserAchievementUpsertWithWhereUniqueWithoutUserInput | UserAchievementUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: UserAchievementCreateManyUserInputEnvelope
+    set?: UserAchievementWhereUniqueInput | UserAchievementWhereUniqueInput[]
+    disconnect?: UserAchievementWhereUniqueInput | UserAchievementWhereUniqueInput[]
+    delete?: UserAchievementWhereUniqueInput | UserAchievementWhereUniqueInput[]
+    connect?: UserAchievementWhereUniqueInput | UserAchievementWhereUniqueInput[]
+    update?: UserAchievementUpdateWithWhereUniqueWithoutUserInput | UserAchievementUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: UserAchievementUpdateManyWithWhereWithoutUserInput | UserAchievementUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: UserAchievementScalarWhereInput | UserAchievementScalarWhereInput[]
+  }
+
   export type UserStatsUncheckedUpdateOneWithoutUserNestedInput = {
     create?: XOR<UserStatsCreateWithoutUserInput, UserStatsUncheckedCreateWithoutUserInput>
     connectOrCreate?: UserStatsCreateOrConnectWithoutUserInput
@@ -10917,6 +12380,20 @@ export namespace Prisma {
     deleteMany?: GameScalarWhereInput | GameScalarWhereInput[]
   }
 
+  export type UserAchievementUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<UserAchievementCreateWithoutUserInput, UserAchievementUncheckedCreateWithoutUserInput> | UserAchievementCreateWithoutUserInput[] | UserAchievementUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserAchievementCreateOrConnectWithoutUserInput | UserAchievementCreateOrConnectWithoutUserInput[]
+    upsert?: UserAchievementUpsertWithWhereUniqueWithoutUserInput | UserAchievementUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: UserAchievementCreateManyUserInputEnvelope
+    set?: UserAchievementWhereUniqueInput | UserAchievementWhereUniqueInput[]
+    disconnect?: UserAchievementWhereUniqueInput | UserAchievementWhereUniqueInput[]
+    delete?: UserAchievementWhereUniqueInput | UserAchievementWhereUniqueInput[]
+    connect?: UserAchievementWhereUniqueInput | UserAchievementWhereUniqueInput[]
+    update?: UserAchievementUpdateWithWhereUniqueWithoutUserInput | UserAchievementUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: UserAchievementUpdateManyWithWhereWithoutUserInput | UserAchievementUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: UserAchievementScalarWhereInput | UserAchievementScalarWhereInput[]
+  }
+
   export type UserCreateNestedOneWithoutFriendshipsInput = {
     create?: XOR<UserCreateWithoutFriendshipsInput, UserUncheckedCreateWithoutFriendshipsInput>
     connectOrCreate?: UserCreateOrConnectWithoutFriendshipsInput
@@ -10981,6 +12458,20 @@ export namespace Prisma {
     upsert?: UserUpsertWithoutStatsInput
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutStatsInput, UserUpdateWithoutStatsInput>, UserUncheckedUpdateWithoutStatsInput>
+  }
+
+  export type UserCreateNestedOneWithoutAchievementsInput = {
+    create?: XOR<UserCreateWithoutAchievementsInput, UserUncheckedCreateWithoutAchievementsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutAchievementsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutAchievementsNestedInput = {
+    create?: XOR<UserCreateWithoutAchievementsInput, UserUncheckedCreateWithoutAchievementsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutAchievementsInput
+    upsert?: UserUpsertWithoutAchievementsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutAchievementsInput, UserUpdateWithoutAchievementsInput>, UserUncheckedUpdateWithoutAchievementsInput>
   }
 
   export type GameCreatediceValuesInput = {
@@ -11377,8 +12868,11 @@ export namespace Prisma {
     gamesPlayed?: number
     gamesWon?: number
     gamesLost?: number
+    currentWinStreak?: number
+    maxWinStreak?: number
     highestScore?: number
     generalaServed?: number
+    doubleGeneralas?: number
     straights?: number
     fullHouses?: number
     pokers?: number
@@ -11396,8 +12890,11 @@ export namespace Prisma {
     gamesPlayed?: number
     gamesWon?: number
     gamesLost?: number
+    currentWinStreak?: number
+    maxWinStreak?: number
     highestScore?: number
     generalaServed?: number
+    doubleGeneralas?: number
     straights?: number
     fullHouses?: number
     pokers?: number
@@ -11603,6 +13100,28 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type UserAchievementCreateWithoutUserInput = {
+    id?: string
+    achievementId: string
+    unlockedAt?: Date | string
+  }
+
+  export type UserAchievementUncheckedCreateWithoutUserInput = {
+    id?: string
+    achievementId: string
+    unlockedAt?: Date | string
+  }
+
+  export type UserAchievementCreateOrConnectWithoutUserInput = {
+    where: UserAchievementWhereUniqueInput
+    create: XOR<UserAchievementCreateWithoutUserInput, UserAchievementUncheckedCreateWithoutUserInput>
+  }
+
+  export type UserAchievementCreateManyUserInputEnvelope = {
+    data: UserAchievementCreateManyUserInput | UserAchievementCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserStatsUpsertWithoutUserInput = {
     update: XOR<UserStatsUpdateWithoutUserInput, UserStatsUncheckedUpdateWithoutUserInput>
     create: XOR<UserStatsCreateWithoutUserInput, UserStatsUncheckedCreateWithoutUserInput>
@@ -11619,8 +13138,11 @@ export namespace Prisma {
     gamesPlayed?: IntFieldUpdateOperationsInput | number
     gamesWon?: IntFieldUpdateOperationsInput | number
     gamesLost?: IntFieldUpdateOperationsInput | number
+    currentWinStreak?: IntFieldUpdateOperationsInput | number
+    maxWinStreak?: IntFieldUpdateOperationsInput | number
     highestScore?: IntFieldUpdateOperationsInput | number
     generalaServed?: IntFieldUpdateOperationsInput | number
+    doubleGeneralas?: IntFieldUpdateOperationsInput | number
     straights?: IntFieldUpdateOperationsInput | number
     fullHouses?: IntFieldUpdateOperationsInput | number
     pokers?: IntFieldUpdateOperationsInput | number
@@ -11638,8 +13160,11 @@ export namespace Prisma {
     gamesPlayed?: IntFieldUpdateOperationsInput | number
     gamesWon?: IntFieldUpdateOperationsInput | number
     gamesLost?: IntFieldUpdateOperationsInput | number
+    currentWinStreak?: IntFieldUpdateOperationsInput | number
+    maxWinStreak?: IntFieldUpdateOperationsInput | number
     highestScore?: IntFieldUpdateOperationsInput | number
     generalaServed?: IntFieldUpdateOperationsInput | number
+    doubleGeneralas?: IntFieldUpdateOperationsInput | number
     straights?: IntFieldUpdateOperationsInput | number
     fullHouses?: IntFieldUpdateOperationsInput | number
     pokers?: IntFieldUpdateOperationsInput | number
@@ -11811,6 +13336,32 @@ export namespace Prisma {
     rollCount?: IntFilter<"Game"> | number
   }
 
+  export type UserAchievementUpsertWithWhereUniqueWithoutUserInput = {
+    where: UserAchievementWhereUniqueInput
+    update: XOR<UserAchievementUpdateWithoutUserInput, UserAchievementUncheckedUpdateWithoutUserInput>
+    create: XOR<UserAchievementCreateWithoutUserInput, UserAchievementUncheckedCreateWithoutUserInput>
+  }
+
+  export type UserAchievementUpdateWithWhereUniqueWithoutUserInput = {
+    where: UserAchievementWhereUniqueInput
+    data: XOR<UserAchievementUpdateWithoutUserInput, UserAchievementUncheckedUpdateWithoutUserInput>
+  }
+
+  export type UserAchievementUpdateManyWithWhereWithoutUserInput = {
+    where: UserAchievementScalarWhereInput
+    data: XOR<UserAchievementUpdateManyMutationInput, UserAchievementUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type UserAchievementScalarWhereInput = {
+    AND?: UserAchievementScalarWhereInput | UserAchievementScalarWhereInput[]
+    OR?: UserAchievementScalarWhereInput[]
+    NOT?: UserAchievementScalarWhereInput | UserAchievementScalarWhereInput[]
+    id?: StringFilter<"UserAchievement"> | string
+    userId?: StringFilter<"UserAchievement"> | string
+    achievementId?: StringFilter<"UserAchievement"> | string
+    unlockedAt?: DateTimeFilter<"UserAchievement"> | Date | string
+  }
+
   export type UserCreateWithoutFriendshipsInput = {
     id?: string
     googleId: string
@@ -11824,6 +13375,7 @@ export namespace Prisma {
     sentInvitations?: GameInvitationCreateNestedManyWithoutSenderInput
     receivedInvitations?: GameInvitationCreateNestedManyWithoutReceiverInput
     ownedGames?: GameCreateNestedManyWithoutOwnerInput
+    achievements?: UserAchievementCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutFriendshipsInput = {
@@ -11839,6 +13391,7 @@ export namespace Prisma {
     sentInvitations?: GameInvitationUncheckedCreateNestedManyWithoutSenderInput
     receivedInvitations?: GameInvitationUncheckedCreateNestedManyWithoutReceiverInput
     ownedGames?: GameUncheckedCreateNestedManyWithoutOwnerInput
+    achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutFriendshipsInput = {
@@ -11859,6 +13412,7 @@ export namespace Prisma {
     sentInvitations?: GameInvitationCreateNestedManyWithoutSenderInput
     receivedInvitations?: GameInvitationCreateNestedManyWithoutReceiverInput
     ownedGames?: GameCreateNestedManyWithoutOwnerInput
+    achievements?: UserAchievementCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutFriendOfInput = {
@@ -11874,6 +13428,7 @@ export namespace Prisma {
     sentInvitations?: GameInvitationUncheckedCreateNestedManyWithoutSenderInput
     receivedInvitations?: GameInvitationUncheckedCreateNestedManyWithoutReceiverInput
     ownedGames?: GameUncheckedCreateNestedManyWithoutOwnerInput
+    achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutFriendOfInput = {
@@ -11905,6 +13460,7 @@ export namespace Prisma {
     sentInvitations?: GameInvitationUpdateManyWithoutSenderNestedInput
     receivedInvitations?: GameInvitationUpdateManyWithoutReceiverNestedInput
     ownedGames?: GameUpdateManyWithoutOwnerNestedInput
+    achievements?: UserAchievementUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutFriendshipsInput = {
@@ -11920,6 +13476,7 @@ export namespace Prisma {
     sentInvitations?: GameInvitationUncheckedUpdateManyWithoutSenderNestedInput
     receivedInvitations?: GameInvitationUncheckedUpdateManyWithoutReceiverNestedInput
     ownedGames?: GameUncheckedUpdateManyWithoutOwnerNestedInput
+    achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserUpsertWithoutFriendOfInput = {
@@ -11946,6 +13503,7 @@ export namespace Prisma {
     sentInvitations?: GameInvitationUpdateManyWithoutSenderNestedInput
     receivedInvitations?: GameInvitationUpdateManyWithoutReceiverNestedInput
     ownedGames?: GameUpdateManyWithoutOwnerNestedInput
+    achievements?: UserAchievementUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutFriendOfInput = {
@@ -11961,6 +13519,7 @@ export namespace Prisma {
     sentInvitations?: GameInvitationUncheckedUpdateManyWithoutSenderNestedInput
     receivedInvitations?: GameInvitationUncheckedUpdateManyWithoutReceiverNestedInput
     ownedGames?: GameUncheckedUpdateManyWithoutOwnerNestedInput
+    achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutStatsInput = {
@@ -11976,6 +13535,7 @@ export namespace Prisma {
     sentInvitations?: GameInvitationCreateNestedManyWithoutSenderInput
     receivedInvitations?: GameInvitationCreateNestedManyWithoutReceiverInput
     ownedGames?: GameCreateNestedManyWithoutOwnerInput
+    achievements?: UserAchievementCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutStatsInput = {
@@ -11991,6 +13551,7 @@ export namespace Prisma {
     sentInvitations?: GameInvitationUncheckedCreateNestedManyWithoutSenderInput
     receivedInvitations?: GameInvitationUncheckedCreateNestedManyWithoutReceiverInput
     ownedGames?: GameUncheckedCreateNestedManyWithoutOwnerInput
+    achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutStatsInput = {
@@ -12022,6 +13583,7 @@ export namespace Prisma {
     sentInvitations?: GameInvitationUpdateManyWithoutSenderNestedInput
     receivedInvitations?: GameInvitationUpdateManyWithoutReceiverNestedInput
     ownedGames?: GameUpdateManyWithoutOwnerNestedInput
+    achievements?: UserAchievementUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutStatsInput = {
@@ -12031,6 +13593,87 @@ export namespace Prisma {
     email?: StringFieldUpdateOperationsInput | string
     password?: NullableStringFieldUpdateOperationsInput | string | null
     image?: NullableStringFieldUpdateOperationsInput | string | null
+    games?: GameUserUncheckedUpdateManyWithoutUserNestedInput
+    friendships?: UserFriendshipUncheckedUpdateManyWithoutRequesterNestedInput
+    friendOf?: UserFriendshipUncheckedUpdateManyWithoutReceiverNestedInput
+    sentInvitations?: GameInvitationUncheckedUpdateManyWithoutSenderNestedInput
+    receivedInvitations?: GameInvitationUncheckedUpdateManyWithoutReceiverNestedInput
+    ownedGames?: GameUncheckedUpdateManyWithoutOwnerNestedInput
+    achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserCreateWithoutAchievementsInput = {
+    id?: string
+    googleId: string
+    name: string
+    email: string
+    password?: string | null
+    image?: string | null
+    stats?: UserStatsCreateNestedOneWithoutUserInput
+    games?: GameUserCreateNestedManyWithoutUserInput
+    friendships?: UserFriendshipCreateNestedManyWithoutRequesterInput
+    friendOf?: UserFriendshipCreateNestedManyWithoutReceiverInput
+    sentInvitations?: GameInvitationCreateNestedManyWithoutSenderInput
+    receivedInvitations?: GameInvitationCreateNestedManyWithoutReceiverInput
+    ownedGames?: GameCreateNestedManyWithoutOwnerInput
+  }
+
+  export type UserUncheckedCreateWithoutAchievementsInput = {
+    id?: string
+    googleId: string
+    name: string
+    email: string
+    password?: string | null
+    image?: string | null
+    stats?: UserStatsUncheckedCreateNestedOneWithoutUserInput
+    games?: GameUserUncheckedCreateNestedManyWithoutUserInput
+    friendships?: UserFriendshipUncheckedCreateNestedManyWithoutRequesterInput
+    friendOf?: UserFriendshipUncheckedCreateNestedManyWithoutReceiverInput
+    sentInvitations?: GameInvitationUncheckedCreateNestedManyWithoutSenderInput
+    receivedInvitations?: GameInvitationUncheckedCreateNestedManyWithoutReceiverInput
+    ownedGames?: GameUncheckedCreateNestedManyWithoutOwnerInput
+  }
+
+  export type UserCreateOrConnectWithoutAchievementsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutAchievementsInput, UserUncheckedCreateWithoutAchievementsInput>
+  }
+
+  export type UserUpsertWithoutAchievementsInput = {
+    update: XOR<UserUpdateWithoutAchievementsInput, UserUncheckedUpdateWithoutAchievementsInput>
+    create: XOR<UserCreateWithoutAchievementsInput, UserUncheckedCreateWithoutAchievementsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutAchievementsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutAchievementsInput, UserUncheckedUpdateWithoutAchievementsInput>
+  }
+
+  export type UserUpdateWithoutAchievementsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    googleId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    stats?: UserStatsUpdateOneWithoutUserNestedInput
+    games?: GameUserUpdateManyWithoutUserNestedInput
+    friendships?: UserFriendshipUpdateManyWithoutRequesterNestedInput
+    friendOf?: UserFriendshipUpdateManyWithoutReceiverNestedInput
+    sentInvitations?: GameInvitationUpdateManyWithoutSenderNestedInput
+    receivedInvitations?: GameInvitationUpdateManyWithoutReceiverNestedInput
+    ownedGames?: GameUpdateManyWithoutOwnerNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutAchievementsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    googleId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    stats?: UserStatsUncheckedUpdateOneWithoutUserNestedInput
     games?: GameUserUncheckedUpdateManyWithoutUserNestedInput
     friendships?: UserFriendshipUncheckedUpdateManyWithoutRequesterNestedInput
     friendOf?: UserFriendshipUncheckedUpdateManyWithoutReceiverNestedInput
@@ -12096,6 +13739,7 @@ export namespace Prisma {
     friendOf?: UserFriendshipCreateNestedManyWithoutReceiverInput
     sentInvitations?: GameInvitationCreateNestedManyWithoutSenderInput
     receivedInvitations?: GameInvitationCreateNestedManyWithoutReceiverInput
+    achievements?: UserAchievementCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutOwnedGamesInput = {
@@ -12111,6 +13755,7 @@ export namespace Prisma {
     friendOf?: UserFriendshipUncheckedCreateNestedManyWithoutReceiverInput
     sentInvitations?: GameInvitationUncheckedCreateNestedManyWithoutSenderInput
     receivedInvitations?: GameInvitationUncheckedCreateNestedManyWithoutReceiverInput
+    achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutOwnedGamesInput = {
@@ -12182,6 +13827,7 @@ export namespace Prisma {
     friendOf?: UserFriendshipUpdateManyWithoutReceiverNestedInput
     sentInvitations?: GameInvitationUpdateManyWithoutSenderNestedInput
     receivedInvitations?: GameInvitationUpdateManyWithoutReceiverNestedInput
+    achievements?: UserAchievementUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutOwnedGamesInput = {
@@ -12197,6 +13843,7 @@ export namespace Prisma {
     friendOf?: UserFriendshipUncheckedUpdateManyWithoutReceiverNestedInput
     sentInvitations?: GameInvitationUncheckedUpdateManyWithoutSenderNestedInput
     receivedInvitations?: GameInvitationUncheckedUpdateManyWithoutReceiverNestedInput
+    achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type GameInvitationUpsertWithWhereUniqueWithoutGameInput = {
@@ -12228,6 +13875,7 @@ export namespace Prisma {
     sentInvitations?: GameInvitationCreateNestedManyWithoutSenderInput
     receivedInvitations?: GameInvitationCreateNestedManyWithoutReceiverInput
     ownedGames?: GameCreateNestedManyWithoutOwnerInput
+    achievements?: UserAchievementCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutGamesInput = {
@@ -12243,6 +13891,7 @@ export namespace Prisma {
     sentInvitations?: GameInvitationUncheckedCreateNestedManyWithoutSenderInput
     receivedInvitations?: GameInvitationUncheckedCreateNestedManyWithoutReceiverInput
     ownedGames?: GameUncheckedCreateNestedManyWithoutOwnerInput
+    achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutGamesInput = {
@@ -12313,6 +13962,7 @@ export namespace Prisma {
     sentInvitations?: GameInvitationUpdateManyWithoutSenderNestedInput
     receivedInvitations?: GameInvitationUpdateManyWithoutReceiverNestedInput
     ownedGames?: GameUpdateManyWithoutOwnerNestedInput
+    achievements?: UserAchievementUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutGamesInput = {
@@ -12328,6 +13978,7 @@ export namespace Prisma {
     sentInvitations?: GameInvitationUncheckedUpdateManyWithoutSenderNestedInput
     receivedInvitations?: GameInvitationUncheckedUpdateManyWithoutReceiverNestedInput
     ownedGames?: GameUncheckedUpdateManyWithoutOwnerNestedInput
+    achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type GameUpsertWithoutPlayersInput = {
@@ -12427,6 +14078,7 @@ export namespace Prisma {
     friendOf?: UserFriendshipCreateNestedManyWithoutReceiverInput
     receivedInvitations?: GameInvitationCreateNestedManyWithoutReceiverInput
     ownedGames?: GameCreateNestedManyWithoutOwnerInput
+    achievements?: UserAchievementCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSentInvitationsInput = {
@@ -12442,6 +14094,7 @@ export namespace Prisma {
     friendOf?: UserFriendshipUncheckedCreateNestedManyWithoutReceiverInput
     receivedInvitations?: GameInvitationUncheckedCreateNestedManyWithoutReceiverInput
     ownedGames?: GameUncheckedCreateNestedManyWithoutOwnerInput
+    achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSentInvitationsInput = {
@@ -12462,6 +14115,7 @@ export namespace Prisma {
     friendOf?: UserFriendshipCreateNestedManyWithoutReceiverInput
     sentInvitations?: GameInvitationCreateNestedManyWithoutSenderInput
     ownedGames?: GameCreateNestedManyWithoutOwnerInput
+    achievements?: UserAchievementCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutReceivedInvitationsInput = {
@@ -12477,6 +14131,7 @@ export namespace Prisma {
     friendOf?: UserFriendshipUncheckedCreateNestedManyWithoutReceiverInput
     sentInvitations?: GameInvitationUncheckedCreateNestedManyWithoutSenderInput
     ownedGames?: GameUncheckedCreateNestedManyWithoutOwnerInput
+    achievements?: UserAchievementUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutReceivedInvitationsInput = {
@@ -12553,6 +14208,7 @@ export namespace Prisma {
     friendOf?: UserFriendshipUpdateManyWithoutReceiverNestedInput
     receivedInvitations?: GameInvitationUpdateManyWithoutReceiverNestedInput
     ownedGames?: GameUpdateManyWithoutOwnerNestedInput
+    achievements?: UserAchievementUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSentInvitationsInput = {
@@ -12568,6 +14224,7 @@ export namespace Prisma {
     friendOf?: UserFriendshipUncheckedUpdateManyWithoutReceiverNestedInput
     receivedInvitations?: GameInvitationUncheckedUpdateManyWithoutReceiverNestedInput
     ownedGames?: GameUncheckedUpdateManyWithoutOwnerNestedInput
+    achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserUpsertWithoutReceivedInvitationsInput = {
@@ -12594,6 +14251,7 @@ export namespace Prisma {
     friendOf?: UserFriendshipUpdateManyWithoutReceiverNestedInput
     sentInvitations?: GameInvitationUpdateManyWithoutSenderNestedInput
     ownedGames?: GameUpdateManyWithoutOwnerNestedInput
+    achievements?: UserAchievementUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutReceivedInvitationsInput = {
@@ -12609,6 +14267,7 @@ export namespace Prisma {
     friendOf?: UserFriendshipUncheckedUpdateManyWithoutReceiverNestedInput
     sentInvitations?: GameInvitationUncheckedUpdateManyWithoutSenderNestedInput
     ownedGames?: GameUncheckedUpdateManyWithoutOwnerNestedInput
+    achievements?: UserAchievementUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type GameUserCreateManyUserInput = {
@@ -12671,6 +14330,12 @@ export namespace Prisma {
     currentTurnId?: string | null
     diceValues?: GameCreatediceValuesInput | number[]
     rollCount?: number
+  }
+
+  export type UserAchievementCreateManyUserInput = {
+    id?: string
+    achievementId: string
+    unlockedAt?: Date | string
   }
 
   export type GameUserUpdateWithoutUserInput = {
@@ -12861,6 +14526,24 @@ export namespace Prisma {
     currentTurnId?: NullableStringFieldUpdateOperationsInput | string | null
     diceValues?: GameUpdatediceValuesInput | number[]
     rollCount?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type UserAchievementUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    achievementId?: StringFieldUpdateOperationsInput | string
+    unlockedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserAchievementUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    achievementId?: StringFieldUpdateOperationsInput | string
+    unlockedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserAchievementUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    achievementId?: StringFieldUpdateOperationsInput | string
+    unlockedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type GameUserCreateManyGameInput = {

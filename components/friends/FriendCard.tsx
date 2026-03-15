@@ -1,6 +1,6 @@
 import { Game, User } from "@/types";
 import { useEffect, useState } from "react";
-import { CirclePlus, CircleX, MailCheck, SendHorizonal } from "lucide-react";
+import { BarChart2, CirclePlus, CircleX, MailCheck, SendHorizonal, Swords } from "lucide-react";
 import CustomLoadingSpinner from "../ui/CustomLoadingSpinner";
 import { socket } from "@/lib/socket";
 import { useAlert } from "../ui/CustomAlert";
@@ -14,6 +14,11 @@ interface Props {
   setFriendSearch?: (userId: string) => void;
   setFriendResults?: (users: User[]) => void;
   onlineUserIds?: string[];
+  onShowStats?: (userId: string) => void;
+  statsLoadingForUserId?: string | null;
+  challengeMode?: boolean;
+  selectedForChallenge?: boolean;
+  onToggleChallenge?: (userId: string) => void;
 }
 
 export default function FriendCard({
@@ -23,6 +28,11 @@ export default function FriendCard({
   setFriendSearch,
   setFriendResults,
   onlineUserIds,
+  onShowStats,
+  statsLoadingForUserId,
+  challengeMode,
+  selectedForChallenge,
+  onToggleChallenge,
 }: Props) {
   const [loadingIsFriend, setLoadingIsFriend] = useState(true);
   const [isFriend, setIsFriend] = useState(false);
@@ -30,7 +40,10 @@ export default function FriendCard({
   const [loadingFriendRequest, setLoadingFriendRequest] = useState(true);
   const [friendRequestSent, setFriendRequestSent] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
-  const { showAlert } = useAlert();
+  const [loadingSendRequest, setLoadingSendRequest] = useState(false);
+  const [loadingRemoveFriend, setLoadingRemoveFriend] = useState(false);
+  const { showAlert, showConfirm } = useAlert();
+  const isLoadingStats = statsLoadingForUserId === user.id;
 
   useEffect(() => {
     const handleUserOnline = (ids: string[]) => {
@@ -78,6 +91,7 @@ export default function FriendCard({
   }, [user, sessionUser.id]);
 
   const handleSendFriendRequest = async () => {
+    setLoadingSendRequest(true);
     try {
       const res = await fetch("/api/friends/request", {
         method: "POST",
@@ -102,10 +116,14 @@ export default function FriendCard({
       setFriendSearch && setFriendSearch("");
     } catch (err) {
       console.error("Error enviando solicitud:", err);
+      showAlert({ type: "error", message: "Error de conexión" });
+    } finally {
+      setLoadingSendRequest(false);
     }
   };
 
   const handleRemoveFriend = async () => {
+    setLoadingRemoveFriend(true);
     try {
       const res = await fetch("/api/friends/request", {
         method: "DELETE",
@@ -125,6 +143,9 @@ export default function FriendCard({
       socket.emit("removeFriend", data);
     } catch (err) {
       console.error("Error eliminando amigo:", err);
+      showAlert({ type: "error", message: "Error de conexión" });
+    } finally {
+      setLoadingRemoveFriend(false);
     }
   };
 
@@ -186,6 +207,39 @@ export default function FriendCard({
         </div>
       ) : (
         <div className='flex items-center gap-1'>
+          {isFriend && onShowStats && (
+            <motion.button
+              type="button"
+              disabled={isLoadingStats}
+              whileHover={!isLoadingStats ? { scale: 1.2 } : undefined}
+              whileTap={!isLoadingStats ? { scale: 0.9 } : undefined}
+              className='min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg -m-1 disabled:opacity-70'
+              onClick={() => !isLoadingStats && onShowStats(user.id)}
+              aria-label="Ver estadísticas"
+            >
+              {isLoadingStats ? (
+                <CustomLoadingSpinner size="sm" showText={false} />
+              ) : (
+                <BarChart2 className='w-6 h-6 text-[#1E3A8A] hover:text-[#3B82F6]' />
+              )}
+            </motion.button>
+          )}
+          {isFriend && challengeMode && onToggleChallenge && (
+            <motion.button
+              type="button"
+              whileHover={{ scale: 1.2 }}
+              whileTap={{ scale: 0.9 }}
+              className={`min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg -m-1 transition-colors ${
+                selectedForChallenge
+                  ? "bg-[#1A6642] text-[#F5F5F5]"
+                  : "text-[#1A6642] hover:bg-[#1A6642]/20"
+              }`}
+              onClick={() => onToggleChallenge(user.id)}
+              aria-label={selectedForChallenge ? "Quitar del desafío" : "Desafiar"}
+            >
+              <Swords className="w-6 h-6" />
+            </motion.button>
+          )}
           {activeRoom &&
             (isFriend && !invitationSent ? (
               <motion.button
@@ -206,17 +260,27 @@ export default function FriendCard({
           {isFriend ? (
             <motion.button
               type="button"
-              whileHover={{ scale: 1.2 }}
-              whileTap={{ scale: 0.9 }}
-              className='min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg -m-1'
-              onClick={() => {
-                if (typeof window !== "undefined" && window.confirm(`¿Eliminar a ${user.name} de tus amigos?`)) {
-                  handleRemoveFriend();
-                }
+              disabled={loadingRemoveFriend}
+              whileHover={!loadingRemoveFriend ? { scale: 1.2 } : undefined}
+              whileTap={!loadingRemoveFriend ? { scale: 0.9 } : undefined}
+              className='min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg -m-1 disabled:opacity-70'
+              onClick={async () => {
+                const ok = await showConfirm({
+                  title: "Eliminar amigo",
+                  message: `¿Eliminar a ${user.name} de tus amigos?`,
+                  confirmLabel: "Eliminar",
+                  cancelLabel: "Cancelar",
+                  danger: true,
+                });
+                if (ok) handleRemoveFriend();
               }}
               aria-label={`Eliminar a ${user.name} de amigos`}
             >
-              <CircleX className='w-6 h-6 text-[#A91D2F] hover:text-[#DC2626]' />
+              {loadingRemoveFriend ? (
+                <CustomLoadingSpinner size="sm" showText={false} />
+              ) : (
+                <CircleX className='w-6 h-6 text-[#A91D2F] hover:text-[#DC2626]' />
+              )}
             </motion.button>
           ) : friendRequestSent ? (
             <span className='min-w-[44px] min-h-[44px] flex items-center justify-center' aria-hidden>
@@ -225,13 +289,18 @@ export default function FriendCard({
           ) : (
             <motion.button
               type="button"
-              whileHover={{ scale: 1.2 }}
-              whileTap={{ scale: 0.9 }}
-              className='min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg -m-1'
+              disabled={loadingSendRequest}
+              whileHover={!loadingSendRequest ? { scale: 1.2 } : undefined}
+              whileTap={!loadingSendRequest ? { scale: 0.9 } : undefined}
+              className='min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg -m-1 disabled:opacity-70'
               onClick={handleSendFriendRequest}
               aria-label={`Enviar solicitud a ${user.name}`}
             >
-              <CirclePlus className='w-6 h-6 text-[#1A6642] hover:text-[#2E8B57]' />
+              {loadingSendRequest ? (
+                <CustomLoadingSpinner size="sm" showText={false} />
+              ) : (
+                <CirclePlus className='w-6 h-6 text-[#1A6642] hover:text-[#2E8B57]' />
+              )}
             </motion.button>
           )}
         </div>

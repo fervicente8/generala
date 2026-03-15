@@ -1,12 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { GameUser } from "@/types";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import { useAlert } from "../ui/CustomAlert";
-import { socket } from "@/lib/socket";
+import { Smile } from "lucide-react";
+
+export interface PlayerReaction {
+  type: "emoji" | "phrase";
+  value: string;
+  fromUserName?: string;
+  id?: number;
+}
 
 interface PlayerSlotProps {
   player: GameUser;
@@ -17,6 +23,8 @@ interface PlayerSlotProps {
   totalPlayers?: number;
   players: GameUser[];
   rollCount?: number;
+  reaction?: PlayerReaction | null;
+  onReactionClick?: () => void;
 }
 
 export default function PlayerSlot({
@@ -28,12 +36,13 @@ export default function PlayerSlot({
   totalPlayers = 2,
   players,
   rollCount = 0,
+  reaction = null,
+  onReactionClick,
 }: PlayerSlotProps) {
   const { data: session } = useSession();
   const [timeLeft, setTimeLeft] = useState(timePerTurn);
-  const { showAlert } = useAlert();
   const [avatarErrors, setAvatarErrors] = useState<{ [key: string]: boolean }>(
-    {}
+    {},
   );
 
   const getPlayerPosition = (index: number, totalPlayers: number) => {
@@ -46,8 +55,6 @@ export default function PlayerSlot({
     ];
     return positions[index % positions.length];
   };
-
-  // useEffect(() => {
   //   if (isCurrentTurn && timePerTurn > 0) {
   //     setTimeLeft(timePerTurn);
   //     const interval = setInterval(() => {
@@ -68,39 +75,6 @@ export default function PlayerSlot({
   useEffect(() => {
     setTimeLeft(timePerTurn);
   }, [rollCount, timePerTurn]);
-
-  const getCategoryToStrike = () => {
-    const currentPlayer = players.find(
-      (player) => player.user.id === currentTurnId
-    );
-
-    if (!currentPlayer) return null;
-
-    const categoriesInOrder = [
-      "double",
-      "ones",
-      "twos",
-      "threes",
-      "fours",
-      "fives",
-      "sixes",
-      "straight",
-      "fullHouse",
-      "poker",
-      "generala",
-    ];
-
-    for (const category of categoriesInOrder) {
-      const value = (currentPlayer as any)[category];
-      if (value === null || value === undefined) {
-        return category;
-      }
-    }
-
-    return null;
-  };
-
-  // const handleSetScore = async (category: string, score: number) => {
   //   try {
   //     const res = await fetch(`/api/game/submit-score`, {
   //       method: "POST",
@@ -141,48 +115,84 @@ export default function PlayerSlot({
 
   return (
     <motion.div
-      className={`absolute flex flex-col items-center bg-[var(--color-pearl-white)]/20 backdrop-blur-md px-2 sm:px-4 sm:w-50 py-2 sm:py-4 rounded-xl shadow-lg transition-all ${getPlayerPosition(
+      className={`absolute flex flex-col items-center bg-(--color-pearl-white)/20 backdrop-blur-md px-2 sm:px-4 py-2 sm:py-4 rounded-xl shadow-lg transition-all ${getPlayerPosition(
         position,
-        totalPlayers
+        totalPlayers,
       )} ${
         isCurrentTurn
-          ? "ring-2 ring-[var(--color-sapphire-blue)] scale-105 bg-[var(--color-pearl-white)]/30"
+          ? "ring-2 ring-(--color-sapphire-blue) scale-105 bg-(--color-pearl-white)/30"
           : ""
-      } w-24 sm:w-32 max-w-xs`}
+      } ${onReactionClick ? "min-w-30 sm:min-w-34 w-auto max-w-xs" : "w-24 sm:w-32 max-w-xs"}`}
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
     >
-      <span className='text-[var(--color-pearl-white)] font-poppins font-semibold text-xs sm:text-sm mb-1 sm:mb-2 max-w-full truncate'>
+      <span className="text-(--color-pearl-white) font-poppins font-semibold text-xs sm:text-sm mb-1 sm:mb-2 max-w-full truncate">
         {player.user.name} {player.userId === session?.user?.id && "(Yo)"}
       </span>
-      <Image
-        src={
-          avatarErrors[player.userId] || !player.user.image
-            ? "/default-avatar.png"
-            : player.user.image
-        }
-        alt='Foto de perfil'
-        width={40}
-        height={40}
-        className='rounded-full object-cover sm:w-12 sm:h-12'
-        unoptimized
-        onError={() => handleImageError(player.userId)}
-      />
+      <div className="relative inline-flex items-center gap-1.5 sm:gap-2">
+        <div className="relative">
+          <AnimatePresence>
+            {reaction && (
+              <motion.div
+                key={reaction.id ?? reaction.value}
+                initial={{ opacity: 0, scale: 0.5, y: 4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                className="absolute left-1/2 -translate-x-1/2 -top-2 sm:-top-3 z-10 pointer-events-none flex flex-col items-center"
+              >
+                <span
+                  className={`${
+                    reaction.type === "emoji"
+                      ? "text-2xl sm:text-3xl leading-none"
+                      : "text-[10px] sm:text-xs font-quicksand font-semibold text-center px-2 py-1 rounded-lg bg-(--color-pearl-white)/95 text-(--color-black-matte) shadow-md max-w-[130px] truncate"
+                  }`}
+                >
+                  {reaction.value}
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <Image
+            src={
+              avatarErrors[player.userId] || !player.user.image
+                ? "/default-avatar.png"
+                : player.user.image
+            }
+            alt="Foto de perfil"
+            width={40}
+            height={40}
+            className="rounded-full object-cover sm:w-12 sm:h-12"
+            unoptimized
+            onError={() => handleImageError(player.userId)}
+          />
+        </div>
+        {onReactionClick && (
+          <button
+            type="button"
+            onClick={onReactionClick}
+            className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-amber-500/90 hover:bg-amber-500 text-white border-2 border-amber-200/80 shadow focus:outline-none focus:ring-2 focus:ring-amber-400 shrink-0"
+            aria-label="Enviar reacción"
+          >
+            <Smile className="w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
+        )}
+      </div>
       {isCurrentTurn && timePerTurn > 0 && (
-        <span className='text-[var(--color-sapphire-blue)] text-xs absolute bottom-1 sm:bottom-2 right-1 sm:right-2 font-quicksand'>
+        <span className="text-(--color-sapphire-blue) text-xs absolute bottom-1 sm:bottom-2 right-1 sm:right-2 font-quicksand">
           {timeLeft}s
         </span>
       )}
       {isCurrentTurn && (
-        <div className='flex gap-1 sm:gap-2 mt-2 sm:mt-3'>
+        <div className="flex gap-1 sm:gap-2 mt-2 sm:mt-3">
           {[0, 1, 2].map((i) => (
             <motion.div
               key={i}
               className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full border-2 ${
                 i < (rollCount ?? 0)
-                  ? "border-[var(--color-sapphire-blue)] bg-[var(--color-sapphire-blue)]"
-                  : "border-[var(--color-pearl-white)] bg-transparent"
+                  ? "border-(--color-sapphire-blue) bg-(--color-sapphire-blue)"
+                  : "border-(--color-pearl-white) bg-transparent"
               }`}
               initial={{ scale: 0 }}
               animate={{

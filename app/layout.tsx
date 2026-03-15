@@ -3,6 +3,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import SessionProviderWrapper from "./SessionProviderWrapper";
 import { AlertProvider } from "@/components/ui/CustomAlert";
+import { AchievementProvider } from "@/contexts/AchievementContext";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -74,10 +75,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang='es'>
-      <body className={`${poppins.variable} antialiased safe-area-x`}>
+    <html lang='es' suppressHydrationWarning>
+      <body className={`${poppins.variable} antialiased safe-area-x`} suppressHydrationWarning>
         <AlertProvider>
-          <SessionProviderWrapper>{children}</SessionProviderWrapper>
+          <AchievementProvider>
+            <SessionProviderWrapper>{children}</SessionProviderWrapper>
+          </AchievementProvider>
         </AlertProvider>
       </body>
     </html>
