@@ -20,6 +20,8 @@ interface ScoreTableProps {
   loadingSubmit: boolean;
   setLoadingSubmit: (loading: boolean) => void;
   onAchievementsShown?: (ids: string[]) => void;
+  /** En desktop: ocupa 100% del alto sin scroll, tablero compacto */
+  fitViewport?: boolean;
 }
 
 const CATEGORIES = [
@@ -129,6 +131,7 @@ export default function ScoreTable({
   loadingSubmit,
   setLoadingSubmit,
   onAchievementsShown,
+  fitViewport = false,
 }: ScoreTableProps) {
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
@@ -212,8 +215,8 @@ export default function ScoreTable({
       } else if (data.newlyUnlocked?.length) {
         showAchievement(data.newlyUnlocked);
         onAchievementsShown?.(
-            (data.newlyUnlocked as { id: string }[]).map((a) => a.id),
-          );
+          (data.newlyUnlocked as { id: string }[]).map((a) => a.id),
+        );
       }
 
       socket.emit("submitScore", {
@@ -245,147 +248,294 @@ export default function ScoreTable({
     setAvatarErrors((prev) => ({ ...prev, [playerId]: true }));
   };
 
+  const compact = fitViewport;
+  const gridCols = compact
+    ? { gridTemplateColumns: `5rem repeat(${players.length}, minmax(0, 1fr))` }
+    : undefined;
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4, ease: "easeInOut" }}
-      className={`${styles.container} bg-(--color-pearl-white) w-full h-full z-50 py-2 px-2 lg:px-4 overflow-y-auto`}
+      className={`${styles.container} bg-(--color-pearl-white) w-full z-50 ${
+        compact
+          ? "h-full min-h-0 flex flex-col overflow-hidden py-2 px-2"
+          : "h-full py-2 px-2 lg:px-4 overflow-y-auto"
+      }`}
       style={{
         backgroundImage: "url('/textures/marfil.png')",
         backgroundSize: "cover",
       }}
     >
       <div className={styles.pointer} />
-      <div className="overflow-x-auto">
-        <h2 className="text-lg hidden lg:block sm:text-xl font-poppins font-semibold mt-2 text-(--color-black-matte)">
-          Anotador
-        </h2>
-
-        <table className="w-full border-separate border-spacing-y-1">
-          <thead>
-            <tr>
-              <th className="text-left sticky left-0 z-10"></th>
-              {players.map((player) => (
-                <th key={player.userId} className="px-1 sm:px-2">
-                  <Image
-                    src={
-                      avatarErrors[player.userId] || !player.user.image
-                        ? "/default-avatar.png"
-                        : player.user.image
-                    }
-                    alt="Avatar"
-                    width={40}
-                    height={40}
-                    className="hidden lg:block rounded-full m-auto sm:w-12 sm:h-12"
-                    unoptimized
-                    onError={() => handleImageError(player.userId)}
-                  />
-                </th>
-              ))}
-            </tr>
-            <tr>
-              <th className="text-left sticky left-0 z-10 py-1 sm:py-2"></th>
-              {players.map((player) => (
-                <th
-                  key={player.userId}
-                  className={`px-1 sm:px-2 py-1 lg:py-2 text-sm lg:text-md font-quicksand ${
-                    session?.user?.id === player.userId
-                      ? "text-(--color-sapphire-blue) font-bold"
-                      : "text-(--color-black-matte)"
-                  }`}
-                >
-                  {player.user.name}
-                  {player.user.id === session?.user?.id && " (Yo)"}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {CATEGORIES.map((category, index) => (
-              <tr key={category.name}>
-                <td
-                  className={`px-2 lg:px-3 py-1 text-(--color-black-matte) border-b border-(--color-silver-gray)/50 text-sm md:text-md lg:text-lg font-poppins font-bold sticky left-0 z-10 ${
-                    index === 0 && "border-t"
-                  }`}
-                >
-                  {category.label}
-                </td>
-                {players.map((player) => {
-                  const value =
-                    player.userId === currentTurnId &&
-                    isMyTurn &&
-                    !isAlreadySubmitted(
-                      category.name as GameUserCategory,
-                      player.userId,
-                    )
-                      ? calculateScore(
-                          category.label,
-                          diceValues,
-                          rollCount,
-                          player,
-                        )
-                      : player[category.name as GameUserCategory] === null
-                        ? ""
-                        : player[category.name as GameUserCategory];
-                  const canTap =
-                    isMyTurn &&
-                    player.userId === currentTurnId &&
-                    !isAlreadySubmitted(
-                      category.name as GameUserCategory,
-                      player.userId,
-                    );
-                  return (
-                    <td
-                      key={player.id}
-                      className={`text-center px-1 lg:px-2 min-w-[150px] border-b border-(--color-silver-gray)/50 select-none text-sm md:text-md lg:text-lg font-quicksand ${
-                        index === 0 && "border-t"
-                      } ${
-                        isAlreadySubmitted(
-                          category.name as GameUserCategory,
-                          player.userId,
-                        ) && "text-(--color-silver-gray)"
-                      } ${
-                        canTap
-                          ? "transition duration-150 font-semibold text-(--color-sapphire-blue) bg-(--color-sapphire-blue)/8 rounded cursor-pointer hover:bg-(--color-sapphire-blue)/12 active:bg-(--color-sapphire-blue)/15"
-                          : ""
-                      }`}
-                      onClick={() => {
-                        if (canTap && !loading && !loadingSubmit) {
-                          handleSetScore(category.name, value as number);
-                        }
-                      }}
-                    >
-                      {submittingCategory === category.name &&
-                      player.userId === currentTurnId &&
-                      (loading || loadingSubmit) ? (
-                        <div className="flex items-center justify-center">
-                          <CustomLoadingSpinner size="sm" showText={false} />
-                        </div>
-                      ) : (
-                        value
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
+      {compact ? (
+        <>
+          {/* Cabecera: avatares + nombres */}
+          <div
+            className="grid gap-x-1 shrink-0 pb-1 border-b border-(--color-silver-gray)/50"
+            style={gridCols}
+          >
+            <div />
+            {players.map((player) => (
+              <div key={player.userId} className="flex justify-center">
+                <Image
+                  src={
+                    avatarErrors[player.userId] || !player.user.image
+                      ? "/default-avatar.png"
+                      : player.user.image
+                  }
+                  alt="Avatar"
+                  width={36}
+                  height={36}
+                  className="w-9 h-9 rounded-full object-cover"
+                  unoptimized
+                  onError={() => handleImageError(player.userId)}
+                />
+              </div>
             ))}
-            <tr>
-              <td className="px-2 lg:px-3 py-1 lg:py-2 font-poppins font-bold text-sm lg:text-lg text-(--color-black-matte) sticky left-0 z-10">
-                Total
-              </td>
-              {players.map((player) => (
-                <td
-                  key={player.id}
-                  className="px-1 sm:px-2 py-1 sm:py-2 text-center font-quicksand font-semibold text-sm md:text-md lg:text-lg text-(--color-sapphire-blue)"
-                >
-                  {player.totalScore}
-                </td>
+          </div>
+          <div
+            className="grid gap-x-1 shrink-0 py-1   text-center text-sm font-quicksand font-semibold"
+            style={gridCols}
+          >
+            <div />
+            {players.map((player) => (
+              <div
+                key={player.userId}
+                className={`truncate px-0.5 ${
+                  session?.user?.id === player.userId
+                    ? "text-(--color-sapphire-blue)"
+                    : "text-(--color-black-matte)"
+                }`}
+              >
+                {player.user.name}
+                {player.user.id === session?.user?.id && " (Yo)"}
+              </div>
+            ))}
+          </div>
+          {/* Filas de categorías: reparten el alto disponible (12 filas × N columnas) */}
+          <div
+            className="flex-1 min-h-0 grid gap-x-1 overflow-hidden"
+            style={{
+              ...gridCols,
+              gridTemplateRows: "repeat(12, minmax(0, 1fr))",
+            }}
+          >
+            {CATEGORIES.flatMap((category, index) => [
+              <div
+                key={`${category.name}-label`}
+                className={`flex items-center px-1 text-(--color-black-matte) border-b border-(--color-silver-gray)/40 font-poppins font-bold text-sm ${
+                  index === 0 ? "border-t" : ""
+                }`}
+              >
+                {category.label}
+              </div>,
+              ...players.map((player) => {
+                const value =
+                  player.userId === currentTurnId &&
+                  isMyTurn &&
+                  !isAlreadySubmitted(
+                    category.name as GameUserCategory,
+                    player.userId,
+                  )
+                    ? calculateScore(
+                        category.label,
+                        diceValues,
+                        rollCount,
+                        player,
+                      )
+                    : player[category.name as GameUserCategory] === null
+                      ? ""
+                      : player[category.name as GameUserCategory];
+                const canTap =
+                  isMyTurn &&
+                  player.userId === currentTurnId &&
+                  !isAlreadySubmitted(
+                    category.name as GameUserCategory,
+                    player.userId,
+                  );
+                return (
+                  <div
+                    key={`${category.name}-${player.id}`}
+                    className={`flex items-center justify-center border-b border-(--color-silver-gray)/40 select-none font-quicksand text-sm ${
+                      index === 0 ? "border-t" : ""
+                    } ${
+                      isAlreadySubmitted(
+                        category.name as GameUserCategory,
+                        player.userId,
+                      ) && "text-(--color-silver-gray)"
+                    } ${
+                      canTap
+                        ? "bg-(--color-sapphire-blue)/10 text-(--color-sapphire-blue) font-semibold cursor-pointer hover:bg-(--color-sapphire-blue)/15 rounded"
+                        : ""
+                    }`}
+                    onClick={() => {
+                      if (canTap && !loading && !loadingSubmit) {
+                        handleSetScore(category.name, value as number);
+                      }
+                    }}
+                  >
+                    {submittingCategory === category.name &&
+                    player.userId === currentTurnId &&
+                    (loading || loadingSubmit) ? (
+                      <CustomLoadingSpinner size="sm" showText={false} />
+                    ) : (
+                      value
+                    )}
+                  </div>
+                );
+              }),
+            ])}
+          </div>
+          {/* Fila total */}
+          <div
+            className="grid gap-x-1 shrink-0 py-2 border-t-2 border-(--color-silver-gray)/50 text-sm font-semibold"
+            style={gridCols}
+          >
+            <div className="font-poppins text-(--color-black-matte) flex items-center">
+              Total
+            </div>
+            {players.map((player) => (
+              <div
+                key={player.id}
+                className="text-center font-quicksand text-(--color-sapphire-blue) flex items-center justify-center"
+              >
+                {player.totalScore}
+              </div>
+            ))}
+          </div>
+        </>
+      ) : (
+        <div className="overflow-x-auto">
+          <h2 className="text-lg hidden lg:block sm:text-xl font-poppins font-semibold mt-2 text-(--color-black-matte)">
+            Anotador
+          </h2>
+          <table className="w-full border-separate border-spacing-y-1">
+            <thead>
+              <tr>
+                <th className="text-left sticky left-0 z-10"></th>
+                {players.map((player) => (
+                  <th key={player.userId} className="px-1 sm:px-2">
+                    <Image
+                      src={
+                        avatarErrors[player.userId] || !player.user.image
+                          ? "/default-avatar.png"
+                          : player.user.image
+                      }
+                      alt="Avatar"
+                      width={40}
+                      height={40}
+                      className="hidden lg:block rounded-full m-auto sm:w-12 sm:h-12"
+                      unoptimized
+                      onError={() => handleImageError(player.userId)}
+                    />
+                  </th>
+                ))}
+              </tr>
+              <tr>
+                <th className="text-left sticky left-0 z-10 py-1 sm:py-2"></th>
+                {players.map((player) => (
+                  <th
+                    key={player.userId}
+                    className={`px-1 sm:px-2 py-1 lg:py-2 text-sm lg:text-md font-quicksand ${
+                      session?.user?.id === player.userId
+                        ? "text-(--color-sapphire-blue) font-bold"
+                        : "text-(--color-black-matte)"
+                    }`}
+                  >
+                    {player.user.name}
+                    {player.user.id === session?.user?.id && " (Yo)"}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {CATEGORIES.map((category, index) => (
+                <tr key={category.name}>
+                  <td
+                    className={`px-1 lg:px-2 py-1 text-(--color-black-matte) border-b border-(--color-silver-gray)/50 text-sm md:text-md lg:text-lg font-poppins font-bold sticky left-0 z-10 ${
+                      index === 0 && "border-t"
+                    }`}
+                  >
+                    {category.label}
+                  </td>
+                  {players.map((player) => {
+                    const value =
+                      player.userId === currentTurnId &&
+                      isMyTurn &&
+                      !isAlreadySubmitted(
+                        category.name as GameUserCategory,
+                        player.userId,
+                      )
+                        ? calculateScore(
+                            category.label,
+                            diceValues,
+                            rollCount,
+                            player,
+                          )
+                        : player[category.name as GameUserCategory] === null
+                          ? ""
+                          : player[category.name as GameUserCategory];
+                    const canTap =
+                      isMyTurn &&
+                      player.userId === currentTurnId &&
+                      !isAlreadySubmitted(
+                        category.name as GameUserCategory,
+                        player.userId,
+                      );
+                    return (
+                      <td
+                        key={player.id}
+                        className={`text-center px-1 lg:px-2 min-w-[150px] border-b border-(--color-silver-gray)/50 select-none text-sm md:text-md lg:text-lg font-quicksand py-1 ${
+                          index === 0 && "border-t"
+                        } ${
+                          isAlreadySubmitted(
+                            category.name as GameUserCategory,
+                            player.userId,
+                          ) && "text-(--color-silver-gray)"
+                        } ${
+                          canTap
+                            ? "transition duration-150 font-semibold text-(--color-sapphire-blue) bg-(--color-sapphire-blue)/8 rounded cursor-pointer hover:bg-(--color-sapphire-blue)/12"
+                            : ""
+                        }`}
+                        onClick={() => {
+                          if (canTap && !loading && !loadingSubmit) {
+                            handleSetScore(category.name, value as number);
+                          }
+                        }}
+                      >
+                        {submittingCategory === category.name &&
+                        player.userId === currentTurnId &&
+                        (loading || loadingSubmit) ? (
+                          <div className="flex items-center justify-center">
+                            <CustomLoadingSpinner size="sm" showText={false} />
+                          </div>
+                        ) : (
+                          value
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
               ))}
-            </tr>
-          </tbody>
-        </table>
-      </div>
+              <tr>
+                <td className="px-1 lg:px-2 py-1 lg:py-2 font-poppins font-bold text-sm lg:text-lg text-(--color-black-matte) sticky left-0 z-10">
+                  Total
+                </td>
+                {players.map((player) => (
+                  <td
+                    key={player.id}
+                    className="px-1 sm:px-2 py-1 sm:py-2 text-center font-quicksand font-semibold text-sm md:text-md lg:text-lg text-(--color-sapphire-blue)"
+                  >
+                    {player.totalScore}
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
     </motion.div>
   );
 }

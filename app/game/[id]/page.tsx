@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { GameUser } from "@/types";
 import CustomLoadingSpinner from "@/components/ui/CustomLoadingSpinner";
 import LoadingOverlay from "@/components/ui/LoadingOverlay";
@@ -8,7 +9,10 @@ import { useAlert } from "@/components/ui/CustomAlert";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import PlayerSlot, { type PlayerReaction } from "@/components/game/PlayerSlot";
-import { ReactionPicker, type ReactionChoice } from "@/components/game/ReactionPicker";
+import {
+  ReactionPicker,
+  type ReactionChoice,
+} from "@/components/game/ReactionPicker";
 import { useAchievement } from "@/contexts/AchievementContext";
 import Cup from "@/components/game/Cup";
 import DiceBoard from "@/components/game/DiceBoard";
@@ -16,12 +20,14 @@ import { socket } from "@/lib/socket";
 import ScoreTable from "@/components/game/ScoreSheet";
 import {
   ArrowLeft,
+  ClipboardList,
   LogOut,
   Music,
   RefreshCw,
   Share2,
   Volume2,
   VolumeX,
+  X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -79,9 +85,16 @@ export default function GameTable() {
   const [audioControlsOpen, setAudioControlsOpen] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
   const [isRevanchaLoading, setIsRevanchaLoading] = useState(false);
-  const [reactions, setReactions] = useState<Record<string, (PlayerReaction & { id: number }) | null>>({});
-  const [reactionPickerTarget, setReactionPickerTarget] = useState<string | null>(null);
-  const reactionTimeoutsRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const [reactions, setReactions] = useState<
+    Record<string, (PlayerReaction & { id: number }) | null>
+  >({});
+  const [reactionPickerTarget, setReactionPickerTarget] = useState<
+    string | null
+  >(null);
+  const reactionTimeoutsRef = useRef<
+    Record<string, ReturnType<typeof setTimeout>>
+  >({});
+  const [scoreBoardOpen, setScoreBoardOpen] = useState(false);
   const backSoundRef = useRef<HTMLAudioElement | null>(null);
   const previousUnlockedIdsRef = useRef<Set<string>>(new Set());
   const previousGameEndedRef = useRef(false);
@@ -257,6 +270,14 @@ export default function GameTable() {
     };
   }, [gameId]);
 
+  // Abrir el anotador automático: al arrancar tu turno (rollCount 0) o al terminar los tiros (rollCount 3, hay que anotar)
+  useEffect(() => {
+    if (!game || !session?.user?.id) return;
+    const isMyTurn = session.user.id === game.currentTurnId;
+    const shouldOpen = isMyTurn && (game.rollCount === 0 || game.rollCount === 3);
+    if (shouldOpen) setScoreBoardOpen(true);
+  }, [game, session?.user?.id]);
+
   // Al cargar la partida, guardar logros actuales para detectar los nuevos al terminar
   useEffect(() => {
     if (!session?.user?.id || !game) return;
@@ -281,21 +302,28 @@ export default function GameTable() {
       previousGameEndedRef.current = true;
       fetch("/api/users/achievements")
         .then((res) => res.json())
-        .then((data: { id: string; name: string; description: string; unlockedAt: string | null }[]) => {
-          if (!Array.isArray(data)) return;
-          const prev = previousUnlockedIdsRef.current;
-          const newOnes = data.filter(
-            (a) => a.unlockedAt && !prev.has(a.id),
-          );
-          showAchievement(
-            newOnes.map((a) => ({
-              id: a.id,
-              name: a.name,
-              description: a.description,
-            })),
-          );
-          newOnes.forEach((a) => prev.add(a.id));
-        })
+        .then(
+          (
+            data: {
+              id: string;
+              name: string;
+              description: string;
+              unlockedAt: string | null;
+            }[],
+          ) => {
+            if (!Array.isArray(data)) return;
+            const prev = previousUnlockedIdsRef.current;
+            const newOnes = data.filter((a) => a.unlockedAt && !prev.has(a.id));
+            showAchievement(
+              newOnes.map((a) => ({
+                id: a.id,
+                name: a.name,
+                description: a.description,
+              })),
+            );
+            newOnes.forEach((a) => prev.add(a.id));
+          },
+        )
         .catch(() => {});
     }
     if (!justEnded) previousGameEndedRef.current = false;
@@ -554,12 +582,15 @@ export default function GameTable() {
   };
 
   const { winners, ranking } = getWinnersAndRanking();
-  const isPlayerInGame = game?.players?.some((p) => p.userId === session?.user?.id) ?? false;
+  const isPlayerInGame =
+    game?.players?.some((p) => p.userId === session?.user?.id) ?? false;
 
   return (
-    <div className="relative flex flex-col lg:flex-row w-full min-h-dvh h-screen overflow-hidden bg-(--color-black-matte) font-quicksand">
-      <div className="w-full lg:w-2/8 lg:shrink-0 h-1/2 lg:h-screen overflow-y-auto safe-area-top flex flex-col">
-        <div className="flex items-center justify-end gap-2 px-2 pt-2 pb-1 shrink-0">
+    <div className="relative w-full min-h-dvh h-screen overflow-hidden bg-(--color-black-matte) font-quicksand">
+      {/* Área de juego: siempre a pantalla completa */}
+      <div className="absolute inset-0 flex flex-col">
+        {/* Barra superior: un solo Salir a la izquierda, Anotador al lado cuando el panel está cerrado */}
+        <div className="flex items-center gap-2 px-3 py-2 mt-2 shrink-0 safe-area-top h-[44px]">
           <motion.button
             type="button"
             onClick={handleLeaveGame}
@@ -572,245 +603,303 @@ export default function GameTable() {
             ) : (
               <>
                 <LogOut className="h-4 w-4" />
-                Salir de la partida
+                <span className="hidden sm:inline">Salir</span>
               </>
             )}
           </motion.button>
+          {!scoreBoardOpen && (
+            <motion.button
+              type="button"
+              onClick={() => setScoreBoardOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-quicksand font-medium bg-(--color-metallic-gold)/20 text-(--color-metallic-gold) border border-(--color-metallic-gold)/50 hover:bg-(--color-metallic-gold)/30 transition"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+            >
+              <ClipboardList className="h-5 w-5" />
+              Anotador
+            </motion.button>
+          )}
         </div>
-        <ScoreTable
-          players={game.players}
-          currentTurnId={game.currentTurnId}
-          isMyTurn={session?.user?.id === game.currentTurnId}
-          diceValues={game.diceValues}
-          rollCount={game.rollCount}
-          loadingSubmit={loadingSubmit}
-          setLoadingSubmit={setLoadingSubmit}
-          onAchievementsShown={(ids) =>
-            ids.forEach((id) => previousUnlockedIdsRef.current.add(id))
-          }
-        />
-      </div>
-      <div className="flex-1 relative h-1/2 lg:h-screen">
-        <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 flex flex-row items-center gap-2 z-100 safe-area-bottom">
-          <AnimatePresence>
-            {audioControlsOpen && (
-              <motion.div
-                initial={{ opacity: 0, x: 8 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 8 }}
-                transition={{ duration: 0.2 }}
-                className="flex flex-row gap-2"
-              >
-                <motion.button
-                  className="min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0 bg-(--color-pearl-white) text-(--color-black-matte) p-2 rounded-full shadow-md border-2 border-(--color-metallic-gold) hover:bg-(--color-silver-gray) transition"
-                  onClick={toggleMute}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  aria-label={isMuted ? "Activar sonido" : "Silenciar efectos"}
-                >
-                  {isMuted ? (
-                    <VolumeX className="h-4 w-4 sm:h-5 sm:w-5 text-(--color-black-matte)" />
-                  ) : (
-                    <Volume2 className="h-4 w-4 sm:h-5 sm:w-5 text-(--color-black-matte)" />
-                  )}
-                </motion.button>
-                <motion.button
-                  className="min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0 bg-(--color-pearl-white) text-(--color-black-matte) p-2 rounded-full shadow-md border-2 border-(--color-metallic-gold) hover:bg-(--color-silver-gray) transition"
-                  onClick={toggleBackSound}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  aria-label={
-                    isSoundPlaying ? "Pausar música" : "Reproducir música"
-                  }
-                >
-                  {isSoundPlaying ? (
-                    <Music className="h-4 w-4 sm:h-5 sm:w-5 text-(--color-black-matte)" />
-                  ) : (
-                    <span className="relative inline-flex items-center justify-center">
-                      <Music className="h-4 w-4 sm:h-5 sm:w-5 text-(--color-black-matte) opacity-60" />
-                      <span
-                        className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                        aria-hidden
-                      >
-                        <span className="block w-[130%] h-0.5 rotate-45 bg-(--color-black-matte) opacity-90 rounded-full" />
-                      </span>
-                    </span>
-                  )}
-                </motion.button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <motion.button
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center bg-(--color-pearl-white) text-(--color-black-matte) p-2 rounded-full shadow-md border-2 border-(--color-metallic-gold) hover:bg-(--color-silver-gray) transition"
-            onClick={() => setAudioControlsOpen((o) => !o)}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            aria-label={
-              audioControlsOpen
-                ? "Cerrar controles de audio"
-                : "Sonido y música"
-            }
-          >
-            <Volume2 className="h-4 w-4 sm:h-5 sm:w-5 text-(--color-black-matte)" />
-          </motion.button>
-        </div>
-        <div className='relative w-full h-full overflow-hidden shadow-xl z-50 bg-[url("/table-mobile.png")] sm:bg-[url("/table-desktop.png")] bg-cover bg-no-repeat bg-center'>
-          {game.players.map((player, index) => (
-            <PlayerSlot
-              key={player.userId}
-              player={player}
-              position={index}
-              isCurrentTurn={player.userId === game.currentTurnId}
-              currentTurnId={game.currentTurnId}
-              timePerTurn={game.turnTimeout ? game.turnTimeout : 0}
-              totalPlayers={game.players.length}
-              players={game.players}
-              rollCount={game.rollCount}
-              reaction={reactions[player.userId] ?? null}
-              onReactionClick={
-                player.userId !== session?.user?.id || game.players.length === 1
-                  ? () => setReactionPickerTarget(player.userId)
-                  : undefined
-              }
-            />
-          ))}
 
-          {!gameEnded ? (
-            <>
-              <DiceBoard
-                game={game}
-                rollingLoading={rollingLoading}
-                dicesToReroll={dicesToReroll}
-                setDicesToReroll={setDicesToReroll}
-                rollCount={game.rollCount}
-                isMyTurn={session?.user?.id === game.currentTurnId}
-              />
-              <Cup
-                gamePlayers={game.players}
-                isMyTurn={session?.user?.id === game.currentTurnId}
-                rollCount={game.rollCount}
-                gameId={game.id}
-                rollingLoading={rollingLoading}
-                dicesToReroll={dicesToReroll}
-                setDicesToReroll={setDicesToReroll}
-              />
-              <AnimatePresence>
-                {showTurnHint && isMyTurn && (
-                  <motion.div
-                    key="turn-hint"
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 8 }}
-                    transition={{ duration: 0.25 }}
-                    className="absolute bottom-[12%] sm:bottom-[18%] left-1/2 -translate-x-1/2 z-10 w-[calc(100%-1.5rem)] max-w-[90%] sm:max-w-md"
+        {/* Panel del anotador: renderizado en body para que quede siempre encima de la mesa */}
+        {typeof document !== "undefined" &&
+          createPortal(
+            <AnimatePresence>
+              {scoreBoardOpen && (
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  className="fixed inset-0 left-0 top-0 bottom-0 z-9999 w-full sm:max-w-[340px] h-screen flex flex-col bg-(--color-black-matte) shadow-2xl border-r border-(--color-metallic-gold)/30"
+                >
+                  <div className="flex items-center justify-end gap-2 px-2 pt-2 pb-1 shrink-0 safe-area-top bg-(--color-black-matte) h-[52px]">
+                    <motion.button
+                      type="button"
+                      onClick={() => setScoreBoardOpen(false)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-quicksand text-(--color-pearl-white)/90 hover:text-(--color-pearl-white) hover:bg-white/10 transition"
+                      whileTap={{ scale: 0.98 }}
+                      aria-label="Cerrar anotador"
+                    >
+                      <X className="h-4 w-4" />
+                      <span className="hidden sm:inline">Cerrar</span>
+                    </motion.button>
+                  </div>
+                  <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+                    <ScoreTable
+                      players={game.players}
+                      currentTurnId={game.currentTurnId}
+                      isMyTurn={isMyTurn}
+                      diceValues={game.diceValues}
+                      rollCount={game.rollCount}
+                      loadingSubmit={loadingSubmit}
+                      setLoadingSubmit={setLoadingSubmit}
+                      onAchievementsShown={(ids) =>
+                        ids.forEach((id) =>
+                          previousUnlockedIdsRef.current.add(id),
+                        )
+                      }
+                      fitViewport
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>,
+            document.body,
+          )}
+        <div className="flex-1 relative min-h-0">
+          <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 flex flex-row items-center gap-2 z-100 safe-area-bottom">
+            <AnimatePresence>
+              {audioControlsOpen && (
+                <motion.div
+                  initial={{ opacity: 0, x: 8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 8 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex flex-row gap-2"
+                >
+                  <motion.button
+                    className="min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0 bg-(--color-pearl-white) text-(--color-black-matte) p-2 rounded-full shadow-md border-2 border-(--color-metallic-gold) hover:bg-(--color-silver-gray) transition"
+                    onClick={toggleMute}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    aria-label={
+                      isMuted ? "Activar sonido" : "Silenciar efectos"
+                    }
                   >
-                    <div className="rounded-xl sm:rounded-2xl bg-(--color-pearl-white)/95 backdrop-blur-sm border border-(--color-metallic-gold) sm:border-2 shadow-lg px-3 py-2 sm:px-4 sm:py-3 text-center">
-                      <p className="text-xs sm:text-base font-poppins font-medium text-(--color-sapphire-blue) leading-tight">
-                        {game.rollCount === 0 ? (
-                          <>🎲 Tocá el cubilete para tirar</>
+                    {isMuted ? (
+                      <VolumeX className="h-4 w-4 sm:h-5 sm:w-5 text-(--color-black-matte)" />
+                    ) : (
+                      <Volume2 className="h-4 w-4 sm:h-5 sm:w-5 text-(--color-black-matte)" />
+                    )}
+                  </motion.button>
+                  <motion.button
+                    className="min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0 bg-(--color-pearl-white) text-(--color-black-matte) p-2 rounded-full shadow-md border-2 border-(--color-metallic-gold) hover:bg-(--color-silver-gray) transition"
+                    onClick={toggleBackSound}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    aria-label={
+                      isSoundPlaying ? "Pausar música" : "Reproducir música"
+                    }
+                  >
+                    {isSoundPlaying ? (
+                      <Music className="h-4 w-4 sm:h-5 sm:w-5 text-(--color-black-matte)" />
+                    ) : (
+                      <span className="relative inline-flex items-center justify-center">
+                        <Music className="h-4 w-4 sm:h-5 sm:w-5 text-(--color-black-matte) opacity-60" />
+                        <span
+                          className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                          aria-hidden
+                        >
+                          <span className="block w-[130%] h-0.5 rotate-45 bg-(--color-black-matte) opacity-90 rounded-full" />
+                        </span>
+                      </span>
+                    )}
+                  </motion.button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <motion.button
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center bg-(--color-pearl-white) text-(--color-black-matte) p-2 rounded-full shadow-md border-2 border-(--color-metallic-gold) hover:bg-(--color-silver-gray) transition"
+              onClick={() => setAudioControlsOpen((o) => !o)}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              aria-label={
+                audioControlsOpen
+                  ? "Cerrar controles de audio"
+                  : "Sonido y música"
+              }
+            >
+              <Volume2 className="h-4 w-4 sm:h-5 sm:w-5 text-(--color-black-matte)" />
+            </motion.button>
+          </div>
+          <div className='relative w-full h-full overflow-hidden shadow-xl z-50 bg-[url("/table-mobile.png")] sm:bg-[url("/table-desktop.png")] bg-cover bg-no-repeat bg-center'>
+            {game.players.map((player, index) => (
+              <PlayerSlot
+                key={player.userId}
+                player={player}
+                position={index}
+                isCurrentTurn={player.userId === game.currentTurnId}
+                currentTurnId={game.currentTurnId}
+                timePerTurn={game.turnTimeout ? game.turnTimeout : 0}
+                totalPlayers={game.players.length}
+                players={game.players}
+                rollCount={game.rollCount}
+                reaction={reactions[player.userId] ?? null}
+                onReactionClick={
+                  player.userId !== session?.user?.id ||
+                  game.players.length === 1
+                    ? () => setReactionPickerTarget(player.userId)
+                    : undefined
+                }
+              />
+            ))}
+
+            {!gameEnded ? (
+              <>
+                <DiceBoard
+                  game={game}
+                  rollingLoading={rollingLoading}
+                  dicesToReroll={dicesToReroll}
+                  setDicesToReroll={setDicesToReroll}
+                  rollCount={game.rollCount}
+                  isMyTurn={session?.user?.id === game.currentTurnId}
+                />
+                <Cup
+                  gamePlayers={game.players}
+                  isMyTurn={session?.user?.id === game.currentTurnId}
+                  rollCount={game.rollCount}
+                  gameId={game.id}
+                  rollingLoading={rollingLoading}
+                  dicesToReroll={dicesToReroll}
+                  setDicesToReroll={setDicesToReroll}
+                />
+                <AnimatePresence>
+                  {showTurnHint && isMyTurn && (
+                    <motion.div
+                      key="turn-hint"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 8 }}
+                      transition={{ duration: 0.25 }}
+                      className="absolute bottom-[12%] sm:bottom-[18%] left-1/2 -translate-x-1/2 z-10 w-[calc(100%-1.5rem)] max-w-[90%] sm:max-w-md"
+                    >
+                      <div className="rounded-xl sm:rounded-2xl bg-(--color-pearl-white)/95 backdrop-blur-sm border border-(--color-metallic-gold) sm:border-2 shadow-lg px-3 py-2 sm:px-4 sm:py-3 text-center">
+                        <p className="text-xs sm:text-base font-poppins font-medium text-(--color-sapphire-blue) leading-tight">
+                          {game.rollCount === 0 ? (
+                            <>🎲 Tocá el cubilete para tirar</>
+                          ) : (
+                            <>
+                              ✨ Tocá los dados que querés volver a tirar y
+                              después el cubilete
+                            </>
+                          )}
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </>
+            ) : (
+              <motion.div
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-4 sm:gap-6 select-none bg-(--color-pearl-white) p-4 sm:p-6 rounded-xl shadow-lg border-2 border-(--color-metallic-gold) w-[calc(100%-2rem)] max-w-md max-h-[90dvh] overflow-y-auto safe-area-x"
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 22 }}
+              >
+                <div className="flex flex-col items-center gap-3 sm:gap-4">
+                  <p className="text-xl sm:text-3xl text-(--color-sapphire-blue) font-poppins font-bold drop-shadow-[0_2px_2px_rgba(212,160,23,0.5)]">
+                    ¡Juego terminado!
+                  </p>
+                  {winners.length === 1 ? (
+                    <p className="text-base sm:text-2xl text-(--color-black-matte) font-poppins font-bold text-center">
+                      {winners[0].user.name} es el ganador!
+                    </p>
+                  ) : (
+                    <p className="text-base sm:text-2xl text-(--color-black-matte) font-poppins font-bold text-center">
+                      ¡Empate entre {winners.map((w) => w.user.name).join(", ")}
+                      !
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-2 items-center text-(--color-black-matte)">
+                  <p className="text-base sm:text-xl font-poppins font-semibold underline text-(--color-metallic-gold)">
+                    Ranking
+                  </p>
+                  {ranking.map((player, index) => (
+                    <div
+                      key={player.id}
+                      className={`text-sm sm:text-lg ${
+                        winners.some((w) => w.id === player.id)
+                          ? "text-(--color-sapphire-blue) font-bold"
+                          : "text-(--color-silver-gray)"
+                      } font-quicksand`}
+                    >
+                      {index + 1}. {player.user.name} - {player.totalScore} pts
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex flex-col gap-2 w-full px-4">
+                  {isPlayerInGame && (
+                    <>
+                      <motion.button
+                        type="button"
+                        onClick={handleShare}
+                        className="min-h-[48px] flex-1 flex items-center justify-center gap-2 text-(--color-black-matte) py-2 px-4 sm:px-6 rounded-lg font-poppins font-semibold border-2 border-(--color-metallic-gold) hover:bg-slate-300 transition-all duration-200 text-sm sm:text-base"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <Share2 className="h-5 w-5" />
+                        Compartir resultado
+                      </motion.button>
+                      <motion.button
+                        type="button"
+                        disabled={isRevanchaLoading}
+                        className="min-h-[48px] flex-1 flex items-center justify-center gap-2 bg-(--color-sapphire-blue) text-(--color-pearl-white) py-2 px-4 sm:px-6 rounded-lg font-poppins font-semibold hover:bg-[#2563eb] transition-all duration-200 text-sm sm:text-base disabled:opacity-70"
+                        onClick={handleRevancha}
+                        whileHover={
+                          !isRevanchaLoading ? { scale: 1.02 } : undefined
+                        }
+                        whileTap={
+                          !isRevanchaLoading ? { scale: 0.98 } : undefined
+                        }
+                      >
+                        {isRevanchaLoading ? (
+                          <>
+                            <CustomLoadingSpinner
+                              size="sm"
+                              showText={false}
+                              color="#fff"
+                            />
+                            Creando revancha…
+                          </>
                         ) : (
                           <>
-                            ✨ Tocá los dados que querés volver a tirar y
-                            después el cubilete
+                            <RefreshCw className="h-5 w-5" />
+                            Revancha
                           </>
                         )}
-                      </p>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </>
-          ) : (
-            <motion.div
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-4 sm:gap-6 select-none bg-(--color-pearl-white) p-4 sm:p-6 rounded-xl shadow-lg border-2 border-(--color-metallic-gold) w-[calc(100%-2rem)] max-w-md max-h-[90dvh] overflow-y-auto safe-area-x"
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ type: "spring", stiffness: 300, damping: 22 }}
-            >
-              <div className="flex flex-col items-center gap-3 sm:gap-4">
-                <p className="text-xl sm:text-3xl text-(--color-sapphire-blue) font-poppins font-bold drop-shadow-[0_2px_2px_rgba(212,160,23,0.5)]">
-                  ¡Juego terminado!
-                </p>
-                {winners.length === 1 ? (
-                  <p className="text-base sm:text-2xl text-(--color-black-matte) font-poppins font-bold text-center">
-                    {winners[0].user.name} es el ganador!
-                  </p>
-                ) : (
-                  <p className="text-base sm:text-2xl text-(--color-black-matte) font-poppins font-bold text-center">
-                    ¡Empate entre {winners.map((w) => w.user.name).join(", ")}!
-                  </p>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-2 items-center text-(--color-black-matte)">
-                <p className="text-base sm:text-xl font-poppins font-semibold underline text-(--color-metallic-gold)">
-                  Ranking
-                </p>
-                {ranking.map((player, index) => (
-                  <div
-                    key={player.id}
-                    className={`text-sm sm:text-lg ${
-                      winners.some((w) => w.id === player.id)
-                        ? "text-(--color-sapphire-blue) font-bold"
-                        : "text-(--color-silver-gray)"
-                    } font-quicksand`}
+                      </motion.button>
+                    </>
+                  )}
+                  <motion.button
+                    className="min-h-[48px] flex-1 flex items-center justify-center gap-2 sm:flex-none bg-(--color-ruby-red) text-(--color-pearl-white) py-2 px-4 sm:px-6 rounded-lg font-poppins font-semibold hover:bg-[#DC2626] transition-all duration-200 text-sm sm:text-base"
+                    onClick={() => router.push("/")}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                   >
-                    {index + 1}. {player.user.name} - {player.totalScore} pts
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex flex-col gap-2 w-full px-4">
-                {isPlayerInGame && (
-                  <>
-                    <motion.button
-                      type="button"
-                      onClick={handleShare}
-                      className="min-h-[48px] flex-1 flex items-center justify-center gap-2 text-(--color-black-matte) py-2 px-4 sm:px-6 rounded-lg font-poppins font-semibold border-2 border-(--color-metallic-gold) hover:bg-slate-300 transition-all duration-200 text-sm sm:text-base"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Share2 className="h-5 w-5" />
-                      Compartir resultado
-                    </motion.button>
-                    <motion.button
-                      type="button"
-                      disabled={isRevanchaLoading}
-                      className="min-h-[48px] flex-1 flex items-center justify-center gap-2 bg-(--color-sapphire-blue) text-(--color-pearl-white) py-2 px-4 sm:px-6 rounded-lg font-poppins font-semibold hover:bg-[#2563eb] transition-all duration-200 text-sm sm:text-base disabled:opacity-70"
-                      onClick={handleRevancha}
-                      whileHover={!isRevanchaLoading ? { scale: 1.02 } : undefined}
-                      whileTap={!isRevanchaLoading ? { scale: 0.98 } : undefined}
-                    >
-                      {isRevanchaLoading ? (
-                        <>
-                          <CustomLoadingSpinner
-                            size="sm"
-                            showText={false}
-                            color="#fff"
-                          />
-                          Creando revancha…
-                        </>
-                      ) : (
-                        <>
-                          <RefreshCw className="h-5 w-5" />
-                          Revancha
-                        </>
-                      )}
-                    </motion.button>
-                  </>
-                )}
-                <motion.button
-                  className="min-h-[48px] flex-1 flex items-center justify-center gap-2 sm:flex-none bg-(--color-ruby-red) text-(--color-pearl-white) py-2 px-4 sm:px-6 rounded-lg font-poppins font-semibold hover:bg-[#DC2626] transition-all duration-200 text-sm sm:text-base"
-                  onClick={() => router.push("/")}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                  Volver al lobby
-                </motion.button>
-              </div>
-            </motion.div>
-          )}
+                    <ArrowLeft className="h-5 w-5" />
+                    Volver al lobby
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+          </div>
         </div>
       </div>
       <ReactionPicker
