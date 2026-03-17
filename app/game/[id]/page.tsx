@@ -10,6 +10,10 @@ import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import PlayerSlot, { type PlayerReaction } from "@/components/game/PlayerSlot";
 import {
+  FlyingReaction,
+  type FlyingReactionData,
+} from "@/components/game/FlyingReaction";
+import {
   ReactionPicker,
   type ReactionChoice,
 } from "@/components/game/ReactionPicker";
@@ -94,6 +98,16 @@ export default function GameTable() {
   const reactionTimeoutsRef = useRef<
     Record<string, ReturnType<typeof setTimeout>>
   >({});
+  const avatarRefsMap = useRef<Record<string, HTMLDivElement | null>>({});
+  const [flyingReaction, setFlyingReaction] = useState<{
+    fromUserId: string;
+    targetUserId: string;
+    type: "emoji" | "phrase";
+    value: string;
+    fromUserName?: string;
+    startRect: DOMRect;
+    endRect: DOMRect;
+  } | null>(null);
   const [scoreBoardOpen, setScoreBoardOpen] = useState(false);
   const backSoundRef = useRef<HTMLAudioElement | null>(null);
   const previousUnlockedIdsRef = useRef<Set<string>>(new Set());
@@ -329,6 +343,29 @@ export default function GameTable() {
     if (!justEnded) previousGameEndedRef.current = false;
   }, [game, session?.user?.id, showAchievement]);
 
+  const applyReactionToTarget = useCallback(
+    (targetUserId: string, data: { type: "emoji" | "phrase"; value: string; fromUserName?: string }) => {
+      const id = Date.now();
+      setReactions((prev) => ({
+        ...prev,
+        [targetUserId]: {
+          type: data.type,
+          value: data.value,
+          fromUserName: data.fromUserName,
+          id,
+        },
+      }));
+      if (reactionTimeoutsRef.current[targetUserId]) {
+        clearTimeout(reactionTimeoutsRef.current[targetUserId]);
+      }
+      reactionTimeoutsRef.current[targetUserId] = setTimeout(() => {
+        setReactions((prev) => ({ ...prev, [targetUserId]: null }));
+        delete reactionTimeoutsRef.current[targetUserId];
+      }, 3000);
+    },
+    [],
+  );
+
   useEffect(() => {
     if (!gameId) return;
     const handleGameReaction = (data: {
@@ -338,23 +375,34 @@ export default function GameTable() {
       type: "emoji" | "phrase";
       value: string;
     }) => {
-      const id = Date.now();
-      setReactions((prev) => ({
-        ...prev,
-        [data.targetUserId]: {
+      if (data.value === "🎺" && !isMuted) {
+        try {
+          const audio = new Audio("/sounds/trumpet.mp3");
+          audio.volume = 0.4;
+          audio.play().catch(() => {});
+        } catch (_) {}
+      }
+      if (data.type === "phrase") {
+        applyReactionToTarget(data.fromUserId, data);
+        return;
+      }
+      const fromEl = avatarRefsMap.current[data.fromUserId];
+      const toEl = avatarRefsMap.current[data.targetUserId];
+      if (fromEl && toEl) {
+        const startRect = fromEl.getBoundingClientRect();
+        const endRect = toEl.getBoundingClientRect();
+        setFlyingReaction({
+          fromUserId: data.fromUserId,
+          targetUserId: data.targetUserId,
           type: data.type,
           value: data.value,
           fromUserName: data.fromUserName,
-          id,
-        },
-      }));
-      if (reactionTimeoutsRef.current[data.targetUserId]) {
-        clearTimeout(reactionTimeoutsRef.current[data.targetUserId]);
+          startRect,
+          endRect,
+        });
+      } else {
+        applyReactionToTarget(data.targetUserId, data);
       }
-      reactionTimeoutsRef.current[data.targetUserId] = setTimeout(() => {
-        setReactions((prev) => ({ ...prev, [data.targetUserId]: null }));
-        delete reactionTimeoutsRef.current[data.targetUserId];
-      }, 3000);
     };
     socket.on("gameReaction", handleGameReaction);
     return () => {
@@ -362,7 +410,7 @@ export default function GameTable() {
       Object.values(reactionTimeoutsRef.current).forEach(clearTimeout);
       reactionTimeoutsRef.current = {};
     };
-  }, [gameId]);
+  }, [gameId, isMuted, applyReactionToTarget]);
 
   const isMyTurn = !!game && session?.user?.id === game.currentTurnId;
   const gameEnded = isGameEnded(game);
@@ -759,6 +807,9 @@ export default function GameTable() {
                     ? () => setReactionPickerTarget(player.userId)
                     : undefined
                 }
+                avatarRef={(el) => {
+                  avatarRefsMap.current[player.userId] = el;
+                }}
               />
             ))}
 
@@ -913,6 +964,23 @@ export default function GameTable() {
           if (reactionPickerTarget) sendReaction(reactionPickerTarget, choice);
         }}
       />
+      {typeof document !== "undefined" &&
+        flyingReaction &&
+        createPortal(
+          <FlyingReaction
+            startRect={flyingReaction.startRect}
+            endRect={flyingReaction.endRect}
+            reaction={{
+              type: flyingReaction.type,
+              value: flyingReaction.value,
+              fromUserName: flyingReaction.fromUserName,
+            }}
+            onComplete={() => {
+              setFlyingReaction(null);
+            }}
+          />,
+          document.body,
+        )}
     </div>
   );
 }

@@ -25,6 +25,8 @@ interface PlayerSlotProps {
   rollCount?: number;
   reaction?: PlayerReaction | null;
   onReactionClick?: () => void;
+  /** Ref del contenedor del avatar (para animación de reacciones) */
+  avatarRef?: (el: HTMLDivElement | null) => void;
 }
 
 export default function PlayerSlot({
@@ -38,6 +40,7 @@ export default function PlayerSlot({
   rollCount = 0,
   reaction = null,
   onReactionClick,
+  avatarRef,
 }: PlayerSlotProps) {
   const { data: session } = useSession();
   const [timeLeft, setTimeLeft] = useState(timePerTurn);
@@ -131,8 +134,8 @@ export default function PlayerSlot({
         {player.user.name} {player.userId === session?.user?.id && "(Yo)"}
       </span>
       <div className="relative inline-flex items-center gap-1.5 sm:gap-2">
-        <div className="relative">
-          <AnimatePresence>
+        <div className="relative" ref={avatarRef}>
+            <AnimatePresence>
             {reaction && (
               <motion.div
                 key={reaction.id ?? reaction.value}

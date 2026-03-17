@@ -94,7 +94,7 @@ export default function Cup({
       }}
       className={`${
         (!isMyTurn || rollCount >= 3) && "opacity-50"
-      } absolute top-[25%] sm:top-1/4 lg:top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 p-2 sm:p-4 transition select-none ${
+      } absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 p-2 sm:p-4 transition select-none ${
         isMyTurn && rollCount < 3 && !isRolling && "cursor-pointer"
       } ${(!isMyTurn || rollCount >= 3 || isRolling) && "pointer-events-none"}`}
       whileHover={
@@ -107,7 +107,7 @@ export default function Cup({
       <motion.img
         src="/cup.png"
         alt="Cubilete"
-        className="w-22 h-24 sm:w-26 sm:h-28 lg:w-30 lg:h-33"
+        className="w-26 h-28 lg:w-30 lg:h-33"
       />
     </motion.div>
   );
