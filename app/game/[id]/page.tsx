@@ -670,7 +670,11 @@ export default function GameTable() {
             </AnimatePresence>,
             document.body,
           )}
-        <div className="flex-1 relative min-h-0">
+        <div
+          className={`flex-1 relative min-h-0 transition-[margin] duration-300 ease-out ${
+            scoreBoardOpen ? "sm:ml-[340px]" : ""
+          }`}
+        >
           <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 flex flex-row items-center gap-2 z-100 safe-area-bottom">
             <AnimatePresence>
               {audioControlsOpen && (
