@@ -77,9 +77,9 @@ export const StatsModal: React.FC<StatsModalProps> = ({
     streak >= 7 ? "high" : streak >= 5 ? "medium" : streak >= 3 ? "low" : null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div
-        className={`bg-white rounded-2xl p-6 max-w-md w-full shadow-xl relative transition-all ${
+        className={`bg-white rounded-2xl p-6 max-w-md w-full max-h-[90vh] flex flex-col shadow-xl relative transition-all ${
           streakLevel === "high"
             ? "ring-4 ring-amber-400 shadow-amber-200/50"
             : streakLevel === "medium"
@@ -91,10 +91,12 @@ export const StatsModal: React.FC<StatsModalProps> = ({
       >
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 cursor-pointer"
+          className="absolute top-3 right-3 z-10 shrink-0 rounded-lg p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800 cursor-pointer"
+          aria-label="Cerrar"
         >
-          <X />
+          <X className="h-5 w-5" />
         </button>
+        <div className="overflow-y-auto min-h-0 pr-8">
 
         {stats?.userId && (
           <div className="text-center mb-4">
@@ -222,6 +224,7 @@ export const StatsModal: React.FC<StatsModalProps> = ({
             )}
           </>
         )}
+        </div>
       </div>
     </div>
   );
