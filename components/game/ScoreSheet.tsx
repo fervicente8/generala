@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { GameUser } from "@/types";
 import { useAlert } from "../ui/CustomAlert";
@@ -10,6 +10,7 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import CustomLoadingSpinner from "@/components/ui/CustomLoadingSpinner";
 import styles from "./ScoreSheet.module.css";
+import { mountBodyPencilCursor } from "./pencilCursor";
 
 interface ScoreTableProps {
   players: GameUser[];
@@ -22,6 +23,19 @@ interface ScoreTableProps {
   onAchievementsShown?: (ids: string[]) => void;
   /** En desktop: ocupa 100% del alto sin scroll, tablero compacto */
   fitViewport?: boolean;
+  /** Dentro de ScoreSheetPanel: sin fondo duplicado ni animación de entrada */
+  embeddedInPanel?: boolean;
+  /** Panel lateral ancho: más espacio para etiquetas y tipografía legible en escritorio */
+  sidePanel?: boolean;
+  /** Mientras tira / margen post-tirada: no permitir tocar (los dados mostrados vienen del padre: snapshot o actuales) */
+  diceSettling?: boolean;
+  /**
+   * false = cursor normal (flecha/mano en celdas); sin lápiz flotante.
+   * true (defecto) = lápiz custom en escritorio.
+   */
+  useBodyPencilCursor?: boolean;
+  /** Columnas de jugadores al ancho del contenido (panel libreta) */
+  autoTableWidth?: boolean;
 }
 
 const CATEGORIES = [
@@ -86,11 +100,12 @@ function calculateScore(
       const num = parseInt(category);
       return (counts[num] || 0) * num;
 
-    case "Escalera":
-      baseScore = ["12345", "23456", "34561"].includes(sorted.join(""))
-        ? 20
-        : 0;
+    case "Escalera": {
+      const s = sorted.join("");
+      // 1-2-3-4-5, 2-3-4-5-6, y 3-4-5-6-1 (ordenados como 1-3-4-5-6)
+      baseScore = ["12345", "23456", "13456"].includes(s) ? 20 : 0;
       break;
+    }
 
     case "Full":
       baseScore =
@@ -132,6 +147,11 @@ export default function ScoreTable({
   setLoadingSubmit,
   onAchievementsShown,
   fitViewport = false,
+  embeddedInPanel = false,
+  sidePanel = false,
+  diceSettling = false,
+  useBodyPencilCursor = true,
+  autoTableWidth = false,
 }: ScoreTableProps) {
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
@@ -142,50 +162,15 @@ export default function ScoreTable({
   const [avatarErrors, setAvatarErrors] = useState<{ [key: string]: boolean }>(
     {},
   );
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const pointer = document.querySelector(`.${styles.pointer}`) as HTMLElement;
-    const container = document.querySelector(
-      `.${styles.container}`,
-    ) as HTMLElement;
-
-    const trackPointer = (e: MouseEvent) => {
-      const { clientX, clientY } = e;
-      if (pointer) {
-        pointer.style.left = `${clientX - pointer.offsetWidth / 2 + 10}px`;
-        pointer.style.top = `${clientY - pointer.offsetHeight / 2 - 10}px`;
-      }
-    };
-
-    const handleMouseEnter = () => {
-      if (pointer) {
-        pointer.style.opacity = "1";
-      }
-    };
-
-    const handleMouseLeave = () => {
-      if (pointer) {
-        pointer.style.opacity = "0";
-      }
-    };
-
-    // Disable pointer on touch devices
-    if (!("ontouchstart" in window)) {
-      document.addEventListener("mousemove", trackPointer);
-      if (container) {
-        container.addEventListener("mouseenter", handleMouseEnter);
-        container.addEventListener("mouseleave", handleMouseLeave);
-      }
-    }
-
-    return () => {
-      document.removeEventListener("mousemove", trackPointer);
-      if (container) {
-        container.removeEventListener("mouseenter", handleMouseEnter);
-        container.removeEventListener("mouseleave", handleMouseLeave);
-      }
-    };
-  }, []);
+    if (!useBodyPencilCursor) return;
+    if (typeof window === "undefined" || "ontouchstart" in window) return;
+    const container = containerRef.current;
+    if (!container) return;
+    return mountBodyPencilCursor(container);
+  }, [useBodyPencilCursor]);
 
   const { showAchievement } = useAchievement();
 
@@ -249,26 +234,57 @@ export default function ScoreTable({
   };
 
   const compact = fitViewport;
+  const labelColW = compact && sidePanel ? "6.75rem" : "5rem";
+  const sideCompactText = sidePanel ? "text-xs sm:text-sm" : "text-sm";
+  const playerCols =
+    compact && autoTableWidth && sidePanel
+      ? `repeat(${players.length}, minmax(2.65rem, max-content))`
+      : `repeat(${players.length}, minmax(0, 1fr))`;
   const gridCols = compact
-    ? { gridTemplateColumns: `5rem repeat(${players.length}, minmax(0, 1fr))` }
+    ? {
+        gridTemplateColumns: `${labelColW} ${playerCols}`,
+      }
     : undefined;
+
+  const categoryRowsStyle = compact
+    ? {
+        ...gridCols,
+        gridTemplateRows: "repeat(12, minmax(0, 1fr))",
+      }
+    : undefined;
+
+  const paperBg = embeddedInPanel
+    ? {}
+    : {
+        backgroundImage: "url('/textures/marfil.png')",
+        backgroundSize: "cover" as const,
+      };
+
+  const tapCellCursor =
+    useBodyPencilCursor === false ? "cursor-pointer" : "cursor-none";
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
+      ref={containerRef}
+      data-system-cursor={useBodyPencilCursor ? undefined : "true"}
+      initial={embeddedInPanel ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.4, ease: "easeInOut" }}
-      className={`${styles.container} bg-(--color-pearl-white) w-full z-50 ${
+      transition={
+        embeddedInPanel ? { duration: 0 } : { duration: 0.4, ease: "easeInOut" }
+      }
+      className={`${styles.container} z-50 ${
+        compact && autoTableWidth && sidePanel
+          ? "w-max min-w-[288px] max-w-[min(96vw,56rem)] sm:min-w-[300px]"
+          : "w-full"
+      } ${embeddedInPanel ? "bg-transparent" : "bg-(--color-pearl-white)"} ${
         compact
-          ? "h-full min-h-0 flex flex-col overflow-hidden py-2 px-2"
+          ? `h-full min-h-0 flex flex-col overflow-hidden py-2 px-2 sm:px-2.5 ${
+              sidePanel ? "sm:py-3 sm:px-3" : ""
+            }`
           : "h-full py-2 px-2 lg:px-4 overflow-y-auto"
       }`}
-      style={{
-        backgroundImage: "url('/textures/marfil.png')",
-        backgroundSize: "cover",
-      }}
+      style={paperBg}
     >
-      <div className={styles.pointer} />
       {compact ? (
         <>
           {/* Cabecera: avatares + nombres */}
@@ -288,7 +304,9 @@ export default function ScoreTable({
                   alt="Avatar"
                   width={36}
                   height={36}
-                  className="w-9 h-9 rounded-full object-cover"
+                  className={`rounded-full object-cover ${
+                    sidePanel ? "w-8 h-8 sm:w-9 sm:h-9" : "w-9 h-9"
+                  }`}
                   unoptimized
                   onError={() => handleImageError(player.userId)}
                 />
@@ -296,7 +314,7 @@ export default function ScoreTable({
             ))}
           </div>
           <div
-            className="grid gap-x-1 shrink-0 py-1   text-center text-sm font-quicksand font-semibold"
+            className={`grid gap-x-1 shrink-0 py-1 text-center font-quicksand font-semibold ${sideCompactText}`}
             style={gridCols}
           >
             <div />
@@ -317,57 +335,45 @@ export default function ScoreTable({
           {/* Filas de categorías: reparten el alto disponible (12 filas × N columnas) */}
           <div
             className="flex-1 min-h-0 grid gap-x-1 overflow-hidden"
-            style={{
-              ...gridCols,
-              gridTemplateRows: "repeat(12, minmax(0, 1fr))",
-            }}
+            style={categoryRowsStyle}
           >
             {CATEGORIES.flatMap((category, index) => [
               <div
                 key={`${category.name}-label`}
-                className={`flex items-center px-1 text-(--color-black-matte) border-b border-(--color-silver-gray)/40 font-poppins font-bold text-sm ${
-                  index === 0 ? "border-t" : ""
-                }`}
+                className={`flex items-center px-1 text-(--color-black-matte) border-b border-(--color-silver-gray)/40 font-poppins font-bold ${sideCompactText} ${index === 0 ? "border-t" : ""}`}
               >
                 {category.label}
               </div>,
               ...players.map((player) => {
-                const value =
+                const provisional =
                   player.userId === currentTurnId &&
                   isMyTurn &&
-                  !isAlreadySubmitted(
-                    category.name as GameUserCategory,
-                    player.userId,
-                  )
-                    ? calculateScore(
-                        category.label,
-                        diceValues,
-                        rollCount,
-                        player,
-                      )
-                    : player[category.name as GameUserCategory] === null
-                      ? ""
-                      : player[category.name as GameUserCategory];
-                const canTap =
-                  isMyTurn &&
-                  player.userId === currentTurnId &&
                   !isAlreadySubmitted(
                     category.name as GameUserCategory,
                     player.userId,
                   );
+                const value = provisional
+                  ? calculateScore(
+                      category.label,
+                      diceValues,
+                      rollCount,
+                      player,
+                    )
+                  : player[category.name as GameUserCategory] === null
+                    ? ""
+                    : player[category.name as GameUserCategory];
+                const canTap = provisional && !diceSettling;
                 return (
                   <div
                     key={`${category.name}-${player.id}`}
-                    className={`flex items-center justify-center border-b border-(--color-silver-gray)/40 select-none font-quicksand text-sm ${
-                      index === 0 ? "border-t" : ""
-                    } ${
+                    className={`flex items-center justify-center border-b border-(--color-silver-gray)/40 select-none font-quicksand ${sideCompactText} ${index === 0 ? "border-t" : ""} ${
                       isAlreadySubmitted(
                         category.name as GameUserCategory,
                         player.userId,
                       ) && "text-(--color-silver-gray)"
                     } ${
                       canTap
-                        ? "bg-(--color-sapphire-blue)/10 text-(--color-sapphire-blue) font-semibold cursor-pointer hover:bg-(--color-sapphire-blue)/15 rounded"
+                        ? `bg-(--color-sapphire-blue)/10 text-(--color-sapphire-blue) font-semibold ${tapCellCursor} hover:bg-(--color-sapphire-blue)/15 rounded`
                         : ""
                     }`}
                     onClick={() => {
@@ -390,7 +396,7 @@ export default function ScoreTable({
           </div>
           {/* Fila total */}
           <div
-            className="grid gap-x-1 shrink-0 py-2 border-t-2 border-(--color-silver-gray)/50 text-sm font-semibold"
+            className={`grid gap-x-1 shrink-0 py-2 border-t-2 border-(--color-silver-gray)/50 font-semibold ${sideCompactText}`}
             style={gridCols}
           >
             <div className="font-poppins text-(--color-black-matte) flex items-center">
@@ -461,29 +467,24 @@ export default function ScoreTable({
                     {category.label}
                   </td>
                   {players.map((player) => {
-                    const value =
+                    const provisional =
                       player.userId === currentTurnId &&
                       isMyTurn &&
-                      !isAlreadySubmitted(
-                        category.name as GameUserCategory,
-                        player.userId,
-                      )
-                        ? calculateScore(
-                            category.label,
-                            diceValues,
-                            rollCount,
-                            player,
-                          )
-                        : player[category.name as GameUserCategory] === null
-                          ? ""
-                          : player[category.name as GameUserCategory];
-                    const canTap =
-                      isMyTurn &&
-                      player.userId === currentTurnId &&
                       !isAlreadySubmitted(
                         category.name as GameUserCategory,
                         player.userId,
                       );
+                    const value = provisional
+                      ? calculateScore(
+                          category.label,
+                          diceValues,
+                          rollCount,
+                          player,
+                        )
+                      : player[category.name as GameUserCategory] === null
+                        ? ""
+                        : player[category.name as GameUserCategory];
+                    const canTap = provisional && !diceSettling;
                     return (
                       <td
                         key={player.id}
@@ -496,7 +497,7 @@ export default function ScoreTable({
                           ) && "text-(--color-silver-gray)"
                         } ${
                           canTap
-                            ? "transition duration-150 font-semibold text-(--color-sapphire-blue) bg-(--color-sapphire-blue)/8 rounded cursor-pointer hover:bg-(--color-sapphire-blue)/12"
+                            ? `transition duration-150 font-semibold text-(--color-sapphire-blue) bg-(--color-sapphire-blue)/8 rounded ${tapCellCursor} hover:bg-(--color-sapphire-blue)/12`
                             : ""
                         }`}
                         onClick={() => {

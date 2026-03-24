@@ -21,7 +21,7 @@ import { useAchievement } from "@/contexts/AchievementContext";
 import Cup from "@/components/game/Cup";
 import DiceBoard from "@/components/game/DiceBoard";
 import { socket } from "@/lib/socket";
-import ScoreTable from "@/components/game/ScoreSheet";
+import { ScoreSheetPanel } from "@/components/game/ScoreSheetPanel";
 import {
   ArrowLeft,
   ClipboardList,
@@ -31,9 +31,11 @@ import {
   Share2,
   Volume2,
   VolumeX,
-  X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+
+/** Tras terminar la animación de dados, esperar este tiempo antes de mostrar puntajes / abrir anotador */
+const DICE_SETTLE_EXTRA_MS = 500;
 
 interface GameTableProps {
   id: string;
@@ -79,6 +81,7 @@ export default function GameTable() {
   const [dicesToReroll, setDicesToReroll] = useState<number[]>([]);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
   const [showTurnHint, setShowTurnHint] = useState(false);
+  const [showScoreHint, setShowScoreHint] = useState(false);
   // Alert
   const { showAlert, showConfirm } = useAlert();
   // Params
@@ -109,6 +112,14 @@ export default function GameTable() {
     endRect: DOMRect;
   } | null>(null);
   const [scoreBoardOpen, setScoreBoardOpen] = useState(false);
+  /** Durante tirada + DICE_SETTLE_EXTRA_MS después: anotador usa snapshot de dados (no tocar celdas) */
+  const [scoreDiceSettling, setScoreDiceSettling] = useState(false);
+  const prevRollingLoadingRef = useRef(false);
+  /** Dados/rollCount antes de aplicar la última tirada (para mostrar puntajes viejos mientras anima) */
+  const prevDiceForScoreRef = useRef<{
+    diceValues: number[];
+    rollCount: number;
+  }>({ diceValues: [], rollCount: 0 });
   const backSoundRef = useRef<HTMLAudioElement | null>(null);
   const previousUnlockedIdsRef = useRef<Set<string>>(new Set());
   const previousGameEndedRef = useRef(false);
@@ -160,6 +171,9 @@ export default function GameTable() {
             type: "error",
             message: data.error || "Error de conexión",
           });
+          if (res.status === 403 || res.status === 404) {
+            router.replace("/");
+          }
           return;
         }
 
@@ -173,7 +187,7 @@ export default function GameTable() {
     };
 
     fetchGame();
-  }, [gameId, session?.user?.id, showAlert]);
+  }, [gameId, session?.user?.id, showAlert, router]);
 
   useEffect(() => {
     const backSound = new Audio("/sounds/backSound.mp3");
@@ -217,14 +231,16 @@ export default function GameTable() {
       setDicesToReroll(data.dicesToReroll);
 
       setGame((prevGame) => {
-        if (prevGame) {
-          return {
-            ...prevGame,
-            diceValues: data.diceValues,
-            rollCount: data.rollCount,
-          };
-        }
-        return prevGame;
+        if (!prevGame) return prevGame;
+        prevDiceForScoreRef.current = {
+          diceValues: [...prevGame.diceValues],
+          rollCount: prevGame.rollCount,
+        };
+        return {
+          ...prevGame,
+          diceValues: data.diceValues,
+          rollCount: data.rollCount,
+        };
       });
 
       await new Promise((resolve) => setTimeout(resolve, 500));
@@ -284,13 +300,58 @@ export default function GameTable() {
     };
   }, [gameId]);
 
-  // Abrir el anotador automático: al arrancar tu turno (rollCount 0) o al terminar los tiros (rollCount 3, hay que anotar)
+  useEffect(() => {
+    if (!game || !session?.user?.id) {
+      prevRollingLoadingRef.current = rollingLoading;
+      if (!game) setScoreDiceSettling(false);
+      return;
+    }
+    const isMyTurn = session.user.id === game.currentTurnId;
+    if (!isMyTurn) {
+      setScoreDiceSettling(false);
+      prevRollingLoadingRef.current = rollingLoading;
+      return;
+    }
+
+    if (rollingLoading) {
+      setScoreDiceSettling(true);
+      prevRollingLoadingRef.current = true;
+      return;
+    }
+
+    const wasRolling = prevRollingLoadingRef.current;
+    prevRollingLoadingRef.current = false;
+
+    if (wasRolling && game.rollCount >= 1 && game.rollCount <= 3) {
+      setScoreDiceSettling(true);
+      const t = setTimeout(() => {
+        setScoreDiceSettling(false);
+      }, DICE_SETTLE_EXTRA_MS);
+      return () => clearTimeout(t);
+    }
+
+    setScoreDiceSettling(false);
+  }, [
+    rollingLoading,
+    session?.user?.id,
+    game?.id,
+    game?.rollCount,
+    game?.currentTurnId,
+  ]);
+
+  // Abrir el anotador: turno nuevo al instante; tras 3er tiro cuando terminó animación + margen extra
   useEffect(() => {
     if (!game || !session?.user?.id) return;
     const isMyTurn = session.user.id === game.currentTurnId;
-    const shouldOpen = isMyTurn && (game.rollCount === 0 || game.rollCount === 3);
-    if (shouldOpen) setScoreBoardOpen(true);
-  }, [game, session?.user?.id]);
+    if (!isMyTurn) return;
+    if (game.rollCount === 0) {
+      setScoreBoardOpen(true);
+      return;
+    }
+    if (game.rollCount === 3 && !scoreDiceSettling) {
+      setScoreBoardOpen(true);
+    }
+  }, [game, session?.user?.id, scoreDiceSettling]);
 
   // Al cargar la partida, guardar logros actuales para detectar los nuevos al terminar
   useEffect(() => {
@@ -344,7 +405,10 @@ export default function GameTable() {
   }, [game, session?.user?.id, showAchievement]);
 
   const applyReactionToTarget = useCallback(
-    (targetUserId: string, data: { type: "emoji" | "phrase"; value: string; fromUserName?: string }) => {
+    (
+      targetUserId: string,
+      data: { type: "emoji" | "phrase"; value: string; fromUserName?: string },
+    ) => {
       const id = Date.now();
       setReactions((prev) => ({
         ...prev,
@@ -414,6 +478,24 @@ export default function GameTable() {
 
   const isMyTurn = !!game && session?.user?.id === game.currentTurnId;
   const gameEnded = isGameEnded(game);
+
+  const scoreSheetInputLocked =
+    !!game &&
+    isMyTurn &&
+    (rollingLoading || scoreDiceSettling) &&
+    game.rollCount >= 1 &&
+    game.rollCount <= 3;
+
+  const diceValuesForScoreTable = !game
+    ? []
+    : scoreSheetInputLocked
+      ? [...prevDiceForScoreRef.current.diceValues]
+      : game.diceValues;
+  const rollCountForScoreTable = !game
+    ? 0
+    : scoreSheetInputLocked
+      ? prevDiceForScoreRef.current.rollCount
+      : game.rollCount;
 
   const sendReaction = useCallback(
     (targetUserId: string, choice: ReactionChoice) => {
@@ -568,15 +650,38 @@ export default function GameTable() {
       setShowTurnHint(false);
       return;
     }
+    if ((game?.rollCount ?? 0) >= 3) {
+      setShowTurnHint(false);
+      return;
+    }
     const show = setTimeout(() => setShowTurnHint(true), 5000);
     return () => clearTimeout(show);
-  }, [isMyTurn, rollingLoading, gameEnded]);
+  }, [isMyTurn, rollingLoading, gameEnded, game?.rollCount]);
 
   useEffect(() => {
     if (!showTurnHint) return;
     const hide = setTimeout(() => setShowTurnHint(false), 5000);
     return () => clearTimeout(hide);
   }, [showTurnHint]);
+
+  useEffect(() => {
+    if (!isMyTurn || rollingLoading || gameEnded || scoreDiceSettling) {
+      setShowScoreHint(false);
+      return;
+    }
+    if (game?.rollCount !== 3) {
+      setShowScoreHint(false);
+      return;
+    }
+    const show = setTimeout(() => setShowScoreHint(true), 800);
+    return () => clearTimeout(show);
+  }, [isMyTurn, rollingLoading, gameEnded, game?.rollCount, scoreDiceSettling]);
+
+  useEffect(() => {
+    if (!showScoreHint) return;
+    const hide = setTimeout(() => setShowScoreHint(false), 8000);
+    return () => clearTimeout(hide);
+  }, [showScoreHint]);
 
   if (status === "loading") {
     return (
@@ -655,7 +760,7 @@ export default function GameTable() {
               </>
             )}
           </motion.button>
-          {!scoreBoardOpen && (
+          {!gameEnded && (
             <motion.button
               type="button"
               onClick={() => setScoreBoardOpen(true)}
@@ -672,57 +777,7 @@ export default function GameTable() {
           )}
         </div>
 
-        {/* Panel del anotador: renderizado en body para que quede siempre encima de la mesa */}
-        {typeof document !== "undefined" &&
-          createPortal(
-            <AnimatePresence>
-              {scoreBoardOpen && (
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                  className="fixed inset-0 left-0 top-0 bottom-0 z-9999 w-full sm:max-w-[340px] h-screen flex flex-col bg-(--color-black-matte) shadow-2xl border-r border-(--color-metallic-gold)/30"
-                >
-                  <div className="flex items-center justify-end gap-2 px-2 pt-2 pb-1 shrink-0 safe-area-top bg-(--color-black-matte) h-[52px]">
-                    <motion.button
-                      type="button"
-                      onClick={() => setScoreBoardOpen(false)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-quicksand text-(--color-pearl-white)/90 hover:text-(--color-pearl-white) hover:bg-white/10 transition"
-                      whileTap={{ scale: 0.98 }}
-                      aria-label="Cerrar anotador"
-                    >
-                      <X className="h-4 w-4" />
-                      <span className="hidden sm:inline">Cerrar</span>
-                    </motion.button>
-                  </div>
-                  <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-                    <ScoreTable
-                      players={game.players}
-                      currentTurnId={game.currentTurnId}
-                      isMyTurn={isMyTurn}
-                      diceValues={game.diceValues}
-                      rollCount={game.rollCount}
-                      loadingSubmit={loadingSubmit}
-                      setLoadingSubmit={setLoadingSubmit}
-                      onAchievementsShown={(ids) =>
-                        ids.forEach((id) =>
-                          previousUnlockedIdsRef.current.add(id),
-                        )
-                      }
-                      fitViewport
-                    />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>,
-            document.body,
-          )}
-        <div
-          className={`flex-1 relative min-h-0 transition-[margin] duration-300 ease-out ${
-            scoreBoardOpen ? "sm:ml-[340px]" : ""
-          }`}
-        >
+        <div className="flex-1 relative min-h-0">
           <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 flex flex-row items-center gap-2 z-100 safe-area-bottom">
             <AnimatePresence>
               {audioControlsOpen && (
@@ -833,7 +888,7 @@ export default function GameTable() {
                   setDicesToReroll={setDicesToReroll}
                 />
                 <AnimatePresence>
-                  {showTurnHint && isMyTurn && (
+                  {showTurnHint && isMyTurn && game.rollCount < 3 && (
                     <motion.div
                       key="turn-hint"
                       initial={{ opacity: 0, y: 8 }}
@@ -857,6 +912,42 @@ export default function GameTable() {
                     </motion.div>
                   )}
                 </AnimatePresence>
+                <AnimatePresence>
+                  {showScoreHint && isMyTurn && game.rollCount === 3 && (
+                    <motion.div
+                      key="score-hint"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 8 }}
+                      transition={{ duration: 0.25 }}
+                      className="absolute bottom-[12%] sm:bottom-[18%] left-1/2 -translate-x-1/2 z-10 w-[calc(100%-1.5rem)] max-w-[90%] sm:max-w-md"
+                    >
+                      <div className="rounded-xl sm:rounded-2xl bg-(--color-pearl-white)/95 backdrop-blur-sm border border-(--color-metallic-gold) sm:border-2 shadow-lg px-3 py-2 sm:px-4 sm:py-3 text-center">
+                        <p className="text-xs sm:text-base font-poppins font-medium text-(--color-sapphire-blue) leading-tight">
+                          📝 Abrí el anotador y tocá una categoría para anotar
+                          tu tirada.
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <ScoreSheetPanel
+                  open={scoreBoardOpen}
+                  onOpen={() => setScoreBoardOpen(true)}
+                  onClose={() => setScoreBoardOpen(false)}
+                  gameEnded={gameEnded}
+                  players={game.players}
+                  currentTurnId={game.currentTurnId}
+                  isMyTurn={isMyTurn}
+                  diceValues={diceValuesForScoreTable}
+                  rollCount={rollCountForScoreTable}
+                  loadingSubmit={loadingSubmit}
+                  setLoadingSubmit={setLoadingSubmit}
+                  onAchievementsShown={(ids) =>
+                    ids.forEach((id) => previousUnlockedIdsRef.current.add(id))
+                  }
+                  diceSettling={scoreSheetInputLocked}
+                />
               </>
             ) : (
               <motion.div

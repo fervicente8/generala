@@ -210,14 +210,14 @@ export default function FriendsRequests({
   return (
     <div className='flex flex-col gap-2'>
       {invitations.length > 0 && (
-        <div className='flex items-center gap-2 px-4 py-2 rounded-lg bg-[#2E4A3D] border-2 border-[#D4A017]'>
+        <div className="flex items-center gap-2 rounded-xl border border-amber-400/25 bg-amber-500/10 px-4 py-2">
           <motion.div
             animate={{ rotate: [0, 360], scale: [1, 1.2, 1] }}
             transition={{ repeat: Infinity, duration: 2 }}
           >
-            <Image src='/dice-icon.png' alt='Dado' width={24} height={24} />
+            <Image src="/dice-icon.png" alt="" width={24} height={24} />
           </motion.div>
-          <h2 className='text-md text-[#F5F5F5] font-poppins'>
+          <h2 className="font-poppins text-sm font-semibold text-amber-100 sm:text-base">
             Invitaciones de juego pendientes
           </h2>
         </div>
@@ -227,7 +227,7 @@ export default function FriendsRequests({
           {invitations.map((invitation) => (
             <motion.div
               key={invitation.id}
-              className='flex items-center justify-between gap-2 border-2 border-[#D4A017] py-2 px-4 rounded-xl bg-[#F5F5F5]'
+              className="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/6 px-4 py-2"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
@@ -239,10 +239,10 @@ export default function FriendsRequests({
                   alt='Avatar'
                   width={40}
                   height={40}
-                  className='rounded-full border-2 border-[#D4A017]'
+                  className="rounded-full border-2 border-amber-400/35"
                   unoptimized
                 />
-                <p className='text-sm font-quicksand text-[#1A1A1A]'>
+                <p className="font-quicksand text-sm text-zinc-100">
                   {invitation.sender.name} te ha invitado a jugar
                 </p>
               </div>
@@ -253,7 +253,7 @@ export default function FriendsRequests({
                 >
                   <X
                     onClick={() => handleRejectInvitation(invitation.id)}
-                    className='cursor-pointer text-[#A91D2F] hover:text-[#DC2626]'
+                    className="cursor-pointer text-red-400 hover:text-red-300"
                   />
                 </motion.div>
                 <motion.div
@@ -262,7 +262,7 @@ export default function FriendsRequests({
                 >
                   <Check
                     onClick={() => handleAcceptInvitation(invitation.id)}
-                    className='cursor-pointer text-[#1A6642] hover:text-[#2E8B57]'
+                    className="cursor-pointer text-emerald-400 hover:text-emerald-300"
                   />
                 </motion.div>
               </div>
@@ -271,14 +271,14 @@ export default function FriendsRequests({
         </div>
       )}
       {incomingRequests.length > 0 && (
-        <div className='flex items-center gap-2 px-4 py-2 rounded-lg bg-[#2E4A3D] border-2 border-[#D4A017]'>
+        <div className="flex items-center gap-2 rounded-xl border border-sky-400/25 bg-sky-500/10 px-4 py-2">
           <motion.div
             animate={{ rotate: [0, 360], scale: [1, 1.2, 1] }}
             transition={{ repeat: Infinity, duration: 2 }}
           >
-            <Image src='/dice-icon.png' alt='Dado' width={24} height={24} />
+            <Image src="/dice-icon.png" alt="" width={24} height={24} />
           </motion.div>
-          <h2 className='text-md text-[#F5F5F5] font-poppins'>
+          <h2 className="font-poppins text-sm font-semibold text-sky-100 sm:text-base">
             Peticiones de amistad pendientes
           </h2>
         </div>
@@ -288,7 +288,7 @@ export default function FriendsRequests({
           {incomingRequests.map((request) => (
             <motion.div
               key={request.id}
-              className='flex items-center justify-between gap-2 border-2 border-[#D4A017] py-2 px-4 rounded-xl bg-[#F5F5F5]'
+              className="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/6 px-4 py-2"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
@@ -300,10 +300,10 @@ export default function FriendsRequests({
                   alt='Avatar'
                   width={40}
                   height={40}
-                  className='rounded-full border-2 border-[#D4A017]'
+                  className="rounded-full border-2 border-amber-400/35"
                   unoptimized
                 />
-                <p className='font-quicksand text-[#1A1A1A]'>
+                <p className="font-quicksand text-zinc-100">
                   {request.requester.name}
                 </p>
               </div>
@@ -316,7 +316,7 @@ export default function FriendsRequests({
                     onClick={() =>
                       handleRequestResponse(request.id, "REJECTED")
                     }
-                    className='cursor-pointer text-[#A91D2F] hover:text-[#DC2626]'
+                    className="cursor-pointer text-red-400 hover:text-red-300"
                   />
                 </motion.div>
                 <motion.div
@@ -327,7 +327,7 @@ export default function FriendsRequests({
                     onClick={() =>
                       handleRequestResponse(request.id, "ACCEPTED")
                     }
-                    className='cursor-pointer text-[#1A6642] hover:text-[#2E8B57]'
+                    className="cursor-pointer text-emerald-400 hover:text-emerald-300"
                   />
                 </motion.div>
               </div>

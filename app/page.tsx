@@ -14,7 +14,12 @@ import {
   EyeOff,
   ChartColumnIncreasing,
   Trophy,
+  Medal,
+  Zap,
+  Sparkles,
+  Users,
 } from "lucide-react";
+import { RankingGlassCard } from "@/components/home/RankingGlassCard";
 import { motion, AnimatePresence } from "framer-motion";
 import CustomLoadingSpinner from "@/components/ui/CustomLoadingSpinner";
 import LoadingOverlay from "@/components/ui/LoadingOverlay";
@@ -87,6 +92,22 @@ export default function MainMenu() {
       user: { id: string; name: string; image: string | null };
       gamesWon: number;
       totalPoints: number;
+    }[]
+  >([]);
+  const [globalHighScoreRanking, setGlobalHighScoreRanking] = useState<
+    {
+      rank: number;
+      user: { id: string; name: string; image: string | null };
+      highestScore: number;
+      gamesPlayed: number;
+    }[]
+  >([]);
+  const [friendsHighScoreRanking, setFriendsHighScoreRanking] = useState<
+    {
+      rank: number;
+      user: { id: string; name: string; image: string | null };
+      highestScore: number;
+      gamesPlayed: number;
     }[]
   >([]);
   const [rankingsLoading, setRankingsLoading] = useState(false);
@@ -253,6 +274,21 @@ export default function MainMenu() {
             type: "error",
             message: data.error || "Error de conexión",
           });
+          setActiveRoom(null);
+          return;
+        }
+        if (!data?.id) {
+          setActiveRoom(null);
+          return;
+        }
+        const stillInGame = Array.isArray(data.players)
+          ? data.players.some(
+              (p: { userId: string }) => p.userId === session.user.id,
+            )
+          : false;
+        if (!stillInGame) {
+          setActiveRoom(null);
+          return;
         }
         if (data.status === "finished") {
           setActiveRoom(null);
@@ -275,17 +311,22 @@ export default function MainMenu() {
   useEffect(() => {
     if (!session?.user?.id) return;
     setRankingsLoading(true);
-    Promise.all([
+    Promise.allSettled([
       fetch("/api/users/global-ranking?limit=10").then((r) => r.json()),
       fetch("/api/users/friends-ranking").then((r) => r.json()),
+      fetch("/api/users/high-score-ranking?limit=10").then((r) => r.json()),
+      fetch("/api/users/friends-high-score-ranking").then((r) => r.json()),
     ])
-      .then(([global, friends]) => {
-        setGlobalRanking(Array.isArray(global) ? global : []);
-        setFriendsRanking(Array.isArray(friends) ? friends : []);
-      })
-      .catch(() => {
-        setGlobalRanking([]);
-        setFriendsRanking([]);
+      .then((results) => {
+        const safe = (i: number): unknown[] => {
+          const r = results[i];
+          if (r?.status !== "fulfilled" || !Array.isArray(r.value)) return [];
+          return r.value;
+        };
+        setGlobalRanking(safe(0) as typeof globalRanking);
+        setFriendsRanking(safe(1) as typeof friendsRanking);
+        setGlobalHighScoreRanking(safe(2) as typeof globalHighScoreRanking);
+        setFriendsHighScoreRanking(safe(3) as typeof friendsHighScoreRanking);
       })
       .finally(() => setRankingsLoading(false));
   }, [session?.user?.id]);
@@ -295,7 +336,7 @@ export default function MainMenu() {
 
   if (status === "loading") {
     return (
-      <div className="flex h-dvh items-center justify-center bg-[#1A1A1A]">
+      <div className="flex h-dvh items-center justify-center bg-[#070a10]">
         <LoadingOverlay text="Verificando sesión..." backdropOpacity={0.95} />
       </div>
     );
@@ -619,29 +660,38 @@ export default function MainMenu() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-dvh max-h-dvh bg-linear-to-br from-[#1A1A1A] to-[#2E2E2E] text-[#F5F5F5] font-quicksand overflow-hidden">
+    <div className="relative flex max-h-dvh min-h-dvh flex-col overflow-hidden bg-[#070a10] font-quicksand text-zinc-100 lg:flex-row">
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-20%,rgba(251,191,36,0.11),transparent)]"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute bottom-0 right-0 h-[min(60%,420px)] w-[min(80%,520px)] translate-x-1/3 translate-y-1/4 rounded-full bg-indigo-600/12 blur-3xl"
+        aria-hidden
+      />
       {isInitialLoad && (
         <LoadingOverlay
           text="Cargando salas y amigos..."
           backdropOpacity={0.9}
         />
       )}
-      {/* Sidebar: Amigos - en móvil altura limitada y scroll para que se vea el main */}
-      <aside className="w-full md:w-2/5 lg:w-1/4 p-4 sm:p-6 bg-linear-to-b from-[#2E4A3D] to-[#1A2A22] text-[#F5F5F5] rounded-b-2xl md:rounded-r-2xl shadow-xl border-b-2 md:border-b-0 md:border-r-2 border-[#D4A017] flex-shrink-0 max-h-[45vh] md:max-h-none overflow-y-auto scrollbar-none">
-        <div className="flex items-center gap-2 mb-4">
-          <motion.div
-            animate={{ rotate: [0, 360], scale: [1, 1.2, 1] }}
-            transition={{ repeat: Infinity, duration: 2 }}
-          >
+      <aside className="relative z-10 order-2 flex max-h-[42vh] w-full shrink-0 flex-col overflow-y-auto border-t border-white/10 bg-zinc-950/85 px-4 py-5 backdrop-blur-xl scrollbar-none sm:max-h-[46vh] lg:order-1 lg:h-auto lg:max-h-none lg:w-[min(100%,22rem)] lg:shrink-0 lg:border-t-0 lg:border-r lg:border-white/10 lg:px-5 lg:py-8 xl:w-96">
+        <div className="mb-5 flex items-center gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-amber-400/25 to-amber-800/20 ring-1 ring-amber-400/25">
             <Image
               src="/dice-icon.png"
-              alt="Dado"
-              width={24}
-              height={24}
-              className="sm:w-8 sm:h-8"
+              alt=""
+              width={28}
+              height={28}
+              className="h-7 w-7"
             />
-          </motion.div>
-          <h2 className="text-xl sm:text-2xl font-bold font-poppins">Amigos</h2>
+          </div>
+          <div className="min-w-0">
+            <h2 className="font-poppins text-lg font-semibold tracking-tight text-white sm:text-xl">
+              Amigos
+            </h2>
+            <p className="text-xs text-zinc-500">Buscá, invitá y desafiá</p>
+          </div>
         </div>
         {/* Buscador */}
         <div className="relative mt-4">
@@ -651,23 +701,23 @@ export default function MainMenu() {
             value={friendSearch}
             onChange={(e) => setFriendSearch(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearchFriends()}
-            className="w-full p-3 sm:px-4 bg-[#F0E9D6] rounded-lg shadow-sm focus:outline-none transition-all duration-300 text-[#1A1A1A] text-sm sm:text-base"
+            className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pr-12 text-sm text-white placeholder:text-zinc-500 focus:border-amber-400/35 focus:outline-none focus:ring-2 focus:ring-amber-400/15 sm:text-base"
           />
           <button
             type="button"
             onClick={() => !isSearchingFriends && handleSearchFriends()}
             disabled={isSearchingFriends}
-            className="absolute right-1 top-1/2 -translate-y-1/2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg disabled:opacity-70"
+            className="absolute right-1 top-1/2 flex min-h-[44px] min-w-[44px] -translate-y-1/2 items-center justify-center rounded-lg text-zinc-300 hover:text-white disabled:opacity-70"
             aria-label="Buscar"
           >
             {isSearchingFriends ? (
               <CustomLoadingSpinner
                 size="sm"
                 showText={false}
-                color="#1A1A1A"
+                color="#e4e4e7"
               />
             ) : (
-              <Search className="w-5 h-5 sm:w-6 sm:h-6 text-[#1A1A1A]" />
+              <Search className="h-5 w-5 sm:h-6 sm:w-6" />
             )}
           </button>
         </div>
@@ -679,7 +729,7 @@ export default function MainMenu() {
                 <CustomLoadingSpinner
                   size="sm"
                   text="Buscando amigos"
-                  textColor="#F5F5F5"
+                  textColor="#d4d4d8"
                 />
               </div>
             ) : (
@@ -692,7 +742,7 @@ export default function MainMenu() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
                       transition={{ duration: 0.3 }}
-                      className="p-3 sm:p-4 bg-[#F5F5F5] rounded-xl shadow-sm border-2 border-[#D4A017]"
+                      className="rounded-2xl border border-white/10 bg-white/6 p-3 shadow-inner shadow-black/30 sm:p-4"
                     >
                       <FriendCard
                         sessionUser={session?.user as User}
@@ -717,15 +767,15 @@ export default function MainMenu() {
                 <CustomLoadingSpinner
                   size="sm"
                   text="Cargando amigos"
-                  textColor="#F5F5F5"
+                  textColor="#d4d4d8"
                 />
               </div>
             ) : friends.length === 0 ? (
-              <div className="mt-4 sm:mt-5 text-center">
-                <p className="text-[#B0B0B0] italic text-sm sm:text-base">
+              <div className="mt-4 text-center sm:mt-5">
+                <p className="text-sm text-zinc-500 sm:text-base">
                   No tenés amigos agregados.
                 </p>
-                <p className="text-[#D4A017] text-xs sm:text-sm mt-2">
+                <p className="mt-2 text-xs text-amber-400/80 sm:text-sm">
                   Usá el buscador de arriba para agregar amigos.
                 </p>
               </div>
@@ -735,9 +785,9 @@ export default function MainMenu() {
                   <motion.div
                     initial={{ opacity: 0, y: -8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mt-3 flex items-center justify-between gap-2 p-2 rounded-lg bg-[#1A6642] border border-[#D4A017]"
+                    className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-emerald-500/35 bg-emerald-500/10 px-3 py-2"
                   >
-                    <span className="text-[#F5F5F5] text-sm font-quicksand">
+                    <span className="text-sm text-emerald-50/95">
                       Desafiar a {selectedForChallenge.length}{" "}
                       {selectedForChallenge.length === 1 ? "amigo" : "amigos"}
                     </span>
@@ -745,14 +795,14 @@ export default function MainMenu() {
                       type="button"
                       disabled={isCreatingChallenge}
                       onClick={createChallengeRoom}
-                      className="px-3 py-1.5 rounded-lg bg-[#F5F5F5] text-[#1A6642] font-poppins font-semibold text-sm hover:bg-[#E2D8BA] disabled:opacity-70 flex items-center gap-2"
+                      className="flex items-center gap-2 rounded-lg bg-white px-3 py-1.5 font-poppins text-sm font-semibold text-emerald-900 hover:bg-emerald-50 disabled:opacity-70"
                     >
                       {isCreatingChallenge ? (
                         <>
                           <CustomLoadingSpinner
                             size="sm"
                             showText={false}
-                            color="#1A6642"
+                            color="#064e3b"
                           />
                           Creando…
                         </>
@@ -776,7 +826,7 @@ export default function MainMenu() {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -20 }}
                           transition={{ duration: 0.3 }}
-                          className="p-3 sm:p-4 bg-[#F5F5F5] rounded-xl shadow-sm border-2 border-[#D4A017]"
+                          className="rounded-2xl border border-white/10 bg-white/6 p-3 shadow-inner shadow-black/30 sm:p-4"
                         >
                           <FriendCard
                             sessionUser={session?.user as User}
@@ -818,157 +868,132 @@ export default function MainMenu() {
         </div>
       </aside>
 
-      {/* Contenido principal: espaciador al final cuando hay sala activa para poder scrollear y ver todo el panel */}
-      <main className='flex-1 min-h-0 p-4 sm:p-6 md:p-8 overflow-y-auto overflow-x-hidden scrollbar-none bg-[#1A1C1C] sm:bg-linear-to-br sm:from-[#1A1A1A] sm:to-[#2E2E2E] sm:bg-[url("/background.png")] sm:bg-cover sm:bg-center'>
-        <div className="w-full max-w-7xl mx-auto">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-4">
-            <h1 className="text-center text-lg sm:text-xl lg:text-4xl font-extrabold font-poppins text-[#E2D8BA] drop-shadow-lg truncate">
-              Bienvenido/a, {session.user?.name}
-            </h1>
-            <div className="flex flex-row gap-2 sm:gap-4 items-center justify-center flex-wrap">
+      <main className="relative z-10 order-1 flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden scrollbar-none lg:min-w-0">
+        <div className="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6 sm:py-8 lg:max-w-7xl lg:px-10">
+          <header className="mb-8 flex flex-col gap-4 sm:mb-10 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
+            <div className="min-w-0">
+              <p className="mb-1 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-400/90 sm:text-xs">
+                <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                Generala online
+              </p>
+              <h1 className="font-poppins text-2xl font-bold tracking-tight text-white sm:text-3xl lg:text-4xl">
+                Hola,{" "}
+                <span className="bg-linear-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent">
+                  {session.user?.name}
+                </span>
+              </h1>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
               <motion.button
+                type="button"
                 onClick={() => {
                   setStatsToShow(session.user.stats);
                   setShowStats(true);
                 }}
-                className="bg-[#2E4A3D] text-[#F5F5F5] min-h-[44px] py-2 px-3 sm:px-4 rounded-xl shadow-md flex items-center justify-center hover:bg-[#2E4A3D]/80 text-sm sm:text-base"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-zinc-100 backdrop-blur-sm hover:bg-white/10 sm:px-4"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                <ChartColumnIncreasing className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                Ver estadísticas
+                <ChartColumnIncreasing className="h-4 w-4 shrink-0 text-amber-300/90 sm:h-[18px] sm:w-[18px]" />
+                Estadísticas
               </motion.button>
               <motion.button
+                type="button"
                 onClick={() => setShowAchievements(true)}
-                className="bg-[#D4A017] text-white min-h-[44px] py-2 px-3 sm:px-4 rounded-xl shadow-md flex items-center justify-center hover:bg-amber-500 text-sm sm:text-base"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-amber-400/35 bg-linear-to-br from-amber-500/25 to-amber-700/10 px-3 py-2 text-sm font-semibold text-amber-50 hover:from-amber-500/35 sm:px-4"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                <Trophy className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                <Trophy className="h-4 w-4 shrink-0 sm:h-[18px] sm:w-[18px]" />
                 Logros
               </motion.button>
               <motion.button
+                type="button"
                 onClick={handleCloseSession}
-                className="bg-[#A91D2F] text-[#F5F5F5] min-h-[44px] py-2 px-3 sm:px-4 rounded-xl shadow-md flex items-center justify-center hover:bg-[#DC2626] text-sm sm:text-base"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-red-500/25 bg-red-950/40 px-3 py-2 text-sm font-medium text-red-100 hover:bg-red-950/55 sm:px-4"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                <LogOut className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                Cerrar sesión
+                <LogOut className="h-4 w-4 shrink-0 sm:h-[18px] sm:w-[18px]" />
+                Salir
               </motion.button>
             </div>
-          </div>
+          </header>
 
-          {/* Rankings */}
-          <section className="mb-4 sm:mb-6">
-            <h2 className="text-lg sm:text-xl font-bold font-poppins text-[#E2D8BA] mb-3 flex items-center gap-2">
-              <Trophy className="h-5 w-5 sm:h-6 sm:w-6" />
-              Rankings
-            </h2>
-            {rankingsLoading ? (
-              <div className="flex justify-center py-6">
-                <CustomLoadingSpinner
-                  size="sm"
-                  showText={false}
-                  color="#E2D8BA"
-                />
+          <section className="mb-10 sm:mb-12">
+            <div className="mb-4 flex items-center gap-3 sm:mb-6">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-300 ring-1 ring-amber-400/25">
+                <Trophy className="h-5 w-5" aria-hidden />
               </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-[#F5F5F5]/90 rounded-xl p-4 border-2 border-[#D4A017]/50">
-                  <p className="text-sm font-semibold text-[#1A1A1A] font-poppins mb-2">
-                    Global (top 10)
-                  </p>
-                  <ul className="space-y-1.5 max-h-48 overflow-y-auto">
-                    {globalRanking.map((item) => (
-                      <li
-                        key={item.user.id}
-                        className="flex items-center gap-2 text-sm font-quicksand"
-                      >
-                        <span className="w-6 text-[#D4A017] font-bold">
-                          {item.rank}º
-                        </span>
-                        <Image
-                          src={item.user.image || "/default-avatar.png"}
-                          alt=""
-                          width={24}
-                          height={24}
-                          className="rounded-full shrink-0"
-                          unoptimized
-                        />
-                        <span className="truncate text-[#1A1A1A]">
-                          {item.user.name}
-                        </span>
-                        <span className="ml-auto text-right shrink-0 text-[#2E4A3D] font-semibold text-xs whitespace-nowrap">
-                          {item.gamesWon}{" "}
-                          {item.gamesWon === 1 ? "victoria" : "victorias"} ·{" "}
-                          {item.totalPoints} pts
-                        </span>
-                      </li>
-                    ))}
-                    {globalRanking.length === 0 && (
-                      <li className="text-[#B0B0B0] text-sm">Sin datos</li>
-                    )}
-                  </ul>
-                </div>
-                <div className="bg-[#F5F5F5]/90 rounded-xl p-4 border-2 border-[#D4A017]/50">
-                  <p className="text-sm font-semibold text-[#1A1A1A] font-poppins mb-2">
-                    Amigos
-                  </p>
-                  <ul className="space-y-1.5 max-h-48 overflow-y-auto">
-                    {friendsRanking.map((item) => (
-                      <li
-                        key={item.user.id}
-                        className="flex items-center gap-2 text-sm font-quicksand"
-                      >
-                        <span className="w-6 text-[#D4A017] font-bold">
-                          {item.rank}º
-                        </span>
-                        <Image
-                          src={item.user.image || "/default-avatar.png"}
-                          alt=""
-                          width={24}
-                          height={24}
-                          className="rounded-full shrink-0"
-                          unoptimized
-                        />
-                        <span className="truncate text-[#1A1A1A]">
-                          {item.user.name}
-                        </span>
-                        <span className="ml-auto text-right shrink-0 text-[#2E4A3D] font-semibold text-xs whitespace-nowrap">
-                          {item.gamesWon}{" "}
-                          {item.gamesWon === 1 ? "victoria" : "victorias"} ·{" "}
-                          {item.totalPoints} pts
-                        </span>
-                      </li>
-                    ))}
-                    {friendsRanking.length === 0 && (
-                      <li className="text-[#B0B0B0] text-sm">
-                        Sin amigos con partidas
-                      </li>
-                    )}
-                  </ul>
-                </div>
+              <div>
+                <h2 className="font-poppins text-lg font-semibold text-white sm:text-xl">
+                  Rankings
+                </h2>
+                <p className="text-xs text-zinc-500 sm:text-sm">
+                  Victorias y mejores puntajes en una partida
+                </p>
               </div>
-            )}
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <RankingGlassCard
+                title="Victorias globales"
+                subtitle="Top 10 jugadores"
+                icon={Medal}
+                accent="gold"
+                loading={rankingsLoading}
+                emptyMessage="Todavía no hay datos."
+                variant="wins"
+                winsRows={globalRanking}
+              />
+              <RankingGlassCard
+                title="Mejor partida"
+                subtitle="Puntaje más alto · global"
+                icon={Zap}
+                accent="violet"
+                loading={rankingsLoading}
+                emptyMessage="Nadie registró una partida todavía."
+                variant="highScore"
+                highScoreRows={globalHighScoreRanking}
+              />
+              <RankingGlassCard
+                title="Tus amigos"
+                subtitle="Por victorias"
+                icon={Users}
+                accent="emerald"
+                loading={rankingsLoading}
+                emptyMessage="Sin amigos con partidas."
+                variant="wins"
+                winsRows={friendsRanking}
+              />
+              <RankingGlassCard
+                title="Amigos · récord"
+                subtitle="Mayor puntaje en una partida"
+                icon={Zap}
+                accent="sky"
+                loading={rankingsLoading}
+                emptyMessage="Nadie de tu lista tiene récord aún."
+                variant="highScore"
+                highScoreRows={friendsHighScoreRanking}
+              />
+            </div>
           </section>
 
           {/* Sala activa */}
           {activeRoom && (
-            <section className="mt-4 sm:mt-6">
-              <h2 className="text-xl sm:text-2xl font-bold font-poppins text-[#E2D8BA] mb-4">
-                Sala activa
+            <section className="mt-6 sm:mt-8">
+              <h2 className="mb-3 font-poppins text-lg font-semibold text-white sm:mb-4 sm:text-xl">
+                Tu sala
               </h2>
               <motion.div
-                className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 bg-[#F5F5F5] rounded-xl shadow-md border-2 border-[#D4A017] w-full sm:w-3/4 md:w-2/3"
+                className="flex w-full flex-col items-start justify-between gap-4 rounded-2xl border border-white/10 bg-white/6 p-4 shadow-[0_20px_40px_-24px_rgba(0,0,0,0.8)] backdrop-blur-md sm:w-[min(100%,42rem)] sm:flex-row sm:items-center sm:p-5"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <div className="flex flex-col gap-2 w-full sm:w-auto">
-                  <p className="text-[#1A1A1A] text-base sm:text-lg font-poppins italic">
+                <div className="flex w-full flex-col gap-3 sm:w-auto">
+                  <p className="font-poppins text-base text-white sm:text-lg">
                     {activeRoom.name}
                   </p>
-                  <div className="flex gap-2 items-center flex-wrap">
+                  <div className="flex flex-wrap items-center gap-2">
                     {activeRoom.players.map((player) => (
                       <Image
                         key={player.id}
@@ -976,22 +1001,23 @@ export default function MainMenu() {
                         alt="Avatar"
                         width={48}
                         height={48}
-                        className="rounded-full border-2 border-[#D4A017] w-10 h-10 sm:w-12 sm:h-12"
+                        className="h-10 w-10 rounded-full border-2 border-amber-400/40 sm:h-12 sm:w-12"
                         unoptimized
                       />
                     ))}
                   </div>
                 </div>
-                <div className="flex flex-col gap-2 mt-4 sm:mt-0 sm:items-end w-full sm:w-auto">
-                  <p className="text-[#1A1A1A] text-base sm:text-lg font-bold font-poppins">
+                <div className="mt-0 flex w-full flex-col gap-2 sm:w-auto sm:items-end">
+                  <p className="font-poppins text-base font-medium text-zinc-400 sm:text-lg">
                     {activeRoom.players.length}/{activeRoom.maxPlayers}{" "}
                     jugadores
                   </p>
                   <motion.button
-                    className={`w-full sm:w-auto flex items-center justify-center gap-2 bg-[#A91D2F] text-[#F5F5F5] font-poppins font-semibold py-2 px-4 sm:py-3 sm:px-6 rounded-xl shadow-md ${
+                    type="button"
+                    className={`flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-950/50 px-4 py-2.5 font-poppins font-semibold text-red-100 sm:w-auto sm:px-6 sm:py-3 ${
                       isDeletingRoom || isLeavingRoom
-                        ? "opacity-50 cursor-not-allowed"
-                        : "hover:bg-[#DC2626]"
+                        ? "cursor-not-allowed opacity-50"
+                        : "hover:bg-red-950/70"
                     }`}
                     onClick={async () => {
                       if (isDeletingRoom || isLeavingRoom) return;
@@ -1009,15 +1035,23 @@ export default function MainMenu() {
                         leaveRoom(activeRoom.id);
                       }
                     }}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
+                    whileHover={
+                      isDeletingRoom || isLeavingRoom
+                        ? undefined
+                        : { scale: 1.02 }
+                    }
+                    whileTap={
+                      isDeletingRoom || isLeavingRoom
+                        ? undefined
+                        : { scale: 0.98 }
+                    }
                   >
                     {isDeletingRoom ? (
                       <>
                         <CustomLoadingSpinner
                           size="sm"
                           showText={false}
-                          color="#F5F5F5"
+                          color="#fecaca"
                         />
                         Eliminando...
                       </>
@@ -1026,7 +1060,7 @@ export default function MainMenu() {
                         <CustomLoadingSpinner
                           size="sm"
                           showText={false}
-                          color="#F5F5F5"
+                          color="#fecaca"
                         />
                         Saliendo...
                       </>
@@ -1042,40 +1076,57 @@ export default function MainMenu() {
           )}
 
           {/* Listado de salas */}
-          <section className="mt-4 sm:mt-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-4">
-              <h2 className="text-xl sm:text-2xl font-bold font-poppins text-[#E2D8BA]">
-                Salas disponibles
-              </h2>
+          <section className="mt-8 sm:mt-10">
+            <div className="mb-4 flex flex-col gap-4 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="font-poppins text-lg font-semibold text-white sm:text-xl">
+                  Salas disponibles
+                </h2>
+                <p className="text-xs text-zinc-500 sm:text-sm">
+                  Unite a una partida o creá la tuya
+                </p>
+              </div>
               <motion.button
-                className="w-full sm:w-auto bg-[#2E4A3D] text-[#F5F5F5] py-2 px-4 sm:py-3 sm:px-6 rounded-xl shadow-md hover:bg-[#2E4A3D]/80"
+                type="button"
+                className="w-full rounded-xl border border-amber-400/40 bg-linear-to-br from-amber-500/30 to-amber-800/20 px-5 py-3 font-poppins text-sm font-semibold text-amber-50 shadow-lg shadow-amber-900/20 sm:w-auto"
                 onClick={() => setIsModalOpen(true)}
                 disabled={isLoadingRooms || activeRoom !== null}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
+                whileHover={
+                  isLoadingRooms || activeRoom !== null
+                    ? undefined
+                    : { scale: 1.02 }
+                }
+                whileTap={
+                  isLoadingRooms || activeRoom !== null
+                    ? undefined
+                    : { scale: 0.98 }
+                }
                 style={{
-                  opacity: isLoadingRooms || activeRoom !== null ? 0.5 : 1,
+                  opacity: isLoadingRooms || activeRoom !== null ? 0.45 : 1,
                 }}
               >
-                Crear sala
+                + Crear sala
               </motion.button>
             </div>
-            <div className="w-full flex items-center py-3 bg-[#F0E9D6] shadow-lg rounded-lg mb-4">
-              <Search className="w-5 h-5 sm:w-6 sm:h-6 text-[#1A1A1A] mx-2 sm:mx-4 shrink-0" />
+            <div className="mb-4 flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-sm">
+              <Search
+                className="h-5 w-5 shrink-0 text-zinc-500 sm:h-6 sm:w-6"
+                aria-hidden
+              />
               <input
                 type="text"
-                placeholder="Buscar sala..."
+                placeholder="Buscar por nombre de sala..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="flex-1 focus:outline-none text-[#1A1A1A] font-quicksand text-sm sm:text-base min-w-0"
+                className="min-w-0 flex-1 bg-transparent font-quicksand text-sm text-white placeholder:text-zinc-500 focus:outline-none sm:text-base"
               />
             </div>
             {isJoiningRoom && (
-              <div className="mb-4 flex items-center justify-center gap-2 rounded-xl bg-[#2E4A3D]/60 py-3">
+              <div className="mb-4 flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 py-3">
                 <CustomLoadingSpinner
                   size="sm"
                   text="Uniendo a la sala..."
-                  textColor="#E2D8BA"
+                  textColor="#d4d4d8"
                 />
               </div>
             )}
@@ -1090,20 +1141,23 @@ export default function MainMenu() {
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="p-6 sm:p-8 rounded-xl bg-[#2E4A3D]/40 border-2 border-[#D4A017]/50 text-center"
+                className="rounded-2xl border border-white/10 bg-white/4 p-8 text-center sm:p-10"
               >
-                <p className="text-[#E2D8BA] font-quicksand text-base sm:text-lg mb-2">
-                  No hay salas disponibles.
+                <p className="mb-2 font-quicksand text-base text-zinc-200 sm:text-lg">
+                  No hay salas esperando jugadores.
                 </p>
-                <p className="text-[#B0B0B0] text-sm sm:text-base mb-4">
-                  Creá una sala e invitá a tus amigos a jugar.
+                <p className="mb-6 text-sm text-zinc-500 sm:text-base">
+                  Creá una sala e invitá a tus amigos.
                 </p>
                 <motion.button
-                  className="bg-[#2E4A3D] text-[#F5F5F5] font-poppins font-semibold py-3 px-6 rounded-xl shadow-md hover:bg-[#2E4A3D]/90 border-2 border-[#D4A017]"
+                  type="button"
+                  className="rounded-xl border border-amber-400/35 bg-amber-500/20 px-6 py-3 font-poppins font-semibold text-amber-50 hover:bg-amber-500/30"
                   onClick={() => setIsModalOpen(true)}
                   disabled={activeRoom !== null}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={
+                    activeRoom !== null ? undefined : { scale: 1.03 }
+                  }
+                  whileTap={activeRoom !== null ? undefined : { scale: 0.98 }}
                 >
                   Crear sala
                 </motion.button>
@@ -1112,8 +1166,8 @@ export default function MainMenu() {
                 (room) =>
                   room.name.includes(search) && room.status === "waiting",
               ).length === 0 ? (
-              <p className="text-[#B0B0B0] italic font-quicksand text-sm sm:text-base">
-                No se encontraron salas con el nombre "{search}".
+              <p className="font-quicksand text-sm text-zinc-500 sm:text-base">
+                No hay salas que coincidan con «{search}».
               </p>
             ) : (
               <ul className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -1129,7 +1183,7 @@ export default function MainMenu() {
                       !room ? (
                         <div
                           key={index}
-                          className="relative flex justify-center items-center p-3 sm:p-4 py-5 sm:py-6 bg-[#F5F5F5] rounded-xl shadow-md border-2 border-[#D4A017]"
+                          className="relative flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 py-6 sm:p-4"
                         >
                           <CustomLoadingSpinner size="md" showText={false} />
                         </div>
@@ -1140,11 +1194,11 @@ export default function MainMenu() {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -20 }}
                           transition={{ duration: 0.3 }}
-                          className={`relative flex items-center p-3 sm:p-4 bg-[#F5F5F5] rounded-xl shadow-md border-2 border-[#D4A017] ${
+                          className={`relative flex items-center rounded-2xl border border-white/10 bg-white/[0.07] p-3 backdrop-blur-sm transition sm:p-4 ${
                             room.players.length >= room.maxPlayers ||
                             isJoiningRoom
-                              ? "cursor-not-allowed grayscale"
-                              : "cursor-pointer hover:shadow-xl hover:scale-105"
+                              ? "cursor-not-allowed opacity-60 grayscale"
+                              : "cursor-pointer hover:border-amber-400/25 hover:bg-white/10"
                           }`}
                           onClick={() => {
                             if (isJoiningRoom) return;
@@ -1170,23 +1224,23 @@ export default function MainMenu() {
                             alt="Avatar"
                             width={32}
                             height={32}
-                            className="rounded-full mr-3 sm:mr-4 border-2 border-[#D4A017] w-8 h-8 sm:w-10 sm:h-10"
+                            className="mr-3 h-8 w-8 rounded-full border-2 border-amber-400/35 sm:mr-4 sm:h-10 sm:w-10"
                             unoptimized
                           />
-                          <div className="flex flex-col flex-grow">
-                            <span className="text-base sm:text-lg font-semibold font-poppins text-[#1A1A1A]">
+                          <div className="min-w-0 flex grow flex-col">
+                            <span className="truncate font-poppins text-base font-semibold text-white sm:text-lg">
                               {room?.name || "Sin nombre"}
                             </span>
-                            <span className="text-xs sm:text-sm text-[#B0B0B0] font-quicksand">
+                            <span className="font-quicksand text-xs text-zinc-500 sm:text-sm">
                               {room?.minPlayers ?? 0} a {room?.maxPlayers ?? 0}{" "}
                               jugadores
                             </span>
                           </div>
-                          <span className="text-sm sm:text-md font-semibold text-[#1A1A1A] font-poppins">
+                          <span className="shrink-0 font-poppins text-sm font-semibold tabular-nums text-amber-200/90 sm:text-base">
                             {room?.players?.length ?? 0}/{room?.maxPlayers ?? 0}
                           </span>
                           {room?.password && (
-                            <span className="absolute top-2 right-2 text-[#B0B0B0]">
+                            <span className="absolute right-2 top-2 text-zinc-500">
                               <LockIcon size={16} className="sm:w-5 sm:h-5" />
                             </span>
                           )}
@@ -1196,32 +1250,33 @@ export default function MainMenu() {
                               animate={{ opacity: 1 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.3 }}
-                              className="absolute top-0 left-0 w-full h-full bg-black/50 rounded-xl flex items-center justify-center cursor-default"
+                              className="absolute inset-0 flex cursor-default items-center justify-center rounded-2xl bg-black/65 backdrop-blur-sm"
                             >
                               <motion.div
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
                                 exit={{ scale: 0 }}
                                 transition={{ duration: 0.3 }}
-                                className="bg-[#F5F5F5] p-4 sm:p-6 rounded-xl shadow-md w-[90%] max-w-sm"
+                                className="w-[90%] max-w-sm rounded-2xl border border-white/15 bg-zinc-900/95 p-4 shadow-2xl sm:p-6"
                               >
-                                <h2 className="text-base sm:text-lg font-semibold font-poppins text-[#1A1A1A] mb-2">
-                                  Ingrese la contraseña
+                                <h2 className="mb-2 font-poppins text-base font-semibold text-white sm:text-lg">
+                                  Contraseña de la sala
                                 </h2>
                                 <input
                                   type="password"
                                   placeholder="Contraseña"
-                                  className="border-2 border-[#D4A017] rounded-full px-2 py-1 sm:px-3 sm:py-2 w-full mb-2 font-quicksand focus:outline-none focus:ring-2 focus:ring-[#1A6642] text-[#1A1A1A] text-sm sm:text-base"
+                                  className="mb-3 w-full rounded-xl border border-white/15 bg-white/5 px-3 py-2 font-quicksand text-sm text-white placeholder:text-zinc-500 focus:border-amber-400/40 focus:outline-none focus:ring-2 focus:ring-amber-400/20 sm:text-base"
                                   value={password}
                                   onChange={(e) => setPassword(e.target.value)}
                                 />
                                 <motion.button
-                                  className="bg-[#1E3A8A] text-[#F5F5F5] px-3 py-1 sm:px-4 sm:py-2 rounded-full font-poppins hover:bg-[#3B82F6] w-full text-sm sm:text-base"
+                                  type="button"
+                                  className="w-full rounded-xl bg-sky-600 px-4 py-2.5 font-poppins text-sm font-semibold text-white hover:bg-sky-500 sm:text-base"
                                   onClick={() => joinRoom(room.id, password)}
-                                  whileHover={{ scale: 1.1 }}
-                                  whileTap={{ scale: 0.9 }}
+                                  whileHover={{ scale: 1.02 }}
+                                  whileTap={{ scale: 0.98 }}
                                 >
-                                  Ingresar
+                                  Entrar
                                 </motion.button>
                               </motion.div>
                             </motion.div>
@@ -1246,51 +1301,51 @@ export default function MainMenu() {
         {/* Sala activa (barra inferior) */}
         {activeRoom && (
           <motion.div
-            className="absolute bottom-0 left-0 right-0 sm:left-4 sm:right-4 sm:bottom-2 rounded-t-xl backdrop-blur-md bg-[#1E3A8A]/80 text-[#F5F5F5] p-3 sm:p-4 flex flex-col sm:flex-row justify-center sm:justify-between items-center sm:items-center gap-4 z-20 safe-area-bottom min-h-[88px]"
+            className="safe-area-bottom absolute bottom-0 left-0 right-0 z-20 flex min-h-[88px] flex-col items-center gap-4 border-t border-white/10 bg-zinc-950/90 p-3 text-zinc-100 backdrop-blur-xl sm:bottom-3 sm:left-4 sm:right-4 sm:rounded-2xl sm:border sm:p-4 lg:flex-row lg:justify-between"
             initial={{ y: 100 }}
             animate={{ y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="flex flex-col sm:flex-row sm:items-center items-center gap-4 sm:gap-6">
-              <div>
-                <h3 className="text-base sm:text-lg font-bold font-poppins">
+            <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:gap-6">
+              <div className="text-center sm:text-left">
+                <h3 className="font-poppins text-base font-bold sm:text-lg">
                   {activeRoom.name}
                 </h3>
-                <p className="font-quicksand text-sm sm:text-base">
+                <p className="font-quicksand text-sm text-zinc-400 sm:text-base">
                   {activeRoom.status === "waiting"
-                    ? "Esperando jugadores..."
+                    ? "Esperando jugadores…"
                     : "En juego"}
                 </p>
               </div>
-              <div className="flex gap-2 flex-wrap">
+              <div className="mb-1 flex flex-wrap justify-center gap-2 sm:mb-0">
                 {activeRoom?.players?.map((player) => (
                   <motion.div
                     key={player.id}
-                    className="relative flex flex-col items-center bg-[#F5F5F5] p-2 sm:p-5 rounded-xl shadow-sm border-2 border-[#D4A017] mb-3"
-                    whileHover={{ scale: 1.05 }}
+                    className="relative mb-1 flex flex-col items-center rounded-xl border border-white/10 bg-white/10 p-2 sm:p-4"
+                    whileHover={{ scale: 1.03 }}
                   >
                     <Image
                       src={player.user.image || "/default-avatar.png"}
                       alt="Foto de perfil"
                       width={40}
                       height={40}
-                      className="rounded-full border-2 border-[#D4A017] w-8 h-8 sm:w-10 sm:h-10"
+                      className="h-8 w-8 rounded-full border-2 border-amber-400/35 sm:h-10 sm:w-10"
                       unoptimized
                     />
-                    <span className="font-bold text-[#1A1A1A] font-quicksand text-xs sm:text-sm truncate max-w-[80px] sm:max-w-[100px]">
+                    <span className="max-w-[80px] truncate font-quicksand text-xs font-semibold text-white sm:max-w-[100px] sm:text-sm">
                       {player.user.name}
                     </span>
                     {loadingStatsUserId === player.userId ? (
-                      <span className="absolute top-1 left-1 h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center">
+                      <span className="absolute left-1 top-1 flex h-4 w-4 items-center justify-center sm:h-5 sm:w-5">
                         <CustomLoadingSpinner
                           size="sm"
                           showText={false}
-                          color="#1A1A1A"
+                          color="#e4e4e7"
                         />
                       </span>
                     ) : (
                       <ChartColumnIncreasing
-                        className="absolute top-1 left-1 h-4 w-4 sm:h-5 sm:w-5 text-[#1A1A1A] cursor-pointer"
+                        className="absolute left-1 top-1 h-4 w-4 cursor-pointer text-amber-300/90 sm:h-5 sm:w-5"
                         onClick={() => getPlayerStats(player.userId)}
                       />
                     )}
@@ -1317,45 +1372,54 @@ export default function MainMenu() {
                 ))}
               </div>
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-center sm:items-center">
-              <p className="font-quicksand text-sm sm:text-base">
+            <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-4">
+              <p className="font-quicksand text-sm text-zinc-400 sm:text-base">
                 {activeRoom?.players?.length}/{activeRoom.maxPlayers} jugadores
               </p>
               {activeRoom.ownerId === session?.user?.id && (
-                <div className="flex gap-2 items-center w-full sm:w-auto">
+                <div className="flex w-full items-center gap-2 sm:w-auto">
                   <motion.button
+                    type="button"
                     onClick={() =>
                       !isStartingGame &&
                       !isDeletingRoom &&
                       startGame(activeRoom)
                     }
-                    className={`flex-1 sm:flex-none bg-[#1A6642] text-[#F5F5F5] px-3 py-1 sm:px-4 sm:py-2 rounded-xl font-bold font-poppins text-sm sm:text-base ${
+                    className={`flex-1 rounded-xl border border-emerald-500/35 bg-emerald-600/80 px-4 py-2.5 font-poppins text-sm font-bold text-white sm:flex-none sm:px-5 ${
                       isStartingGame || isDeletingRoom
-                        ? "opacity-50 cursor-not-allowed"
-                        : "hover:bg-[#2E8B57]"
+                        ? "cursor-not-allowed opacity-50"
+                        : "hover:bg-emerald-500"
                     }`}
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    whileTap={{ scale: 0.9 }}
+                    whileHover={
+                      isStartingGame || isDeletingRoom
+                        ? undefined
+                        : { scale: 1.02 }
+                    }
+                    whileTap={
+                      isStartingGame || isDeletingRoom
+                        ? undefined
+                        : { scale: 0.98 }
+                    }
                   >
-                    Iniciar Partida
+                    Iniciar partida
                   </motion.button>
                   <motion.div
-                    whileHover={{ scale: isDeletingRoom ? 1 : 1.2 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="flex min-w-[44px] min-h-[44px] items-center justify-center"
+                    whileHover={{ scale: isDeletingRoom ? 1 : 1.08 }}
+                    whileTap={{ scale: 0.92 }}
+                    className="flex min-h-[44px] min-w-[44px] items-center justify-center"
                   >
                     {isDeletingRoom ? (
                       <CustomLoadingSpinner
                         size="sm"
                         showText={false}
-                        color="#F5F5F5"
+                        color="#fecaca"
                       />
                     ) : (
                       <Trash2
-                        className={`h-4 w-4 sm:h-5 sm:w-5 text-[#A91D2F] ${
+                        className={`h-4 w-4 text-red-400 sm:h-5 sm:w-5 ${
                           isStartingGame
-                            ? "opacity-50 cursor-not-allowed"
-                            : "cursor-pointer"
+                            ? "cursor-not-allowed opacity-50"
+                            : "cursor-pointer hover:text-red-300"
                         }`}
                         onClick={async () => {
                           if (isDeletingRoom || isStartingGame) return;
@@ -1379,12 +1443,17 @@ export default function MainMenu() {
         )}
 
         <motion.button
+          type="button"
           onClick={() => router.push("/how-to-play")}
-          className="absolute bottom-2 right-2 sm:bottom-6 sm:right-6 min-h-[35px] min-w-[44px] flex items-center justify-center bg-[#1E3A8A] text-[#F5F5F5] px-3 py-2 sm:px-4 rounded-xl font-poppins hover:bg-[#3B82F6] safe-area-bottom"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+          className={`safe-area-bottom fixed right-3 z-50 flex min-h-[44px] items-center justify-center rounded-full border border-white/15 bg-zinc-900/90 px-4 py-2 font-poppins text-sm text-zinc-100 shadow-lg backdrop-blur-md sm:right-6 sm:px-5 sm:text-base ${
+            activeRoom
+              ? "bottom-[calc(6.25rem+env(safe-area-inset-bottom,0px))] sm:bottom-[calc(8rem+env(safe-area-inset-bottom,0px))]"
+              : "bottom-[max(0.75rem,env(safe-area-inset-bottom,0px))] sm:bottom-6"
+          }`}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
         >
-          <p className="text-sm sm:text-base mt-[-8px]">¿Cómo jugar?</p>
+          ¿Cómo jugar?
         </motion.button>
       </main>
 
@@ -1394,30 +1463,30 @@ export default function MainMenu() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 flex items-end sm:items-center justify-center bg-black/60 z-50 p-0 sm:p-4 safe-area-x"
+          className="safe-area-x fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-0 backdrop-blur-sm sm:items-center sm:p-4"
         >
           <motion.div
-            initial={{ scale: 0.8, y: 50 }}
+            initial={{ scale: 0.92, y: 40 }}
             animate={{ scale: 1, y: 0 }}
-            className="bg-[#F5F5F5] p-4 sm:p-6 rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:w-[400px] sm:max-w-[95%] border-2 border-[#D4A017] max-h-[90dvh] overflow-y-auto safe-area-bottom"
+            className="safe-area-bottom max-h-[90dvh] w-full overflow-y-auto rounded-t-3xl border border-white/10 bg-zinc-900 p-5 shadow-2xl sm:max-w-[95%] sm:rounded-3xl sm:p-7 md:w-[420px]"
           >
             <form onSubmit={(e) => !isCreatingRoom && handleCreateRoom(e)}>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg sm:text-xl font-bold font-poppins text-[#1A1A1A]">
+              <div className="mb-5 flex items-center justify-between">
+                <h2 className="font-poppins text-lg font-bold text-white sm:text-xl">
                   Crear nueva sala
                 </h2>
                 <motion.button
                   type="button"
-                  whileHover={{ scale: 1.2 }}
+                  whileHover={{ scale: 1.08 }}
                   onClick={() => setIsModalOpen(false)}
-                  className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg -mr-2"
+                  className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-zinc-400 hover:bg-white/10 hover:text-white -mr-2"
                   aria-label="Cerrar"
                 >
-                  <X className="text-[#1A1A1A] w-5 h-5 sm:w-6 sm:h-6" />
+                  <X className="h-5 w-5 sm:h-6 sm:w-6" />
                 </motion.button>
               </div>
               <label
-                className="block mb-2 font-quicksand text-[#1A1A1A] text-sm sm:text-base"
+                className="block mb-2 font-quicksand text-zinc-200 text-sm sm:text-base"
                 htmlFor="roomName"
               >
                 Nombre de la sala
@@ -1429,7 +1498,7 @@ export default function MainMenu() {
                 id="roomName"
                 value={gameSettings.name}
                 onChange={handleChange}
-                className="w-full p-2 sm:p-3 border-2 border-[#D4A017] rounded-full focus:outline-none focus:ring-2 focus:ring-[#1A6642] font-quicksand text-[#1A1A1A] text-sm sm:text-base"
+                className="w-full rounded-xl border border-white/15 bg-white/5 p-2.5 font-quicksand text-sm text-white placeholder:text-zinc-500 focus:border-amber-400/35 focus:outline-none focus:ring-2 focus:ring-amber-400/15 sm:p-3 sm:text-base"
                 placeholder={`Sala de ${session.user?.name}`}
                 required
                 minLength={3}
@@ -1438,12 +1507,12 @@ export default function MainMenu() {
               <div className="flex flex-col sm:flex-row justify-between gap-4 mt-4">
                 <div className="w-full sm:w-1/2">
                   <label
-                    className="block mb-2 text-center font-quicksand text-[#1A1A1A] text-sm sm:text-base"
+                    className="block mb-2 text-center font-quicksand text-zinc-200 text-sm sm:text-base"
                     htmlFor="minPlayers"
                   >
                     Jugadores mínimos
                   </label>
-                  <div className="flex items-center justify-between border-2 border-[#D4A017] rounded-full">
+                  <div className="flex items-center justify-between overflow-hidden rounded-xl border border-white/15 bg-white/5">
                     <motion.button
                       type="button"
                       onClick={() =>
@@ -1457,13 +1526,13 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className="min-h-[44px] min-w-[44px] py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-l-full hover:bg-[#1A6642]/80 text-sm sm:text-base flex items-center justify-center"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
+                      className="flex min-h-[44px] min-w-[44px] items-center justify-center bg-emerald-600/80 px-3 py-1 text-sm text-white hover:bg-emerald-500 sm:px-4 sm:py-2 sm:text-base"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
                       -
                     </motion.button>
-                    <p className="text-[#1A1A1A] font-quicksand text-sm sm:text-base">
+                    <p className="min-w-8 text-center font-quicksand text-sm font-semibold text-white sm:text-base">
                       {gameSettings.minPlayers}
                     </p>
                     <motion.button
@@ -1479,9 +1548,9 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className="min-h-[44px] min-w-[44px] py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-r-full hover:bg-[#1A6642]/80 text-sm sm:text-base flex items-center justify-center"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
+                      className="flex min-h-[44px] min-w-[44px] items-center justify-center bg-emerald-600/80 px-3 py-1 text-sm text-white hover:bg-emerald-500 sm:px-4 sm:py-2 sm:text-base"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
                       +
                     </motion.button>
@@ -1489,12 +1558,12 @@ export default function MainMenu() {
                 </div>
                 <div className="w-full sm:w-1/2">
                   <label
-                    className="block mb-2 text-center font-quicksand text-[#1A1A1A] text-sm sm:text-base"
+                    className="block mb-2 text-center font-quicksand text-zinc-200 text-sm sm:text-base"
                     htmlFor="maxPlayers"
                   >
                     Jugadores máximos
                   </label>
-                  <div className="flex items-center justify-between border-2 border-[#D4A017] rounded-full">
+                  <div className="flex items-center justify-between overflow-hidden rounded-xl border border-white/15 bg-white/5">
                     <motion.button
                       type="button"
                       onClick={() =>
@@ -1508,13 +1577,13 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className="min-h-[44px] min-w-[44px] py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-l-full hover:bg-[#1A6642]/80 text-sm sm:text-base flex items-center justify-center"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
+                      className="flex min-h-[44px] min-w-[44px] items-center justify-center bg-emerald-600/80 px-3 py-1 text-sm text-white hover:bg-emerald-500 sm:px-4 sm:py-2 sm:text-base"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
                       -
                     </motion.button>
-                    <p className="text-[#1A1A1A] font-quicksand text-sm sm:text-base">
+                    <p className="min-w-8 text-center font-quicksand text-sm font-semibold text-white sm:text-base">
                       {gameSettings.maxPlayers}
                     </p>
                     <motion.button
@@ -1530,9 +1599,9 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className="min-h-[44px] min-w-[44px] py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-r-full hover:bg-[#1A6642]/80 text-sm sm:text-base flex items-center justify-center"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
+                      className="flex min-h-[44px] min-w-[44px] items-center justify-center bg-emerald-600/80 px-3 py-1 text-sm text-white hover:bg-emerald-500 sm:px-4 sm:py-2 sm:text-base"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
                       +
                     </motion.button>
@@ -1540,7 +1609,7 @@ export default function MainMenu() {
                 </div>
               </div>
               <label
-                className="block mb-2 mt-4 font-quicksand text-[#1A1A1A] text-sm sm:text-base"
+                className="block mb-2 mt-4 font-quicksand text-zinc-200 text-sm sm:text-base"
                 htmlFor="turnTimeout"
               >
                 ¿Tiempo ilimitado por ronda?
@@ -1551,17 +1620,17 @@ export default function MainMenu() {
                 id="turnTimeout"
                 checked={gameSettings.turnTimeout === null}
                 onChange={handleCheckboxChange}
-                className="mb-3 ml-2 size-4 sm:size-5"
+                className="mb-3 ml-2 size-4 accent-amber-500 sm:size-5"
               />
               {gameSettings.turnTimeout !== null && (
                 <>
                   <label
-                    className="block mb-2 font-quicksand text-[#1A1A1A] text-sm sm:text-base"
+                    className="block mb-2 font-quicksand text-zinc-200 text-sm sm:text-base"
                     htmlFor="turnTimeoutAmount"
                   >
                     Tiempo por turno (segundos)
                   </label>
-                  <div className="flex items-center justify-between border-2 border-[#D4A017] rounded-full w-32 sm:w-40">
+                  <div className="flex w-36 items-center justify-between overflow-hidden rounded-xl border border-white/15 bg-white/5 sm:w-44">
                     <motion.button
                       type="button"
                       onClick={() =>
@@ -1575,13 +1644,13 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className="min-h-[44px] min-w-[44px] py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-l-full hover:bg-[#1A6642]/80 text-sm sm:text-base flex items-center justify-center"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
+                      className="flex min-h-[44px] min-w-[44px] items-center justify-center bg-emerald-600/80 px-3 py-1 text-sm text-white hover:bg-emerald-500 sm:py-2 sm:text-base"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
                       -
                     </motion.button>
-                    <p className="text-[#1A1A1A] font-quicksand text-sm sm:text-base">
+                    <p className="min-w-10 text-center font-quicksand text-sm font-semibold text-white sm:text-base">
                       {gameSettings.turnTimeout}
                     </p>
                     <motion.button
@@ -1597,9 +1666,9 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className="min-h-[44px] min-w-[44px] py-1 sm:py-2 px-3 sm:px-4 bg-[#1A6642] text-[#F5F5F5] rounded-r-full hover:bg-[#1A6642]/80 text-sm sm:text-base flex items-center justify-center"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
+                      className="flex min-h-[44px] min-w-[44px] items-center justify-center bg-emerald-600/80 px-3 py-1 text-sm text-white hover:bg-emerald-500 sm:py-2 sm:text-base"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
                       +
                     </motion.button>
@@ -1607,7 +1676,7 @@ export default function MainMenu() {
                 </>
               )}
               <label
-                className="block mb-2 mt-4 font-quicksand text-[#1A1A1A] text-sm sm:text-base"
+                className="block mb-2 mt-4 font-quicksand text-zinc-200 text-sm sm:text-base"
                 htmlFor="roomPassword"
               >
                 Contraseña (opcional)
@@ -1620,20 +1689,20 @@ export default function MainMenu() {
                   id="roomPassword"
                   value={gameSettings.password}
                   onChange={handleChange}
-                  className="w-full p-2 sm:p-3 border-2 border-[#D4A017] rounded-full focus:outline-none focus:ring-2 focus:ring-[#1A6642] font-quicksand text-[#1A1A1A] text-sm sm:text-base"
+                  className="w-full rounded-xl border border-white/15 bg-white/5 p-2.5 pr-11 font-quicksand text-sm text-white placeholder:text-zinc-500 focus:border-amber-400/35 focus:outline-none focus:ring-2 focus:ring-amber-400/15 sm:p-3 sm:text-base"
                 />
                 <motion.div
-                  whileHover={{ scale: 1.2 }}
-                  whileTap={{ scale: 0.9 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   {showPassword ? (
                     <Eye
-                      className="absolute top-1/2 -translate-y-1/2 right-2 sm:right-3 cursor-pointer text-[#1A1A1A] w-4 h-4 sm:w-5 sm:h-5"
+                      className="absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 cursor-pointer text-zinc-400 sm:right-3 sm:h-5 sm:w-5"
                       onClick={() => setShowPassword(!showPassword)}
                     />
                   ) : (
                     <EyeOff
-                      className="absolute top-1/2 -translate-y-1/2 right-2 sm:right-3 cursor-pointer text-[#1A1A1A] w-4 h-4 sm:w-5 sm:h-5"
+                      className="absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 cursor-pointer text-zinc-400 sm:right-3 sm:h-5 sm:w-5"
                       onClick={() => setShowPassword(!showPassword)}
                     />
                   )}
@@ -1642,12 +1711,12 @@ export default function MainMenu() {
               <motion.button
                 type="submit"
                 disabled={isCreatingRoom}
-                className={`mt-4 mb-4 w-full min-h-[48px] flex items-center justify-center gap-2 bg-[#1A6642] text-[#F5F5F5] py-2 sm:py-3 px-4 rounded-full font-poppins text-sm sm:text-base ${
+                className={`mb-4 mt-5 flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-600 py-2.5 font-poppins text-sm font-semibold text-white sm:py-3 sm:text-base ${
                   isCreatingRoom
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-[#2E8B57]"
+                    ? "cursor-not-allowed opacity-50"
+                    : "hover:bg-emerald-500"
                 }`}
-                whileTap={{ scale: 0.95 }}
+                whileTap={{ scale: 0.98 }}
               >
                 {isCreatingRoom ? (
                   <>

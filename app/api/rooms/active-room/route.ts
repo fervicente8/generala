@@ -10,13 +10,13 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Falta el ID del usuario" }, { status: 400 });
     }
 
+    // Solo partidas donde el usuario sigue en la mesa (GameUser).
+    // No usar ownerId solo: al abandonar in_progress puede quedar un estado
+    // inconsistente y redirigir al juego con 403.
     const activeRoom = await prisma.game.findFirst({
       where: {
-        status: { in: ["waiting", "in_progress"] },  
-        OR: [
-          { ownerId: userId }, 
-          { players: { some: { userId } } }, 
-        ],
+        status: { in: ["waiting", "in_progress"] },
+        players: { some: { userId } },
       },
       include: {
         owner: true, 

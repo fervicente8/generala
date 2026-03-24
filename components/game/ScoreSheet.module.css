@@ -1,21 +1,28 @@
 @import url("https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap");
 
 .container {
-  cursor: none; /* Disable on desktop */
+  cursor: none; /* Con lápiz custom en escritorio (ver useBodyPencilCursor) */
   font-family: "Patrick Hand", sans-serif;
+  position: relative;
+}
+
+.container[data-system-cursor="true"] {
+  cursor: auto;
 }
 
 .pointer {
   opacity: 0;
-  position: absolute;
-  width: 24px; /* Smaller for mobile */
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 24px;
   height: 24px;
   background-image: url("/pointers/pencil.webp");
   background-size: contain;
   background-repeat: no-repeat;
   pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.1s ease-out;
-  z-index: 1000;
+  transition: opacity 0.2s ease;
+  z-index: 99999;
 }
 
 /* Hide pointer on touch devices */

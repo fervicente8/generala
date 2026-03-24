@@ -38,6 +38,34 @@ export async function POST(req: NextRequest) {
 
     const remaining = game.players.filter((p) => p.userId !== userId);
 
+    if (remaining.length === 0) {
+      await prisma.game.update({
+        where: { id: gameId },
+        data: {
+          status: "finished",
+          currentTurnId: null,
+          diceValues: [],
+          rollCount: 0,
+        },
+      });
+      const emptyGame = await prisma.game.findUnique({
+        where: { id: gameId },
+        include: { players: { include: { user: true } } },
+      });
+      return NextResponse.json(
+        {
+          id: gameId,
+          players: emptyGame?.players ?? [],
+          status: "finished",
+          turnTimeout: emptyGame?.turnTimeout ?? null,
+          currentTurnId: null,
+          diceValues: [],
+          rollCount: 0,
+        },
+        { status: 200 },
+      );
+    }
+
     // Si queda un solo jugador, gana y terminamos la partida
     const oneLeft = remaining.length === 1;
     const newOwnerId = game.ownerId === userId ? remaining[0]?.userId : game.ownerId;

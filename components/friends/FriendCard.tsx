@@ -186,18 +186,18 @@ export default function FriendCard({
             alt='Avatar'
             width={48}
             height={48}
-            className='rounded-full border-2 border-[#D4A017]'
+            className="rounded-full border-2 border-amber-400/40"
             unoptimized
           />
           <motion.div
             className={`absolute bottom-[2px] right-[2px] w-[14px] h-[14px] ${
               isOnline ? "bg-[#1A6642]" : "bg-[#A91D2F]"
-            } rounded-full border-2 border-[#F5F5F5]`}
+            } rounded-full border-2 border-zinc-900`}
             animate={isOnline ? { scale: [1, 1.2, 1] } : {}}
             transition={{ repeat: Infinity, duration: 1 }}
           />
         </div>
-        <h3 className='text-[16px] font-semibold font-poppins text-[#1A1A1A]'>
+        <h3 className="font-poppins text-[16px] font-semibold text-zinc-100">
           {user.name}
         </h3>
       </div>
@@ -220,7 +220,7 @@ export default function FriendCard({
               {isLoadingStats ? (
                 <CustomLoadingSpinner size="sm" showText={false} />
               ) : (
-                <BarChart2 className='w-6 h-6 text-[#1E3A8A] hover:text-[#3B82F6]' />
+                <BarChart2 className="h-6 w-6 text-sky-400 hover:text-sky-300" />
               )}
             </motion.button>
           )}
@@ -229,10 +229,10 @@ export default function FriendCard({
               type="button"
               whileHover={{ scale: 1.2 }}
               whileTap={{ scale: 0.9 }}
-              className={`min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg -m-1 transition-colors ${
+              className={`-m-1 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg transition-colors ${
                 selectedForChallenge
-                  ? "bg-[#1A6642] text-[#F5F5F5]"
-                  : "text-[#1A6642] hover:bg-[#1A6642]/20"
+                  ? "bg-emerald-600 text-white"
+                  : "text-emerald-400 hover:bg-emerald-500/15"
               }`}
               onClick={() => onToggleChallenge(user.id)}
               aria-label={selectedForChallenge ? "Quitar del desafío" : "Desafiar"}
@@ -250,11 +250,11 @@ export default function FriendCard({
                 onClick={onInvite}
                 aria-label="Invitar a la sala"
               >
-                <SendHorizonal className='w-6 h-6 text-[#1E3A8A] hover:text-[#3B82F6]' />
+                <SendHorizonal className="h-6 w-6 text-sky-400 hover:text-sky-300" />
               </motion.button>
             ) : isFriend && invitationSent ? (
               <span className='min-w-[44px] min-h-[44px] flex items-center justify-center' aria-hidden>
-                <MailCheck className='w-6 h-6 text-[#1A6642]' />
+                <MailCheck className="h-6 w-6 text-emerald-400" />
               </span>
             ) : null)}
           {isFriend ? (
@@ -279,12 +279,12 @@ export default function FriendCard({
               {loadingRemoveFriend ? (
                 <CustomLoadingSpinner size="sm" showText={false} />
               ) : (
-                <CircleX className='w-6 h-6 text-[#A91D2F] hover:text-[#DC2626]' />
+                <CircleX className="h-6 w-6 text-red-400 hover:text-red-300" />
               )}
             </motion.button>
           ) : friendRequestSent ? (
             <span className='min-w-[44px] min-h-[44px] flex items-center justify-center' aria-hidden>
-              <MailCheck className='w-6 h-6 text-[#B0B0B0]' />
+              <MailCheck className="h-6 w-6 text-zinc-500" />
             </span>
           ) : (
             <motion.button
@@ -299,7 +299,7 @@ export default function FriendCard({
               {loadingSendRequest ? (
                 <CustomLoadingSpinner size="sm" showText={false} />
               ) : (
-                <CirclePlus className='w-6 h-6 text-[#1A6642] hover:text-[#2E8B57]' />
+                <CirclePlus className="h-6 w-6 text-emerald-400 hover:text-emerald-300" />
               )}
             </motion.button>
           )}

@@ -14,7 +14,7 @@ export default function HowToPlay() {
     { name: "4", desc: "Suma de todos los 4", pts: "4 × cantidad de 4", servida: "20" },
     { name: "5", desc: "Suma de todos los 5", pts: "5 × cantidad de 5", servida: "25" },
     { name: "6", desc: "Suma de todos los 6", pts: "6 × cantidad de 6", servida: "30" },
-    { name: "Escalera", desc: "1-2-3-4-5 o 2-3-4-5-6 (en cualquier orden)", pts: "20", servida: "25" },
+    { name: "Escalera", desc: "1-2-3-4-5, 2-3-4-5-6 o 3-4-5-6-1 (en cualquier orden)", pts: "20", servida: "25" },
     { name: "Full", desc: "Tres de un número + dos de otro (ej: 4-4-4-2-2)", pts: "30", servida: "35" },
     { name: "Poker", desc: "Cuatro iguales + uno distinto (ej: 6-6-6-6-2)", pts: "40", servida: "45" },
     { name: "Generala", desc: "Cinco dados iguales", pts: "50", servida: "¡Ganás!" },
