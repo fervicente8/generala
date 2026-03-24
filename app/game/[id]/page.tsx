@@ -34,8 +34,26 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
-/** Tras terminar la animación de dados, esperar este tiempo antes de mostrar puntajes / abrir anotador */
-const DICE_SETTLE_EXTRA_MS = 500;
+/**
+ * Tiempo que el cliente mantiene `rollingLoading` tras `diceRolled` (debe alinearse con la
+ * percepción de la tirada; `.rolling` en Dice.module.css usa spin-3d en 3s — ~1s da ~1 vuelta visible).
+ */
+const ROLL_DICE_UI_HOLD_MS = 1000;
+
+/** Tras 1.er y 2.er tiro: margen hasta que se pueda anotar con valores finales. */
+const DICE_SETTLE_AFTER_ROLL_MS = 500;
+
+/**
+ * Tras cortar `rollingLoading` en el 3.er tiro: el cubilete vuelve ~250ms (Cup.tsx) + pequeño
+ * colchón antes del delay explícito del usuario.
+ */
+const AFTER_THIRD_ROLL_MOTION_MS = 350;
+
+/** Cuando terminó la animación del último tiro, esperar esto y recién abrir el anotador. */
+const SCORE_SHEET_OPEN_AFTER_LAST_ROLL_ANIM_MS = 500;
+
+const THIRD_ROLL_SCORE_SETTLE_MS =
+  AFTER_THIRD_ROLL_MOTION_MS + SCORE_SHEET_OPEN_AFTER_LAST_ROLL_ANIM_MS;
 
 interface GameTableProps {
   id: string;
@@ -112,7 +130,7 @@ export default function GameTable() {
     endRect: DOMRect;
   } | null>(null);
   const [scoreBoardOpen, setScoreBoardOpen] = useState(false);
-  /** Durante tirada + DICE_SETTLE_EXTRA_MS después: anotador usa snapshot de dados (no tocar celdas) */
+  /** Durante tirada + margen de asentado: anotador usa snapshot de dados (no tocar celdas) */
   const [scoreDiceSettling, setScoreDiceSettling] = useState(false);
   const prevRollingLoadingRef = useRef(false);
   /** Dados/rollCount antes de aplicar la última tirada (para mostrar puntajes viejos mientras anima) */
@@ -243,7 +261,9 @@ export default function GameTable() {
         };
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) =>
+        setTimeout(resolve, ROLL_DICE_UI_HOLD_MS),
+      );
       setRollingLoading(false);
       setDicesToReroll([]);
     };
@@ -324,9 +344,13 @@ export default function GameTable() {
 
     if (wasRolling && game.rollCount >= 1 && game.rollCount <= 3) {
       setScoreDiceSettling(true);
+      const settleMs =
+        game.rollCount === 3
+          ? THIRD_ROLL_SCORE_SETTLE_MS
+          : DICE_SETTLE_AFTER_ROLL_MS;
       const t = setTimeout(() => {
         setScoreDiceSettling(false);
-      }, DICE_SETTLE_EXTRA_MS);
+      }, settleMs);
       return () => clearTimeout(t);
     }
 
@@ -339,7 +363,9 @@ export default function GameTable() {
     game?.currentTurnId,
   ]);
 
-  // Abrir el anotador: turno nuevo al instante; tras 3er tiro cuando terminó animación + margen extra
+  // Abrir el anotador: turno nuevo al instante; tras 3er tiro cuando terminó animación + margen extra.
+  // Importante: con rollCount===3 y scoreDiceSettling aún false (p. ej. recién empezó el 3.er tiro),
+  // no abrir — esperar a !rollingLoading y al periodo scoreDiceSettling tras cortar la tirada.
   useEffect(() => {
     if (!game || !session?.user?.id) return;
     const isMyTurn = session.user.id === game.currentTurnId;
@@ -348,10 +374,14 @@ export default function GameTable() {
       setScoreBoardOpen(true);
       return;
     }
-    if (game.rollCount === 3 && !scoreDiceSettling) {
+    if (
+      game.rollCount === 3 &&
+      !scoreDiceSettling &&
+      !rollingLoading
+    ) {
       setScoreBoardOpen(true);
     }
-  }, [game, session?.user?.id, scoreDiceSettling]);
+  }, [game, session?.user?.id, scoreDiceSettling, rollingLoading]);
 
   // Al cargar la partida, guardar logros actuales para detectar los nuevos al terminar
   useEffect(() => {

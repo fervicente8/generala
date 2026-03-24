@@ -135,7 +135,7 @@ export default function PlayerSlot({
       </span>
       <div className="relative inline-flex items-center gap-1.5 sm:gap-2">
         <div className="relative" ref={avatarRef}>
-            <AnimatePresence>
+          <AnimatePresence>
             {reaction && (
               <motion.div
                 key={reaction.id ?? reaction.value}
@@ -175,7 +175,7 @@ export default function PlayerSlot({
           <button
             type="button"
             onClick={onReactionClick}
-            className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-amber-500/90 hover:bg-amber-500 text-white border-2 border-amber-200/80 shadow focus:outline-none focus:ring-2 focus:ring-amber-400 shrink-0"
+            className="absolute bottom-[-8px] right-[-8px] flex items-center justify-center w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-amber-500/90 hover:bg-amber-500 text-white border-2 border-amber-200/80 shadow focus:outline-none focus:ring-2 focus:ring-amber-400 shrink-0"
             aria-label="Enviar reacción"
           >
             <Smile className="w-4 h-4 sm:w-5 sm:h-5" />

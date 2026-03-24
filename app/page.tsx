@@ -18,6 +18,7 @@ import {
   Zap,
   Sparkles,
   Users,
+  ChevronDown,
 } from "lucide-react";
 import { RankingGlassCard } from "@/components/home/RankingGlassCard";
 import { motion, AnimatePresence } from "framer-motion";
@@ -112,6 +113,16 @@ export default function MainMenu() {
   >([]);
   const [rankingsLoading, setRankingsLoading] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
+  /** Móvil: plegado por defecto. Desktop (lg+): desplegado y sin botón de plegar. */
+  const [friendsPanelOpen, setFriendsPanelOpen] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const sync = () => setFriendsPanelOpen(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -675,202 +686,243 @@ export default function MainMenu() {
           backdropOpacity={0.9}
         />
       )}
-      <aside className="relative z-10 order-2 flex max-h-[42vh] w-full shrink-0 flex-col overflow-y-auto border-t border-white/10 bg-zinc-950/85 px-4 py-5 backdrop-blur-xl scrollbar-none sm:max-h-[46vh] lg:order-1 lg:h-auto lg:max-h-none lg:w-[min(100%,22rem)] lg:shrink-0 lg:border-t-0 lg:border-r lg:border-white/10 lg:px-5 lg:py-8 xl:w-96">
-        <div className="mb-5 flex items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-amber-400/25 to-amber-800/20 ring-1 ring-amber-400/25">
-            <Image
-              src="/dice-icon.png"
-              alt=""
-              width={28}
-              height={28}
-              className="h-7 w-7"
-            />
+      <aside className="relative z-10 order-2 flex w-full shrink-0 flex-col border-t border-white/10 bg-zinc-950/85 backdrop-blur-xl lg:order-1 lg:h-auto lg:max-h-none lg:w-[min(100%,22rem)] lg:shrink-0 lg:border-t-0 lg:border-r lg:border-white/10 lg:px-5 lg:py-8 xl:w-96">
+        <div className="flex shrink-0 items-center gap-3 px-4 py-3 lg:mb-5 lg:px-0 lg:py-0">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-amber-400/25 to-amber-800/20 ring-1 ring-amber-400/25">
+              <Image
+                src="/dice-icon.png"
+                alt=""
+                width={28}
+                height={28}
+                className="h-7 w-7"
+              />
+            </div>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-baseline gap-2">
+                <h2 className="font-poppins text-lg font-semibold tracking-tight text-white sm:text-xl">
+                  Amigos
+                </h2>
+                {friends.length > 0 && (
+                  <span className="text-xs font-medium text-zinc-500 lg:hidden">
+                    {friends.length}{" "}
+                    {friends.length === 1 ? "contacto" : "contactos"}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-zinc-500">
+                <span className="hidden lg:inline">
+                  Buscá, invitá y desafiá
+                </span>
+                <span className="lg:hidden">
+                  {friendsPanelOpen
+                    ? "Buscá, invitá y desafiá"
+                    : "Tocá para abrir la lista"}
+                </span>
+              </p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <h2 className="font-poppins text-lg font-semibold tracking-tight text-white sm:text-xl">
-              Amigos
-            </h2>
-            <p className="text-xs text-zinc-500">Buscá, invitá y desafiá</p>
-          </div>
-        </div>
-        {/* Buscador */}
-        <div className="relative mt-4">
-          <input
-            type="text"
-            placeholder="Buscar amigos..."
-            value={friendSearch}
-            onChange={(e) => setFriendSearch(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearchFriends()}
-            className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pr-12 text-sm text-white placeholder:text-zinc-500 focus:border-amber-400/35 focus:outline-none focus:ring-2 focus:ring-amber-400/15 sm:text-base"
-          />
           <button
             type="button"
-            onClick={() => !isSearchingFriends && handleSearchFriends()}
-            disabled={isSearchingFriends}
-            className="absolute right-1 top-1/2 flex min-h-[44px] min-w-[44px] -translate-y-1/2 items-center justify-center rounded-lg text-zinc-300 hover:text-white disabled:opacity-70"
-            aria-label="Buscar"
+            onClick={() => setFriendsPanelOpen((o) => !o)}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white lg:hidden"
+            aria-expanded={friendsPanelOpen}
+            aria-controls="friends-panel-content"
           >
-            {isSearchingFriends ? (
-              <CustomLoadingSpinner
-                size="sm"
-                showText={false}
-                color="#e4e4e7"
-              />
-            ) : (
-              <Search className="h-5 w-5 sm:h-6 sm:w-6" />
-            )}
+            <ChevronDown
+              className={`h-5 w-5 transition-transform duration-200 ${friendsPanelOpen ? "" : "rotate-180"}`}
+              aria-hidden
+            />
           </button>
         </div>
-        {/* Resultados de búsqueda */}
-        {friendResults.length > 0 && (
-          <div>
-            {isSearchingFriends ? (
-              <div className="mt-4 sm:mt-5">
+
+        <div
+          id="friends-panel-content"
+          className={`flex min-h-0 flex-col overflow-y-auto px-4 pb-4 scrollbar-none lg:max-h-none lg:overflow-visible lg:px-0 lg:pb-0 ${
+            friendsPanelOpen
+              ? "max-lg:flex max-lg:max-h-[min(48dvh,26rem)]"
+              : "max-lg:hidden"
+          }`}
+        >
+          {/* Buscador */}
+          <div className="relative mt-0 lg:mt-4">
+            <input
+              type="text"
+              placeholder="Buscar amigos..."
+              value={friendSearch}
+              onChange={(e) => setFriendSearch(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearchFriends()}
+              className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 pr-12 text-sm text-white placeholder:text-zinc-500 focus:border-amber-400/35 focus:outline-none focus:ring-2 focus:ring-amber-400/15 sm:text-base"
+            />
+            <button
+              type="button"
+              onClick={() => !isSearchingFriends && handleSearchFriends()}
+              disabled={isSearchingFriends}
+              className="absolute right-1 top-1/2 flex min-h-[44px] min-w-[44px] -translate-y-1/2 items-center justify-center rounded-lg text-zinc-300 hover:text-white disabled:opacity-70"
+              aria-label="Buscar"
+            >
+              {isSearchingFriends ? (
                 <CustomLoadingSpinner
                   size="sm"
-                  text="Buscando amigos"
-                  textColor="#d4d4d8"
+                  showText={false}
+                  color="#e4e4e7"
                 />
-              </div>
-            ) : (
-              <ul className="mt-4 space-y-2 sm:space-y-3 max-h-[28vh] md:max-h-[40vh] overflow-y-auto scrollbar-none">
-                <AnimatePresence>
-                  {friendResults.map((user) => (
-                    <motion.li
-                      key={user.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.3 }}
-                      className="rounded-2xl border border-white/10 bg-white/6 p-3 shadow-inner shadow-black/30 sm:p-4"
-                    >
-                      <FriendCard
-                        sessionUser={session?.user as User}
-                        user={user}
-                        setFriendSearch={setFriendSearch}
-                        setFriendResults={setFriendResults}
-                        activeRoom={activeRoom as Game}
-                        onlineUserIds={onlineUserIds}
-                      />
-                    </motion.li>
-                  ))}
-                </AnimatePresence>
-              </ul>
-            )}
+              ) : (
+                <Search className="h-5 w-5 sm:h-6 sm:w-6" />
+              )}
+            </button>
           </div>
-        )}
-        {/* Lista de amigos */}
-        {!isSearchingFriends && friendResults.length === 0 && (
-          <div>
-            {isLoadingFriends ? (
-              <div className="mt-4 sm:mt-5">
-                <CustomLoadingSpinner
-                  size="sm"
-                  text="Cargando amigos"
-                  textColor="#d4d4d8"
-                />
-              </div>
-            ) : friends.length === 0 ? (
-              <div className="mt-4 text-center sm:mt-5">
-                <p className="text-sm text-zinc-500 sm:text-base">
-                  No tenés amigos agregados.
-                </p>
-                <p className="mt-2 text-xs text-amber-400/80 sm:text-sm">
-                  Usá el buscador de arriba para agregar amigos.
-                </p>
-              </div>
-            ) : (
-              <>
-                {!activeRoom && selectedForChallenge.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-emerald-500/35 bg-emerald-500/10 px-3 py-2"
-                  >
-                    <span className="text-sm text-emerald-50/95">
-                      Desafiar a {selectedForChallenge.length}{" "}
-                      {selectedForChallenge.length === 1 ? "amigo" : "amigos"}
-                    </span>
-                    <motion.button
-                      type="button"
-                      disabled={isCreatingChallenge}
-                      onClick={createChallengeRoom}
-                      className="flex items-center gap-2 rounded-lg bg-white px-3 py-1.5 font-poppins text-sm font-semibold text-emerald-900 hover:bg-emerald-50 disabled:opacity-70"
-                    >
-                      {isCreatingChallenge ? (
-                        <>
-                          <CustomLoadingSpinner
-                            size="sm"
-                            showText={false}
-                            color="#064e3b"
-                          />
-                          Creando…
-                        </>
-                      ) : (
-                        "Crear sala"
-                      )}
-                    </motion.button>
-                  </motion.div>
-                )}
+          {/* Resultados de búsqueda */}
+          {friendResults.length > 0 && (
+            <div>
+              {isSearchingFriends ? (
+                <div className="mt-4 sm:mt-5">
+                  <CustomLoadingSpinner
+                    size="sm"
+                    text="Buscando amigos"
+                    textColor="#d4d4d8"
+                  />
+                </div>
+              ) : (
                 <ul className="mt-4 space-y-2 sm:space-y-3 max-h-[28vh] md:max-h-[40vh] overflow-y-auto scrollbar-none">
                   <AnimatePresence>
-                    {friends.map((friend) => {
-                      const friendUser =
-                        friend.receiver.id === session?.user?.id
-                          ? friend.requester
-                          : friend.receiver;
-                      return (
-                        <motion.li
-                          key={friend.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -20 }}
-                          transition={{ duration: 0.3 }}
-                          className="rounded-2xl border border-white/10 bg-white/6 p-3 shadow-inner shadow-black/30 sm:p-4"
-                        >
-                          <FriendCard
-                            sessionUser={session?.user as User}
-                            user={friendUser}
-                            activeRoom={activeRoom as Game}
-                            onlineUserIds={onlineUserIds}
-                            onShowStats={getPlayerStats}
-                            statsLoadingForUserId={loadingStatsUserId}
-                            challengeMode={!activeRoom}
-                            selectedForChallenge={selectedForChallenge.includes(
-                              friendUser.id,
-                            )}
-                            onToggleChallenge={
-                              !activeRoom
-                                ? (id) =>
-                                    setSelectedForChallenge((prev) =>
-                                      prev.includes(id)
-                                        ? prev.filter((x) => x !== id)
-                                        : [...prev, id],
-                                    )
-                                : undefined
-                            }
-                          />
-                        </motion.li>
-                      );
-                    })}
+                    {friendResults.map((user) => (
+                      <motion.li
+                        key={user.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                        className="rounded-2xl border border-white/10 bg-white/6 p-3 shadow-inner shadow-black/30 sm:p-4"
+                      >
+                        <FriendCard
+                          sessionUser={session?.user as User}
+                          user={user}
+                          setFriendSearch={setFriendSearch}
+                          setFriendResults={setFriendResults}
+                          activeRoom={activeRoom as Game}
+                          onlineUserIds={onlineUserIds}
+                        />
+                      </motion.li>
+                    ))}
                   </AnimatePresence>
                 </ul>
-              </>
-            )}
+              )}
+            </div>
+          )}
+          {/* Lista de amigos */}
+          {!isSearchingFriends && friendResults.length === 0 && (
+            <div>
+              {isLoadingFriends ? (
+                <div className="mt-4 sm:mt-5">
+                  <CustomLoadingSpinner
+                    size="sm"
+                    text="Cargando amigos"
+                    textColor="#d4d4d8"
+                  />
+                </div>
+              ) : friends.length === 0 ? (
+                <div className="mt-4 text-center sm:mt-5">
+                  <p className="text-sm text-zinc-500 sm:text-base">
+                    No tenés amigos agregados.
+                  </p>
+                  <p className="mt-2 text-xs text-amber-400/80 sm:text-sm">
+                    Usá el buscador de arriba para agregar amigos.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {!activeRoom && selectedForChallenge.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-emerald-500/35 bg-emerald-500/10 px-3 py-2"
+                    >
+                      <span className="text-sm text-emerald-50/95">
+                        Desafiar a {selectedForChallenge.length}{" "}
+                        {selectedForChallenge.length === 1 ? "amigo" : "amigos"}
+                      </span>
+                      <motion.button
+                        type="button"
+                        disabled={isCreatingChallenge}
+                        onClick={createChallengeRoom}
+                        className="flex items-center gap-2 rounded-lg bg-white px-3 py-1.5 font-poppins text-sm font-semibold text-emerald-900 hover:bg-emerald-50 disabled:opacity-70"
+                      >
+                        {isCreatingChallenge ? (
+                          <>
+                            <CustomLoadingSpinner
+                              size="sm"
+                              showText={false}
+                              color="#064e3b"
+                            />
+                            Creando…
+                          </>
+                        ) : (
+                          "Crear sala"
+                        )}
+                      </motion.button>
+                    </motion.div>
+                  )}
+                  <ul className="mt-4 space-y-2 sm:space-y-3 max-h-[28vh] md:max-h-[40vh] overflow-y-auto scrollbar-none">
+                    <AnimatePresence>
+                      {friends.map((friend) => {
+                        const friendUser =
+                          friend.receiver.id === session?.user?.id
+                            ? friend.requester
+                            : friend.receiver;
+                        return (
+                          <motion.li
+                            key={friend.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.3 }}
+                            className="rounded-2xl border border-white/10 bg-white/6 p-3 shadow-inner shadow-black/30 sm:p-4"
+                          >
+                            <FriendCard
+                              sessionUser={session?.user as User}
+                              user={friendUser}
+                              activeRoom={activeRoom as Game}
+                              onlineUserIds={onlineUserIds}
+                              onShowStats={getPlayerStats}
+                              statsLoadingForUserId={loadingStatsUserId}
+                              challengeMode={!activeRoom}
+                              selectedForChallenge={selectedForChallenge.includes(
+                                friendUser.id,
+                              )}
+                              onToggleChallenge={
+                                !activeRoom
+                                  ? (id) =>
+                                      setSelectedForChallenge((prev) =>
+                                        prev.includes(id)
+                                          ? prev.filter((x) => x !== id)
+                                          : [...prev, id],
+                                      )
+                                  : undefined
+                              }
+                            />
+                          </motion.li>
+                        );
+                      })}
+                    </AnimatePresence>
+                  </ul>
+                </>
+              )}
+            </div>
+          )}
+          <div className="mt-4 sm:mt-6">
+            <FriendsRequests
+              friends={friends}
+              setFriends={setFriends}
+              setIsJoiningRoom={setIsJoiningRoom}
+            />
           </div>
-        )}
-        <div className="mt-4 sm:mt-6">
-          <FriendsRequests
-            friends={friends}
-            setFriends={setFriends}
-            setIsJoiningRoom={setIsJoiningRoom}
-          />
         </div>
       </aside>
 
       <main className="relative z-10 order-1 flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden scrollbar-none lg:min-w-0">
-        <div className="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6 sm:py-8 lg:max-w-7xl lg:px-10">
-          <header className="mb-8 flex flex-col gap-4 sm:mb-10 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
+        <div className="mx-auto flex w-full max-w-6xl flex-col px-4 py-5 sm:px-6 sm:py-8 lg:max-w-7xl lg:px-10">
+          <header className="order-1 mb-8 flex shrink-0 flex-col gap-4 sm:mb-10 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
             <div className="min-w-0">
               <p className="mb-1 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-400/90 sm:text-xs">
                 <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden />
@@ -920,163 +972,307 @@ export default function MainMenu() {
             </div>
           </header>
 
-          <section className="mb-10 sm:mb-12">
-            <div className="mb-4 flex items-center gap-3 sm:mb-6">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-300 ring-1 ring-amber-400/25">
-                <Trophy className="h-5 w-5" aria-hidden />
+          {/* Rankings: en desktop van debajo del header; en móvil al final + acordeón cerrado */}
+          <section className="order-4 mb-4 mt-4 lg:mt-0 lg:order-2">
+            <details className="group/rankings rounded-2xl border border-white/10 bg-white/4 lg:hidden">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-2xl p-4 marker:hidden [&::-webkit-details-marker]:hidden">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-300 ring-1 ring-amber-400/25">
+                    <Trophy className="h-5 w-5" aria-hidden />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="block font-poppins text-base font-semibold text-white">
+                      Rankings
+                    </span>
+                    <span className="text-xs text-zinc-500">
+                      Victorias y récords · tocá para desplegar
+                    </span>
+                  </div>
+                </div>
+                <ChevronDown
+                  className="h-5 w-5 shrink-0 text-zinc-400 transition-transform duration-200 group-open/rankings:rotate-180"
+                  aria-hidden
+                />
+              </summary>
+              <div className="border-t border-white/10 px-2 pb-4 pt-3">
+                <div className="grid grid-cols-1 gap-4">
+                  <RankingGlassCard
+                    title="Victorias globales"
+                    subtitle="Top 10 jugadores"
+                    icon={Medal}
+                    accent="gold"
+                    loading={rankingsLoading}
+                    emptyMessage="Todavía no hay datos."
+                    variant="wins"
+                    winsRows={globalRanking}
+                  />
+                  <RankingGlassCard
+                    title="Mejor partida"
+                    subtitle="Puntaje más alto · global"
+                    icon={Zap}
+                    accent="violet"
+                    loading={rankingsLoading}
+                    emptyMessage="Nadie registró una partida todavía."
+                    variant="highScore"
+                    highScoreRows={globalHighScoreRanking}
+                  />
+                  <RankingGlassCard
+                    title="Tus amigos"
+                    subtitle="Por victorias"
+                    icon={Users}
+                    accent="emerald"
+                    loading={rankingsLoading}
+                    emptyMessage="Sin amigos con partidas."
+                    variant="wins"
+                    winsRows={friendsRanking}
+                  />
+                  <RankingGlassCard
+                    title="Amigos · récord"
+                    subtitle="Mayor puntaje en una partida"
+                    icon={Zap}
+                    accent="sky"
+                    loading={rankingsLoading}
+                    emptyMessage="Nadie de tu lista tiene récord aún."
+                    variant="highScore"
+                    highScoreRows={friendsHighScoreRanking}
+                  />
+                </div>
               </div>
-              <div>
-                <h2 className="font-poppins text-lg font-semibold text-white sm:text-xl">
-                  Rankings
-                </h2>
-                <p className="text-xs text-zinc-500 sm:text-sm">
-                  Victorias y mejores puntajes en una partida
-                </p>
+            </details>
+
+            <div className="hidden lg:block">
+              <div className="mb-4 flex items-center gap-3 sm:mb-6">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-300 ring-1 ring-amber-400/25">
+                  <Trophy className="h-5 w-5" aria-hidden />
+                </div>
+                <div>
+                  <h2 className="font-poppins text-lg font-semibold text-white sm:text-xl">
+                    Rankings
+                  </h2>
+                  <p className="text-xs text-zinc-500 sm:text-sm">
+                    Victorias y mejores puntajes en una partida
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <RankingGlassCard
-                title="Victorias globales"
-                subtitle="Top 10 jugadores"
-                icon={Medal}
-                accent="gold"
-                loading={rankingsLoading}
-                emptyMessage="Todavía no hay datos."
-                variant="wins"
-                winsRows={globalRanking}
-              />
-              <RankingGlassCard
-                title="Mejor partida"
-                subtitle="Puntaje más alto · global"
-                icon={Zap}
-                accent="violet"
-                loading={rankingsLoading}
-                emptyMessage="Nadie registró una partida todavía."
-                variant="highScore"
-                highScoreRows={globalHighScoreRanking}
-              />
-              <RankingGlassCard
-                title="Tus amigos"
-                subtitle="Por victorias"
-                icon={Users}
-                accent="emerald"
-                loading={rankingsLoading}
-                emptyMessage="Sin amigos con partidas."
-                variant="wins"
-                winsRows={friendsRanking}
-              />
-              <RankingGlassCard
-                title="Amigos · récord"
-                subtitle="Mayor puntaje en una partida"
-                icon={Zap}
-                accent="sky"
-                loading={rankingsLoading}
-                emptyMessage="Nadie de tu lista tiene récord aún."
-                variant="highScore"
-                highScoreRows={friendsHighScoreRanking}
-              />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <RankingGlassCard
+                  title="Victorias globales"
+                  subtitle="Top 10 jugadores"
+                  icon={Medal}
+                  accent="gold"
+                  loading={rankingsLoading}
+                  emptyMessage="Todavía no hay datos."
+                  variant="wins"
+                  winsRows={globalRanking}
+                />
+                <RankingGlassCard
+                  title="Mejor partida"
+                  subtitle="Puntaje más alto · global"
+                  icon={Zap}
+                  accent="violet"
+                  loading={rankingsLoading}
+                  emptyMessage="Nadie registró una partida todavía."
+                  variant="highScore"
+                  highScoreRows={globalHighScoreRanking}
+                />
+                <RankingGlassCard
+                  title="Tus amigos"
+                  subtitle="Por victorias"
+                  icon={Users}
+                  accent="emerald"
+                  loading={rankingsLoading}
+                  emptyMessage="Sin amigos con partidas."
+                  variant="wins"
+                  winsRows={friendsRanking}
+                />
+                <RankingGlassCard
+                  title="Amigos · récord"
+                  subtitle="Mayor puntaje en una partida"
+                  icon={Zap}
+                  accent="sky"
+                  loading={rankingsLoading}
+                  emptyMessage="Nadie de tu lista tiene récord aún."
+                  variant="highScore"
+                  highScoreRows={friendsHighScoreRanking}
+                />
+              </div>
             </div>
           </section>
 
-          {/* Sala activa */}
+          {/* Sala activa: todo en flujo (sin barra fija que tape el listado) */}
           {activeRoom && (
-            <section className="mt-6 sm:mt-8">
+            <section className="order-2 mt-0 sm:mt-1 lg:order-3 lg:mt-8">
               <h2 className="mb-3 font-poppins text-lg font-semibold text-white sm:mb-4 sm:text-xl">
                 Tu sala
               </h2>
               <motion.div
-                className="flex w-full flex-col items-start justify-between gap-4 rounded-2xl border border-white/10 bg-white/6 p-4 shadow-[0_20px_40px_-24px_rgba(0,0,0,0.8)] backdrop-blur-md sm:w-[min(100%,42rem)] sm:flex-row sm:items-center sm:p-5"
-                initial={{ opacity: 0, y: 20 }}
+                className="w-full space-y-4 rounded-2xl border border-white/10 bg-white/6 p-4 shadow-[0_20px_40px_-24px_rgba(0,0,0,0.8)] backdrop-blur-md sm:max-w-3xl sm:p-5"
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <div className="flex w-full flex-col gap-3 sm:w-auto">
-                  <p className="font-poppins text-base text-white sm:text-lg">
+                <div>
+                  <p className="font-poppins text-lg font-semibold text-white sm:text-xl">
                     {activeRoom.name}
                   </p>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {activeRoom.players.map((player) => (
+                  <p className="mt-0.5 font-quicksand text-sm text-zinc-400 sm:text-base">
+                    {activeRoom.status === "waiting"
+                      ? "Esperando jugadores…"
+                      : "En juego"}
+                  </p>
+                </div>
+
+                <div className="-mx-1 flex gap-2 overflow-x-auto overflow-y-visible px-1 pb-1 scrollbar-none sm:flex-wrap sm:overflow-x-visible">
+                  {activeRoom.players.map((player) => (
+                    <motion.div
+                      key={player.id}
+                      className="relative shrink-0 flex flex-col items-center rounded-xl border border-white/10 bg-white/10 p-2 sm:p-3"
+                      whileHover={{ scale: 1.02 }}
+                    >
                       <Image
-                        key={player.id}
                         src={player.user.image || "/default-avatar.png"}
-                        alt="Avatar"
-                        width={48}
-                        height={48}
-                        className="h-10 w-10 rounded-full border-2 border-amber-400/40 sm:h-12 sm:w-12"
+                        alt=""
+                        width={40}
+                        height={40}
+                        className="h-9 w-9 rounded-full border-2 border-amber-400/35 sm:h-10 sm:w-10"
                         unoptimized
                       />
-                    ))}
-                  </div>
+                      <span className="mt-1 max-w-18 truncate text-center font-quicksand text-[11px] font-semibold text-white sm:max-w-24 sm:text-xs">
+                        {player.user.name}
+                      </span>
+                      {loadingStatsUserId === player.userId ? (
+                        <span className="absolute left-1 top-1 flex h-4 w-4 items-center justify-center">
+                          <CustomLoadingSpinner
+                            size="sm"
+                            showText={false}
+                            color="#e4e4e7"
+                          />
+                        </span>
+                      ) : (
+                        <ChartColumnIncreasing
+                          className="absolute left-1 top-1 h-3.5 w-3.5 cursor-pointer text-amber-300/90 sm:h-4 sm:w-4"
+                          onClick={() => getPlayerStats(player.userId)}
+                        />
+                      )}
+                      {session.user.id === activeRoom.ownerId &&
+                        player.user.id !== session?.user?.id && (
+                          <button
+                            type="button"
+                            className="absolute right-0.5 top-0.5 rounded p-0.5 text-red-400 hover:bg-red-950/50 disabled:opacity-50"
+                            disabled={isKickingUser}
+                            onClick={() =>
+                              !isKickingUser &&
+                              handleKickPlayer(activeRoom.id, player.userId)
+                            }
+                            aria-label={`Expulsar a ${player.user.name}`}
+                          >
+                            <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                          </button>
+                        )}
+                    </motion.div>
+                  ))}
                 </div>
-                <div className="mt-0 flex w-full flex-col gap-2 sm:w-auto sm:items-end">
-                  <p className="font-poppins text-base font-medium text-zinc-400 sm:text-lg">
+
+                <div className="flex flex-col gap-3 border-t border-white/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="font-quicksand text-sm text-zinc-400 sm:text-base">
                     {activeRoom.players.length}/{activeRoom.maxPlayers}{" "}
                     jugadores
                   </p>
-                  <motion.button
-                    type="button"
-                    className={`flex w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-950/50 px-4 py-2.5 font-poppins font-semibold text-red-100 sm:w-auto sm:px-6 sm:py-3 ${
-                      isDeletingRoom || isLeavingRoom
-                        ? "cursor-not-allowed opacity-50"
-                        : "hover:bg-red-950/70"
-                    }`}
-                    onClick={async () => {
-                      if (isDeletingRoom || isLeavingRoom) return;
-                      if (activeRoom.ownerId === session.user?.id) {
-                        const ok = await showConfirm({
-                          title: "Eliminar sala",
-                          message:
-                            "¿Eliminar la sala? Los jugadores serán expulsados.",
-                          confirmLabel: "Eliminar",
-                          cancelLabel: "Cancelar",
-                          danger: true,
-                        });
-                        if (ok) handleDeleteRoom(activeRoom.id);
-                      } else {
-                        leaveRoom(activeRoom.id);
-                      }
-                    }}
-                    whileHover={
-                      isDeletingRoom || isLeavingRoom
-                        ? undefined
-                        : { scale: 1.02 }
-                    }
-                    whileTap={
-                      isDeletingRoom || isLeavingRoom
-                        ? undefined
-                        : { scale: 0.98 }
-                    }
-                  >
-                    {isDeletingRoom ? (
-                      <>
-                        <CustomLoadingSpinner
-                          size="sm"
-                          showText={false}
-                          color="#fecaca"
-                        />
-                        Eliminando...
-                      </>
-                    ) : isLeavingRoom ? (
-                      <>
-                        <CustomLoadingSpinner
-                          size="sm"
-                          showText={false}
-                          color="#fecaca"
-                        />
-                        Saliendo...
-                      </>
-                    ) : activeRoom.ownerId === session.user?.id ? (
-                      "Eliminar sala"
+                  <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-2">
+                    {activeRoom.ownerId === session?.user?.id ? (
+                      <div className="flex w-full items-center gap-2 sm:w-auto">
+                        <motion.button
+                          type="button"
+                          onClick={() =>
+                            !isStartingGame &&
+                            !isDeletingRoom &&
+                            startGame(activeRoom)
+                          }
+                          className={`flex min-h-[44px] flex-1 items-center justify-center rounded-xl border border-emerald-500/35 bg-emerald-600/80 px-4 py-2.5 font-poppins text-sm font-bold text-white sm:flex-none sm:min-w-40 ${
+                            isStartingGame || isDeletingRoom
+                              ? "cursor-not-allowed opacity-50"
+                              : "hover:bg-emerald-500"
+                          }`}
+                          whileHover={
+                            isStartingGame || isDeletingRoom
+                              ? undefined
+                              : { scale: 1.02 }
+                          }
+                          whileTap={
+                            isStartingGame || isDeletingRoom
+                              ? undefined
+                              : { scale: 0.98 }
+                          }
+                        >
+                          Iniciar partida
+                        </motion.button>
+                        <motion.button
+                          type="button"
+                          className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-xl border border-red-500/30 text-red-400 hover:bg-red-950/40 disabled:opacity-50"
+                          disabled={isDeletingRoom || isStartingGame}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={async () => {
+                            if (isDeletingRoom || isStartingGame) return;
+                            const ok = await showConfirm({
+                              title: "Eliminar sala",
+                              message:
+                                "¿Eliminar la sala? Los jugadores serán expulsados.",
+                              confirmLabel: "Eliminar",
+                              cancelLabel: "Cancelar",
+                              danger: true,
+                            });
+                            if (ok) handleDeleteRoom(activeRoom.id);
+                          }}
+                          aria-label="Eliminar sala"
+                        >
+                          {isDeletingRoom ? (
+                            <CustomLoadingSpinner
+                              size="sm"
+                              showText={false}
+                              color="#fecaca"
+                            />
+                          ) : (
+                            <Trash2 className="h-5 w-5" />
+                          )}
+                        </motion.button>
+                      </div>
                     ) : (
-                      "Salir de la sala"
+                      <motion.button
+                        type="button"
+                        className={`flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-red-500/30 bg-red-950/50 px-4 py-2.5 font-poppins font-semibold text-red-100 sm:w-auto sm:min-w-48 ${
+                          isLeavingRoom
+                            ? "cursor-not-allowed opacity-50"
+                            : "hover:bg-red-950/70"
+                        }`}
+                        onClick={() => {
+                          if (!isLeavingRoom) leaveRoom(activeRoom.id);
+                        }}
+                        whileHover={isLeavingRoom ? undefined : { scale: 1.01 }}
+                        whileTap={isLeavingRoom ? undefined : { scale: 0.98 }}
+                      >
+                        {isLeavingRoom ? (
+                          <>
+                            <CustomLoadingSpinner
+                              size="sm"
+                              showText={false}
+                              color="#fecaca"
+                            />
+                            Saliendo…
+                          </>
+                        ) : (
+                          "Salir de la sala"
+                        )}
+                      </motion.button>
                     )}
-                  </motion.button>
+                  </div>
                 </div>
               </motion.div>
             </section>
           )}
 
           {/* Listado de salas */}
-          <section className="mt-8 sm:mt-10">
+          <section
+            className={`sm:mt-4 lg:order-4  ${activeRoom ? "order-3" : "order-2"}`}
+          >
             <div className="mb-4 flex flex-col gap-4 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="font-poppins text-lg font-semibold text-white sm:text-xl">
@@ -1154,9 +1350,7 @@ export default function MainMenu() {
                   className="rounded-xl border border-amber-400/35 bg-amber-500/20 px-6 py-3 font-poppins font-semibold text-amber-50 hover:bg-amber-500/30"
                   onClick={() => setIsModalOpen(true)}
                   disabled={activeRoom !== null}
-                  whileHover={
-                    activeRoom !== null ? undefined : { scale: 1.03 }
-                  }
+                  whileHover={activeRoom !== null ? undefined : { scale: 1.03 }}
                   whileTap={activeRoom !== null ? undefined : { scale: 0.98 }}
                 >
                   Crear sala
@@ -1288,172 +1482,16 @@ export default function MainMenu() {
               </ul>
             )}
           </section>
-
-          {/* Espaciador para que el scroll muestre todo el contenido por encima de la barra de jugadores */}
-          {activeRoom && (
-            <div
-              className="min-h-[200px] sm:min-h-[180px] shrink-0"
-              aria-hidden
-            />
-          )}
         </div>
-
-        {/* Sala activa (barra inferior) */}
-        {activeRoom && (
-          <motion.div
-            className="safe-area-bottom absolute bottom-0 left-0 right-0 z-20 flex min-h-[88px] flex-col items-center gap-4 border-t border-white/10 bg-zinc-950/90 p-3 text-zinc-100 backdrop-blur-xl sm:bottom-3 sm:left-4 sm:right-4 sm:rounded-2xl sm:border sm:p-4 lg:flex-row lg:justify-between"
-            initial={{ y: 100 }}
-            animate={{ y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:gap-6">
-              <div className="text-center sm:text-left">
-                <h3 className="font-poppins text-base font-bold sm:text-lg">
-                  {activeRoom.name}
-                </h3>
-                <p className="font-quicksand text-sm text-zinc-400 sm:text-base">
-                  {activeRoom.status === "waiting"
-                    ? "Esperando jugadores…"
-                    : "En juego"}
-                </p>
-              </div>
-              <div className="mb-1 flex flex-wrap justify-center gap-2 sm:mb-0">
-                {activeRoom?.players?.map((player) => (
-                  <motion.div
-                    key={player.id}
-                    className="relative mb-1 flex flex-col items-center rounded-xl border border-white/10 bg-white/10 p-2 sm:p-4"
-                    whileHover={{ scale: 1.03 }}
-                  >
-                    <Image
-                      src={player.user.image || "/default-avatar.png"}
-                      alt="Foto de perfil"
-                      width={40}
-                      height={40}
-                      className="h-8 w-8 rounded-full border-2 border-amber-400/35 sm:h-10 sm:w-10"
-                      unoptimized
-                    />
-                    <span className="max-w-[80px] truncate font-quicksand text-xs font-semibold text-white sm:max-w-[100px] sm:text-sm">
-                      {player.user.name}
-                    </span>
-                    {loadingStatsUserId === player.userId ? (
-                      <span className="absolute left-1 top-1 flex h-4 w-4 items-center justify-center sm:h-5 sm:w-5">
-                        <CustomLoadingSpinner
-                          size="sm"
-                          showText={false}
-                          color="#e4e4e7"
-                        />
-                      </span>
-                    ) : (
-                      <ChartColumnIncreasing
-                        className="absolute left-1 top-1 h-4 w-4 cursor-pointer text-amber-300/90 sm:h-5 sm:w-5"
-                        onClick={() => getPlayerStats(player.userId)}
-                      />
-                    )}
-                    {session.user.id === activeRoom.ownerId &&
-                      player.user.id !== session?.user?.id && (
-                        <motion.div
-                          whileHover={{ scale: 1.2 }}
-                          whileTap={{ scale: 0.9 }}
-                        >
-                          <X
-                            className={`absolute top-1 right-1 h-4 w-4 sm:h-5 sm:w-5 text-[#A91D2F] ${
-                              isKickingUser
-                                ? "opacity-50 cursor-not-allowed"
-                                : "cursor-pointer"
-                            }`}
-                            onClick={() =>
-                              !isKickingUser &&
-                              handleKickPlayer(activeRoom.id, player.userId)
-                            }
-                          />
-                        </motion.div>
-                      )}
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-            <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:gap-4">
-              <p className="font-quicksand text-sm text-zinc-400 sm:text-base">
-                {activeRoom?.players?.length}/{activeRoom.maxPlayers} jugadores
-              </p>
-              {activeRoom.ownerId === session?.user?.id && (
-                <div className="flex w-full items-center gap-2 sm:w-auto">
-                  <motion.button
-                    type="button"
-                    onClick={() =>
-                      !isStartingGame &&
-                      !isDeletingRoom &&
-                      startGame(activeRoom)
-                    }
-                    className={`flex-1 rounded-xl border border-emerald-500/35 bg-emerald-600/80 px-4 py-2.5 font-poppins text-sm font-bold text-white sm:flex-none sm:px-5 ${
-                      isStartingGame || isDeletingRoom
-                        ? "cursor-not-allowed opacity-50"
-                        : "hover:bg-emerald-500"
-                    }`}
-                    whileHover={
-                      isStartingGame || isDeletingRoom
-                        ? undefined
-                        : { scale: 1.02 }
-                    }
-                    whileTap={
-                      isStartingGame || isDeletingRoom
-                        ? undefined
-                        : { scale: 0.98 }
-                    }
-                  >
-                    Iniciar partida
-                  </motion.button>
-                  <motion.div
-                    whileHover={{ scale: isDeletingRoom ? 1 : 1.08 }}
-                    whileTap={{ scale: 0.92 }}
-                    className="flex min-h-[44px] min-w-[44px] items-center justify-center"
-                  >
-                    {isDeletingRoom ? (
-                      <CustomLoadingSpinner
-                        size="sm"
-                        showText={false}
-                        color="#fecaca"
-                      />
-                    ) : (
-                      <Trash2
-                        className={`h-4 w-4 text-red-400 sm:h-5 sm:w-5 ${
-                          isStartingGame
-                            ? "cursor-not-allowed opacity-50"
-                            : "cursor-pointer hover:text-red-300"
-                        }`}
-                        onClick={async () => {
-                          if (isDeletingRoom || isStartingGame) return;
-                          const ok = await showConfirm({
-                            title: "Eliminar sala",
-                            message:
-                              "¿Eliminar la sala? Los jugadores serán expulsados.",
-                            confirmLabel: "Eliminar",
-                            cancelLabel: "Cancelar",
-                            danger: true,
-                          });
-                          if (ok) handleDeleteRoom(activeRoom.id);
-                        }}
-                      />
-                    )}
-                  </motion.div>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
 
         <motion.button
           type="button"
           onClick={() => router.push("/how-to-play")}
-          className={`safe-area-bottom fixed right-3 z-50 flex min-h-[44px] items-center justify-center rounded-full border border-white/15 bg-zinc-900/90 px-4 py-2 font-poppins text-sm text-zinc-100 shadow-lg backdrop-blur-md sm:right-6 sm:px-5 sm:text-base ${
-            activeRoom
-              ? "bottom-[calc(6.25rem+env(safe-area-inset-bottom,0px))] sm:bottom-[calc(8rem+env(safe-area-inset-bottom,0px))]"
-              : "bottom-[max(0.75rem,env(safe-area-inset-bottom,0px))] sm:bottom-6"
-          }`}
+          className="safe-area-bottom fixed bottom-[max(0.75rem,env(safe-area-inset-bottom,0px))] right-3 z-50 flex min-h-[44px] items-center justify-center rounded-full border border-white/15 bg-zinc-900/90 px-4 py-2 font-poppins text-sm text-zinc-100 shadow-lg backdrop-blur-md sm:bottom-6 sm:right-6 sm:px-5 sm:text-base"
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
         >
-          ¿Cómo jugar?
+          <p className="mt-[-8px]">¿Cómo jugar?</p>
         </motion.button>
       </main>
 
