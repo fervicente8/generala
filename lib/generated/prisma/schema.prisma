@@ -94,6 +94,7 @@ model Game {
   owner         User             @relation("GameOwner", fields: [ownerId], references: [id])
   invitations   GameInvitation[]
   currentTurnId String? // ID del usuario que tiene el turno
+  turnStartedAt DateTime? // Inicio del turno actual (para tiempo límite)
   diceValues    Int[]            @default([]) // Últimos valores de los dados
   rollCount     Int              @default(0)
 }
@@ -106,18 +107,22 @@ model GameUser {
   game   Game   @relation(fields: [gameId], references: [id])
   gameId String
 
-  ones       Int?
-  twos       Int?
-  threes     Int?
-  fours      Int?
-  fives      Int?
-  sixes      Int?
-  straight   Int?
-  fullHouse  Int?
-  poker      Int?
-  generala   Int?
-  double     Int?
-  totalScore Int? @default(0)
+  ones            Int?
+  twos            Int?
+  threes          Int?
+  fours           Int?
+  fives           Int?
+  sixes           Int?
+  straight        Int?
+  fullHouse       Int?
+  poker           Int?
+  generala        Int?
+  double          Int?
+  totalScore      Int?  @default(0)
+  /**
+   * Preferencias del anotador en escritorio (posición, tamaño, backdrop) — JSON
+   */
+  scoreSheetPrefs Json?
 
   @@unique([userId, gameId])
 }

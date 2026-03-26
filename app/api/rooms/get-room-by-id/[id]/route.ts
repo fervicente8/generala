@@ -39,12 +39,29 @@ export async function GET(
       return NextResponse.json({ error: "No estás en esta sala" }, { status: 403 });
     }
 
+    let turnStartedAt = game.turnStartedAt;
+    if (
+      game.turnTimeout &&
+      game.turnTimeout > 0 &&
+      !turnStartedAt &&
+      game.currentTurnId &&
+      game.status === "in_progress"
+    ) {
+      const now = new Date();
+      await prisma.game.update({
+        where: { id: gameId },
+        data: { turnStartedAt: now },
+      });
+      turnStartedAt = now;
+    }
+
     return NextResponse.json({
       id: game.id,
       players: game.players.map((p) => p),
       status: game.status,
       turnTimeout: game.turnTimeout,
       currentTurnId: game.currentTurnId,
+      turnStartedAt: turnStartedAt?.toISOString() ?? null,
       diceValues: game.diceValues,
       rollCount: game.rollCount,
     });

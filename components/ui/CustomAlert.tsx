@@ -2,10 +2,10 @@
 
 import { createContext, useContext, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { AlertCircle, CheckCircle } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle } from "lucide-react";
 import clsx from "clsx";
 
-type AlertType = "success" | "error";
+type AlertType = "success" | "error" | "warning";
 
 interface AlertData {
   type: AlertType;
@@ -66,17 +66,24 @@ export const AlertProvider = ({ children }: { children: React.ReactNode }) => {
             exit={{ y: 16, opacity: 0, scale: 0.98 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
             className={clsx(
-              "fixed left-1/2 -translate-x-1/2 px-6 py-4 rounded-2xl shadow-xl text-white flex items-center gap-3 z-50",
-              "bottom-6 alert-bottom max-w-[calc(100vw-2rem)]",
-              alert.type === "success" ? "bg-green-500" : "bg-red-500"
+              "fixed inset-x-4 px-6 py-4 rounded-2xl shadow-xl text-white flex items-center gap-3 z-50",
+              "bottom-6 alert-bottom w-auto max-w-none",
+              "sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:max-w-[calc(100vw-2rem)] sm:w-auto",
+              alert.type === "success"
+                ? "bg-green-500"
+                : alert.type === "warning"
+                  ? "bg-amber-600"
+                  : "bg-red-500",
             )}
           >
             {alert.type === "success" ? (
               <CheckCircle className="w-5 h-5" />
+            ) : alert.type === "warning" ? (
+              <AlertTriangle className="w-5 h-5" />
             ) : (
               <AlertCircle className="w-5 h-5" />
             )}
-            <span className="text-sm font-medium">{alert.message}</span>
+            <span className="min-w-0 flex-1 text-sm font-medium">{alert.message}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -88,7 +95,7 @@ export const AlertProvider = ({ children }: { children: React.ReactNode }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
             onClick={() => confirmState.resolve(false)}
           >
             <motion.div
@@ -118,7 +125,7 @@ export const AlertProvider = ({ children }: { children: React.ReactNode }) => {
                     "px-4 py-2 rounded-xl font-poppins font-semibold text-sm text-white transition",
                     confirmState.danger
                       ? "bg-red-500 hover:bg-red-600"
-                      : "bg-[#2E4A3D] hover:bg-[#2E4A3D]/90"
+                      : "bg-[#2E4A3D] hover:bg-[#2E4A3D]/90",
                   )}
                 >
                   {confirmState.confirmLabel ?? "Aceptar"}

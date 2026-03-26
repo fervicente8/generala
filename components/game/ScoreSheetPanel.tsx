@@ -1,13 +1,16 @@
 "use client";
 
 import type { ComponentProps } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronUp, ClipboardList } from "lucide-react";
 import ScoreTable from "./ScoreSheet";
 import { NotebookBinding } from "./NotebookBinding";
 import { ScoreSheetNotebookHeader } from "./ScoreSheetNotebookHeader";
+import { ScoreSheetDesktopLayer } from "./ScoreSheetDesktopLayer";
+import type { DesktopScoreSheetPrefsV1 } from "@/lib/scoreSheetPrefs";
 
-/** Marco libreta desplegada (sin cambios de tamaño) */
+/** Marco libreta desplegada (móvil / fallback) */
 const notebookChrome =
   "flex min-w-[300px] w-max max-w-[min(96vw,calc(100vw-1.25rem))] overflow-hidden rounded-2xl border-2 border-amber-900/30 sm:min-w-[340px] sm:rounded-3xl shadow-[0_10px_28px_rgba(0,0,0,0.38),0_3px_10px_rgba(0,0,0,0.16)]";
 
@@ -60,11 +63,26 @@ const sheetMotion = {
   },
 };
 
+function useIsDesktopMd() {
+  const [desktop, setDesktop] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const apply = () => setDesktop(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+  return desktop;
+}
+
 interface ScoreSheetPanelProps extends ComponentProps<typeof ScoreTable> {
   open: boolean;
   onOpen: () => void;
   onClose: () => void;
   gameEnded: boolean;
+  gameSurfaceRef: React.RefObject<HTMLElement | null>;
+  desktopScoreSheetPrefs: DesktopScoreSheetPrefsV1 | null;
+  onDesktopScoreSheetPrefsChange: (p: DesktopScoreSheetPrefsV1) => void;
 }
 
 export function ScoreSheetPanel({
@@ -72,8 +90,13 @@ export function ScoreSheetPanel({
   onOpen,
   onClose,
   gameEnded,
+  gameSurfaceRef,
+  desktopScoreSheetPrefs,
+  onDesktopScoreSheetPrefsChange,
   ...scoreTableProps
 }: ScoreSheetPanelProps) {
+  const isDesktop = useIsDesktopMd();
+
   if (gameEnded) return null;
 
   const tablePropsOpen = {
@@ -86,7 +109,6 @@ export function ScoreSheetPanel({
 
   return (
     <>
-      {/* Móvil: barra inferior centrada (no tapa dados). sm+: pestaña al borde derecho. */}
       <motion.button
         type="button"
         onClick={onOpen}
@@ -122,50 +144,61 @@ export function ScoreSheetPanel({
         />
       </motion.button>
 
-      <AnimatePresence mode="sync">
-        {open && (
-          <>
-            <div className="absolute inset-0 z-60">
-              <motion.button
-                type="button"
-                aria-label="Cerrar anotador"
-                className="absolute inset-0 cursor-default border-0 bg-black/30 p-0 backdrop-blur-[3px] w-full h-full"
-                {...backdropMotion}
-                onClick={onClose}
-              />
-              <p className="pointer-events-none absolute top-[max(4.5rem,env(safe-area-inset-top,0px)+3rem)] left-1/2 max-w-[min(90vw,22rem)] -translate-x-1/2 text-center text-sm font-quicksand text-(--color-pearl-white)/95 drop-shadow-[0_1px_4px_rgba(0,0,0,0.85)]">
-                Tocá fuera de la libreta para cerrar
-              </p>
-            </div>
-            <div
-              className={`absolute inset-0 z-61 pointer-events-none flex items-stretch justify-end p-0 max-sm:py-1 max-sm:pr-[max(0.5rem,2vw)] sm:p-0 ${sheetOpenInsetPadding}`}
-              style={{ perspective: 900 }}
-            >
-              <motion.div
-                className={`pointer-events-auto flex h-full max-h-full min-h-0 flex-row ${notebookChrome}`}
-                style={{
-                  transformStyle: "preserve-3d",
-                  transformOrigin: "center bottom",
-                }}
-                initial={sheetMotion.initial}
-                animate={sheetMotion.animate}
-                exit={sheetMotion.exit}
-                onClick={(e) => e.stopPropagation()}
+      {isDesktop ? (
+        <ScoreSheetDesktopLayer
+          open={open}
+          onClose={onClose}
+          gameSurfaceRef={gameSurfaceRef}
+          prefs={desktopScoreSheetPrefs}
+          onPrefsChange={onDesktopScoreSheetPrefsChange}
+          tablePropsOpen={tablePropsOpen}
+        />
+      ) : (
+        <AnimatePresence mode="sync">
+          {open && (
+            <>
+              <div className="absolute inset-0 z-60">
+                <motion.button
+                  type="button"
+                  aria-label="Cerrar anotador"
+                  className="absolute inset-0 cursor-default border-0 bg-black/30 p-0 backdrop-blur-[3px] w-full h-full"
+                  {...backdropMotion}
+                  onClick={onClose}
+                />
+                <p className="pointer-events-none absolute top-[max(4.5rem,env(safe-area-inset-top,0px)+3rem)] left-1/2 max-w-[min(90vw,22rem)] -translate-x-1/2 text-center text-sm font-quicksand text-(--color-pearl-white)/95 drop-shadow-[0_1px_4px_rgba(0,0,0,0.85)]">
+                  Tocá fuera de la libreta para cerrar
+                </p>
+              </div>
+              <div
+                className={`absolute inset-0 z-61 pointer-events-none flex items-stretch justify-end p-0 max-sm:py-1 max-sm:pr-[max(0.5rem,2vw)] sm:p-0 ${sheetOpenInsetPadding}`}
+                style={{ perspective: 900 }}
               >
-                <NotebookBinding />
-                <div
-                  className={`flex h-full min-h-0 w-max min-w-0 max-w-[min(96vw,calc(100vw-2.5rem))] flex-col overflow-hidden ${paperFace}`}
+                <motion.div
+                  className={`pointer-events-auto flex h-full max-h-full min-h-0 flex-row ${notebookChrome}`}
+                  style={{
+                    transformStyle: "preserve-3d",
+                    transformOrigin: "center bottom",
+                  }}
+                  initial={sheetMotion.initial}
+                  animate={sheetMotion.animate}
+                  exit={sheetMotion.exit}
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <ScoreSheetNotebookHeader action="close" onAction={onClose} />
-                  <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-                    <ScoreTable {...tablePropsOpen} />
+                  <NotebookBinding />
+                  <div
+                    className={`flex h-full min-h-0 w-max min-w-0 max-w-[min(96vw,calc(100vw-2.5rem))] flex-col overflow-hidden ${paperFace}`}
+                  >
+                    <ScoreSheetNotebookHeader action="close" onAction={onClose} />
+                    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                      <ScoreTable {...tablePropsOpen} />
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            </div>
-          </>
-        )}
-      </AnimatePresence>
+                </motion.div>
+              </div>
+            </>
+          )}
+        </AnimatePresence>
+      )}
     </>
   );
 }

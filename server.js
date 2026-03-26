@@ -221,7 +221,12 @@ app.prepare().then(() => {
         const playerSocketId = onlineUsers.get(playerId)?.socketId;
 
         if (playerSocketId) {
-          io.to(playerSocketId).emit("diceRolled", { diceValues: data.diceValues, rollCount: data.rollCount, dicesToReroll: data.dicesToReroll });
+          io.to(playerSocketId).emit("diceRolled", {
+            diceValues: data.diceValues,
+            rollCount: data.rollCount,
+            dicesToReroll: data.dicesToReroll,
+            turnStartedAt: data.turnStartedAt ?? null,
+          });
         }
       });
     });
@@ -237,7 +242,8 @@ app.prepare().then(() => {
           io.to(playerSocketId).emit("scoreSubmitted", {
             currentTurnId: data.currentTurnId,
             updatedGameUserId: data.updatedGameUserId,
-            updatedValues: data.updatedValues
+            updatedValues: data.updatedValues,
+            turnStartedAt: data.turnStartedAt ?? null,
           });
         }
       });

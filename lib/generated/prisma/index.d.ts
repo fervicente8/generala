@@ -6345,6 +6345,7 @@ export namespace Prisma {
     password: string | null
     ownerId: string | null
     currentTurnId: string | null
+    turnStartedAt: Date | null
     rollCount: number | null
   }
 
@@ -6360,6 +6361,7 @@ export namespace Prisma {
     password: string | null
     ownerId: string | null
     currentTurnId: string | null
+    turnStartedAt: Date | null
     rollCount: number | null
   }
 
@@ -6375,6 +6377,7 @@ export namespace Prisma {
     password: number
     ownerId: number
     currentTurnId: number
+    turnStartedAt: number
     diceValues: number
     rollCount: number
     _all: number
@@ -6409,6 +6412,7 @@ export namespace Prisma {
     password?: true
     ownerId?: true
     currentTurnId?: true
+    turnStartedAt?: true
     rollCount?: true
   }
 
@@ -6424,6 +6428,7 @@ export namespace Prisma {
     password?: true
     ownerId?: true
     currentTurnId?: true
+    turnStartedAt?: true
     rollCount?: true
   }
 
@@ -6439,6 +6444,7 @@ export namespace Prisma {
     password?: true
     ownerId?: true
     currentTurnId?: true
+    turnStartedAt?: true
     diceValues?: true
     rollCount?: true
     _all?: true
@@ -6542,6 +6548,7 @@ export namespace Prisma {
     password: string | null
     ownerId: string
     currentTurnId: string | null
+    turnStartedAt: Date | null
     diceValues: number[]
     rollCount: number
     _count: GameCountAggregateOutputType | null
@@ -6577,6 +6584,7 @@ export namespace Prisma {
     password?: boolean
     ownerId?: boolean
     currentTurnId?: boolean
+    turnStartedAt?: boolean
     diceValues?: boolean
     rollCount?: boolean
     players?: boolean | Game$playersArgs<ExtArgs>
@@ -6597,6 +6605,7 @@ export namespace Prisma {
     password?: boolean
     ownerId?: boolean
     currentTurnId?: boolean
+    turnStartedAt?: boolean
     diceValues?: boolean
     rollCount?: boolean
     owner?: boolean | UserDefaultArgs<ExtArgs>
@@ -6614,6 +6623,7 @@ export namespace Prisma {
     password?: boolean
     ownerId?: boolean
     currentTurnId?: boolean
+    turnStartedAt?: boolean
     diceValues?: boolean
     rollCount?: boolean
     owner?: boolean | UserDefaultArgs<ExtArgs>
@@ -6631,11 +6641,12 @@ export namespace Prisma {
     password?: boolean
     ownerId?: boolean
     currentTurnId?: boolean
+    turnStartedAt?: boolean
     diceValues?: boolean
     rollCount?: boolean
   }
 
-  export type GameOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "status" | "name" | "winnerId" | "maxPlayers" | "minPlayers" | "turnTimeout" | "password" | "ownerId" | "currentTurnId" | "diceValues" | "rollCount", ExtArgs["result"]["game"]>
+  export type GameOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "status" | "name" | "winnerId" | "maxPlayers" | "minPlayers" | "turnTimeout" | "password" | "ownerId" | "currentTurnId" | "turnStartedAt" | "diceValues" | "rollCount", ExtArgs["result"]["game"]>
   export type GameInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     players?: boolean | Game$playersArgs<ExtArgs>
     owner?: boolean | UserDefaultArgs<ExtArgs>
@@ -6668,6 +6679,7 @@ export namespace Prisma {
       password: string | null
       ownerId: string
       currentTurnId: string | null
+      turnStartedAt: Date | null
       diceValues: number[]
       rollCount: number
     }, ExtArgs["result"]["game"]>
@@ -7107,6 +7119,7 @@ export namespace Prisma {
     readonly password: FieldRef<"Game", 'String'>
     readonly ownerId: FieldRef<"Game", 'String'>
     readonly currentTurnId: FieldRef<"Game", 'String'>
+    readonly turnStartedAt: FieldRef<"Game", 'DateTime'>
     readonly diceValues: FieldRef<"Game", 'Int[]'>
     readonly rollCount: FieldRef<"Game", 'Int'>
   }
@@ -7670,6 +7683,7 @@ export namespace Prisma {
     generala: number
     double: number
     totalScore: number
+    scoreSheetPrefs: number
     _all: number
   }
 
@@ -7756,6 +7770,7 @@ export namespace Prisma {
     generala?: true
     double?: true
     totalScore?: true
+    scoreSheetPrefs?: true
     _all?: true
   }
 
@@ -7861,6 +7876,7 @@ export namespace Prisma {
     generala: number | null
     double: number | null
     totalScore: number | null
+    scoreSheetPrefs: JsonValue | null
     _count: GameUserCountAggregateOutputType | null
     _avg: GameUserAvgAggregateOutputType | null
     _sum: GameUserSumAggregateOutputType | null
@@ -7898,6 +7914,7 @@ export namespace Prisma {
     generala?: boolean
     double?: boolean
     totalScore?: boolean
+    scoreSheetPrefs?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     game?: boolean | GameDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["gameUser"]>
@@ -7918,6 +7935,7 @@ export namespace Prisma {
     generala?: boolean
     double?: boolean
     totalScore?: boolean
+    scoreSheetPrefs?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     game?: boolean | GameDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["gameUser"]>
@@ -7938,6 +7956,7 @@ export namespace Prisma {
     generala?: boolean
     double?: boolean
     totalScore?: boolean
+    scoreSheetPrefs?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     game?: boolean | GameDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["gameUser"]>
@@ -7958,9 +7977,10 @@ export namespace Prisma {
     generala?: boolean
     double?: boolean
     totalScore?: boolean
+    scoreSheetPrefs?: boolean
   }
 
-  export type GameUserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "gameId" | "ones" | "twos" | "threes" | "fours" | "fives" | "sixes" | "straight" | "fullHouse" | "poker" | "generala" | "double" | "totalScore", ExtArgs["result"]["gameUser"]>
+  export type GameUserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "gameId" | "ones" | "twos" | "threes" | "fours" | "fives" | "sixes" | "straight" | "fullHouse" | "poker" | "generala" | "double" | "totalScore" | "scoreSheetPrefs", ExtArgs["result"]["gameUser"]>
   export type GameUserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     game?: boolean | GameDefaultArgs<ExtArgs>
@@ -7996,6 +8016,10 @@ export namespace Prisma {
       generala: number | null
       double: number | null
       totalScore: number | null
+      /**
+       * * Preferencias del anotador en escritorio (posición, tamaño, backdrop) — JSON
+       */
+      scoreSheetPrefs: Prisma.JsonValue | null
     }, ExtArgs["result"]["gameUser"]>
     composites: {}
   }
@@ -8436,6 +8460,7 @@ export namespace Prisma {
     readonly generala: FieldRef<"GameUser", 'Int'>
     readonly double: FieldRef<"GameUser", 'Int'>
     readonly totalScore: FieldRef<"GameUser", 'Int'>
+    readonly scoreSheetPrefs: FieldRef<"GameUser", 'Json'>
   }
     
 
@@ -10020,6 +10045,7 @@ export namespace Prisma {
     password: 'password',
     ownerId: 'ownerId',
     currentTurnId: 'currentTurnId',
+    turnStartedAt: 'turnStartedAt',
     diceValues: 'diceValues',
     rollCount: 'rollCount'
   };
@@ -10042,7 +10068,8 @@ export namespace Prisma {
     poker: 'poker',
     generala: 'generala',
     double: 'double',
-    totalScore: 'totalScore'
+    totalScore: 'totalScore',
+    scoreSheetPrefs: 'scoreSheetPrefs'
   };
 
   export type GameUserScalarFieldEnum = (typeof GameUserScalarFieldEnum)[keyof typeof GameUserScalarFieldEnum]
@@ -10067,6 +10094,14 @@ export namespace Prisma {
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+  export const NullableJsonNullValueInput: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull
+  };
+
+  export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
   export const QueryMode: {
     default: 'default',
     insensitive: 'insensitive'
@@ -10081,6 +10116,15 @@ export namespace Prisma {
   };
 
   export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+  export const JsonNullValueFilter: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull,
+    AnyNull: typeof AnyNull
+  };
+
+  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
   /**
@@ -10141,6 +10185,20 @@ export namespace Prisma {
    * Reference to a field of type 'Float[]'
    */
   export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'Json'
+   */
+  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+  /**
+   * Reference to a field of type 'QueryMode'
+   */
+  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
   /**
    * Deep Input Types
@@ -10490,6 +10548,7 @@ export namespace Prisma {
     password?: StringNullableFilter<"Game"> | string | null
     ownerId?: StringFilter<"Game"> | string
     currentTurnId?: StringNullableFilter<"Game"> | string | null
+    turnStartedAt?: DateTimeNullableFilter<"Game"> | Date | string | null
     diceValues?: IntNullableListFilter<"Game">
     rollCount?: IntFilter<"Game"> | number
     players?: GameUserListRelationFilter
@@ -10509,6 +10568,7 @@ export namespace Prisma {
     password?: SortOrderInput | SortOrder
     ownerId?: SortOrder
     currentTurnId?: SortOrderInput | SortOrder
+    turnStartedAt?: SortOrderInput | SortOrder
     diceValues?: SortOrder
     rollCount?: SortOrder
     players?: GameUserOrderByRelationAggregateInput
@@ -10531,6 +10591,7 @@ export namespace Prisma {
     password?: StringNullableFilter<"Game"> | string | null
     ownerId?: StringFilter<"Game"> | string
     currentTurnId?: StringNullableFilter<"Game"> | string | null
+    turnStartedAt?: DateTimeNullableFilter<"Game"> | Date | string | null
     diceValues?: IntNullableListFilter<"Game">
     rollCount?: IntFilter<"Game"> | number
     players?: GameUserListRelationFilter
@@ -10550,6 +10611,7 @@ export namespace Prisma {
     password?: SortOrderInput | SortOrder
     ownerId?: SortOrder
     currentTurnId?: SortOrderInput | SortOrder
+    turnStartedAt?: SortOrderInput | SortOrder
     diceValues?: SortOrder
     rollCount?: SortOrder
     _count?: GameCountOrderByAggregateInput
@@ -10574,6 +10636,7 @@ export namespace Prisma {
     password?: StringNullableWithAggregatesFilter<"Game"> | string | null
     ownerId?: StringWithAggregatesFilter<"Game"> | string
     currentTurnId?: StringNullableWithAggregatesFilter<"Game"> | string | null
+    turnStartedAt?: DateTimeNullableWithAggregatesFilter<"Game"> | Date | string | null
     diceValues?: IntNullableListFilter<"Game">
     rollCount?: IntWithAggregatesFilter<"Game"> | number
   }
@@ -10597,6 +10660,7 @@ export namespace Prisma {
     generala?: IntNullableFilter<"GameUser"> | number | null
     double?: IntNullableFilter<"GameUser"> | number | null
     totalScore?: IntNullableFilter<"GameUser"> | number | null
+    scoreSheetPrefs?: JsonNullableFilter<"GameUser">
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     game?: XOR<GameScalarRelationFilter, GameWhereInput>
   }
@@ -10617,6 +10681,7 @@ export namespace Prisma {
     generala?: SortOrderInput | SortOrder
     double?: SortOrderInput | SortOrder
     totalScore?: SortOrderInput | SortOrder
+    scoreSheetPrefs?: SortOrderInput | SortOrder
     user?: UserOrderByWithRelationInput
     game?: GameOrderByWithRelationInput
   }
@@ -10641,6 +10706,7 @@ export namespace Prisma {
     generala?: IntNullableFilter<"GameUser"> | number | null
     double?: IntNullableFilter<"GameUser"> | number | null
     totalScore?: IntNullableFilter<"GameUser"> | number | null
+    scoreSheetPrefs?: JsonNullableFilter<"GameUser">
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     game?: XOR<GameScalarRelationFilter, GameWhereInput>
   }, "id" | "userId_gameId">
@@ -10661,6 +10727,7 @@ export namespace Prisma {
     generala?: SortOrderInput | SortOrder
     double?: SortOrderInput | SortOrder
     totalScore?: SortOrderInput | SortOrder
+    scoreSheetPrefs?: SortOrderInput | SortOrder
     _count?: GameUserCountOrderByAggregateInput
     _avg?: GameUserAvgOrderByAggregateInput
     _max?: GameUserMaxOrderByAggregateInput
@@ -10687,6 +10754,7 @@ export namespace Prisma {
     generala?: IntNullableWithAggregatesFilter<"GameUser"> | number | null
     double?: IntNullableWithAggregatesFilter<"GameUser"> | number | null
     totalScore?: IntNullableWithAggregatesFilter<"GameUser"> | number | null
+    scoreSheetPrefs?: JsonNullableWithAggregatesFilter<"GameUser">
   }
 
   export type GameInvitationWhereInput = {
@@ -11126,6 +11194,7 @@ export namespace Prisma {
     turnTimeout?: number | null
     password?: string | null
     currentTurnId?: string | null
+    turnStartedAt?: Date | string | null
     diceValues?: GameCreatediceValuesInput | number[]
     rollCount?: number
     players?: GameUserCreateNestedManyWithoutGameInput
@@ -11145,6 +11214,7 @@ export namespace Prisma {
     password?: string | null
     ownerId: string
     currentTurnId?: string | null
+    turnStartedAt?: Date | string | null
     diceValues?: GameCreatediceValuesInput | number[]
     rollCount?: number
     players?: GameUserUncheckedCreateNestedManyWithoutGameInput
@@ -11162,6 +11232,7 @@ export namespace Prisma {
     turnTimeout?: NullableIntFieldUpdateOperationsInput | number | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     currentTurnId?: NullableStringFieldUpdateOperationsInput | string | null
+    turnStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     diceValues?: GameUpdatediceValuesInput | number[]
     rollCount?: IntFieldUpdateOperationsInput | number
     players?: GameUserUpdateManyWithoutGameNestedInput
@@ -11181,6 +11252,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     ownerId?: StringFieldUpdateOperationsInput | string
     currentTurnId?: NullableStringFieldUpdateOperationsInput | string | null
+    turnStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     diceValues?: GameUpdatediceValuesInput | number[]
     rollCount?: IntFieldUpdateOperationsInput | number
     players?: GameUserUncheckedUpdateManyWithoutGameNestedInput
@@ -11199,6 +11271,7 @@ export namespace Prisma {
     password?: string | null
     ownerId: string
     currentTurnId?: string | null
+    turnStartedAt?: Date | string | null
     diceValues?: GameCreatediceValuesInput | number[]
     rollCount?: number
   }
@@ -11214,6 +11287,7 @@ export namespace Prisma {
     turnTimeout?: NullableIntFieldUpdateOperationsInput | number | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     currentTurnId?: NullableStringFieldUpdateOperationsInput | string | null
+    turnStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     diceValues?: GameUpdatediceValuesInput | number[]
     rollCount?: IntFieldUpdateOperationsInput | number
   }
@@ -11230,6 +11304,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     ownerId?: StringFieldUpdateOperationsInput | string
     currentTurnId?: NullableStringFieldUpdateOperationsInput | string | null
+    turnStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     diceValues?: GameUpdatediceValuesInput | number[]
     rollCount?: IntFieldUpdateOperationsInput | number
   }
@@ -11248,6 +11323,7 @@ export namespace Prisma {
     generala?: number | null
     double?: number | null
     totalScore?: number | null
+    scoreSheetPrefs?: NullableJsonNullValueInput | InputJsonValue
     user: UserCreateNestedOneWithoutGamesInput
     game: GameCreateNestedOneWithoutPlayersInput
   }
@@ -11268,6 +11344,7 @@ export namespace Prisma {
     generala?: number | null
     double?: number | null
     totalScore?: number | null
+    scoreSheetPrefs?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type GameUserUpdateInput = {
@@ -11284,6 +11361,7 @@ export namespace Prisma {
     generala?: NullableIntFieldUpdateOperationsInput | number | null
     double?: NullableIntFieldUpdateOperationsInput | number | null
     totalScore?: NullableIntFieldUpdateOperationsInput | number | null
+    scoreSheetPrefs?: NullableJsonNullValueInput | InputJsonValue
     user?: UserUpdateOneRequiredWithoutGamesNestedInput
     game?: GameUpdateOneRequiredWithoutPlayersNestedInput
   }
@@ -11304,6 +11382,7 @@ export namespace Prisma {
     generala?: NullableIntFieldUpdateOperationsInput | number | null
     double?: NullableIntFieldUpdateOperationsInput | number | null
     totalScore?: NullableIntFieldUpdateOperationsInput | number | null
+    scoreSheetPrefs?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type GameUserCreateManyInput = {
@@ -11322,6 +11401,7 @@ export namespace Prisma {
     generala?: number | null
     double?: number | null
     totalScore?: number | null
+    scoreSheetPrefs?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type GameUserUpdateManyMutationInput = {
@@ -11338,6 +11418,7 @@ export namespace Prisma {
     generala?: NullableIntFieldUpdateOperationsInput | number | null
     double?: NullableIntFieldUpdateOperationsInput | number | null
     totalScore?: NullableIntFieldUpdateOperationsInput | number | null
+    scoreSheetPrefs?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type GameUserUncheckedUpdateManyInput = {
@@ -11356,6 +11437,7 @@ export namespace Prisma {
     generala?: NullableIntFieldUpdateOperationsInput | number | null
     double?: NullableIntFieldUpdateOperationsInput | number | null
     totalScore?: NullableIntFieldUpdateOperationsInput | number | null
+    scoreSheetPrefs?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type GameInvitationCreateInput = {
@@ -11871,6 +11953,7 @@ export namespace Prisma {
     password?: SortOrder
     ownerId?: SortOrder
     currentTurnId?: SortOrder
+    turnStartedAt?: SortOrder
     diceValues?: SortOrder
     rollCount?: SortOrder
   }
@@ -11895,6 +11978,7 @@ export namespace Prisma {
     password?: SortOrder
     ownerId?: SortOrder
     currentTurnId?: SortOrder
+    turnStartedAt?: SortOrder
     rollCount?: SortOrder
   }
 
@@ -11910,6 +11994,7 @@ export namespace Prisma {
     password?: SortOrder
     ownerId?: SortOrder
     currentTurnId?: SortOrder
+    turnStartedAt?: SortOrder
     rollCount?: SortOrder
   }
 
@@ -11935,6 +12020,29 @@ export namespace Prisma {
     _sum?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedIntNullableFilter<$PrismaModel>
     _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
   export type GameScalarRelationFilter = {
@@ -11963,6 +12071,7 @@ export namespace Prisma {
     generala?: SortOrder
     double?: SortOrder
     totalScore?: SortOrder
+    scoreSheetPrefs?: SortOrder
   }
 
   export type GameUserAvgOrderByAggregateInput = {
@@ -12029,6 +12138,32 @@ export namespace Prisma {
     generala?: SortOrder
     double?: SortOrder
     totalScore?: SortOrder
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
   export type GameInvitationGameIdReceiverIdCompoundUniqueInput = {
@@ -12862,6 +12997,29 @@ export namespace Prisma {
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
+  export type NestedJsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type UserStatsCreateWithoutUserInput = {
     id?: string
@@ -12926,6 +13084,7 @@ export namespace Prisma {
     generala?: number | null
     double?: number | null
     totalScore?: number | null
+    scoreSheetPrefs?: NullableJsonNullValueInput | InputJsonValue
     game: GameCreateNestedOneWithoutPlayersInput
   }
 
@@ -12944,6 +13103,7 @@ export namespace Prisma {
     generala?: number | null
     double?: number | null
     totalScore?: number | null
+    scoreSheetPrefs?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type GameUserCreateOrConnectWithoutUserInput = {
@@ -13067,6 +13227,7 @@ export namespace Prisma {
     turnTimeout?: number | null
     password?: string | null
     currentTurnId?: string | null
+    turnStartedAt?: Date | string | null
     diceValues?: GameCreatediceValuesInput | number[]
     rollCount?: number
     players?: GameUserCreateNestedManyWithoutGameInput
@@ -13084,6 +13245,7 @@ export namespace Prisma {
     turnTimeout?: number | null
     password?: string | null
     currentTurnId?: string | null
+    turnStartedAt?: Date | string | null
     diceValues?: GameCreatediceValuesInput | number[]
     rollCount?: number
     players?: GameUserUncheckedCreateNestedManyWithoutGameInput
@@ -13212,6 +13374,7 @@ export namespace Prisma {
     generala?: IntNullableFilter<"GameUser"> | number | null
     double?: IntNullableFilter<"GameUser"> | number | null
     totalScore?: IntNullableFilter<"GameUser"> | number | null
+    scoreSheetPrefs?: JsonNullableFilter<"GameUser">
   }
 
   export type UserFriendshipUpsertWithWhereUniqueWithoutRequesterInput = {
@@ -13332,6 +13495,7 @@ export namespace Prisma {
     password?: StringNullableFilter<"Game"> | string | null
     ownerId?: StringFilter<"Game"> | string
     currentTurnId?: StringNullableFilter<"Game"> | string | null
+    turnStartedAt?: DateTimeNullableFilter<"Game"> | Date | string | null
     diceValues?: IntNullableListFilter<"Game">
     rollCount?: IntFilter<"Game"> | number
   }
@@ -13696,6 +13860,7 @@ export namespace Prisma {
     generala?: number | null
     double?: number | null
     totalScore?: number | null
+    scoreSheetPrefs?: NullableJsonNullValueInput | InputJsonValue
     user: UserCreateNestedOneWithoutGamesInput
   }
 
@@ -13714,6 +13879,7 @@ export namespace Prisma {
     generala?: number | null
     double?: number | null
     totalScore?: number | null
+    scoreSheetPrefs?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type GameUserCreateOrConnectWithoutGameInput = {
@@ -13910,6 +14076,7 @@ export namespace Prisma {
     turnTimeout?: number | null
     password?: string | null
     currentTurnId?: string | null
+    turnStartedAt?: Date | string | null
     diceValues?: GameCreatediceValuesInput | number[]
     rollCount?: number
     owner: UserCreateNestedOneWithoutOwnedGamesInput
@@ -13928,6 +14095,7 @@ export namespace Prisma {
     password?: string | null
     ownerId: string
     currentTurnId?: string | null
+    turnStartedAt?: Date | string | null
     diceValues?: GameCreatediceValuesInput | number[]
     rollCount?: number
     invitations?: GameInvitationUncheckedCreateNestedManyWithoutGameInput
@@ -14003,6 +14171,7 @@ export namespace Prisma {
     turnTimeout?: NullableIntFieldUpdateOperationsInput | number | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     currentTurnId?: NullableStringFieldUpdateOperationsInput | string | null
+    turnStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     diceValues?: GameUpdatediceValuesInput | number[]
     rollCount?: IntFieldUpdateOperationsInput | number
     owner?: UserUpdateOneRequiredWithoutOwnedGamesNestedInput
@@ -14021,6 +14190,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     ownerId?: StringFieldUpdateOperationsInput | string
     currentTurnId?: NullableStringFieldUpdateOperationsInput | string | null
+    turnStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     diceValues?: GameUpdatediceValuesInput | number[]
     rollCount?: IntFieldUpdateOperationsInput | number
     invitations?: GameInvitationUncheckedUpdateManyWithoutGameNestedInput
@@ -14037,6 +14207,7 @@ export namespace Prisma {
     turnTimeout?: number | null
     password?: string | null
     currentTurnId?: string | null
+    turnStartedAt?: Date | string | null
     diceValues?: GameCreatediceValuesInput | number[]
     rollCount?: number
     players?: GameUserCreateNestedManyWithoutGameInput
@@ -14055,6 +14226,7 @@ export namespace Prisma {
     password?: string | null
     ownerId: string
     currentTurnId?: string | null
+    turnStartedAt?: Date | string | null
     diceValues?: GameCreatediceValuesInput | number[]
     rollCount?: number
     players?: GameUserUncheckedCreateNestedManyWithoutGameInput
@@ -14161,6 +14333,7 @@ export namespace Prisma {
     turnTimeout?: NullableIntFieldUpdateOperationsInput | number | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     currentTurnId?: NullableStringFieldUpdateOperationsInput | string | null
+    turnStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     diceValues?: GameUpdatediceValuesInput | number[]
     rollCount?: IntFieldUpdateOperationsInput | number
     players?: GameUserUpdateManyWithoutGameNestedInput
@@ -14179,6 +14352,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     ownerId?: StringFieldUpdateOperationsInput | string
     currentTurnId?: NullableStringFieldUpdateOperationsInput | string | null
+    turnStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     diceValues?: GameUpdatediceValuesInput | number[]
     rollCount?: IntFieldUpdateOperationsInput | number
     players?: GameUserUncheckedUpdateManyWithoutGameNestedInput
@@ -14285,6 +14459,7 @@ export namespace Prisma {
     generala?: number | null
     double?: number | null
     totalScore?: number | null
+    scoreSheetPrefs?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type UserFriendshipCreateManyRequesterInput = {
@@ -14328,6 +14503,7 @@ export namespace Prisma {
     turnTimeout?: number | null
     password?: string | null
     currentTurnId?: string | null
+    turnStartedAt?: Date | string | null
     diceValues?: GameCreatediceValuesInput | number[]
     rollCount?: number
   }
@@ -14352,6 +14528,7 @@ export namespace Prisma {
     generala?: NullableIntFieldUpdateOperationsInput | number | null
     double?: NullableIntFieldUpdateOperationsInput | number | null
     totalScore?: NullableIntFieldUpdateOperationsInput | number | null
+    scoreSheetPrefs?: NullableJsonNullValueInput | InputJsonValue
     game?: GameUpdateOneRequiredWithoutPlayersNestedInput
   }
 
@@ -14370,6 +14547,7 @@ export namespace Prisma {
     generala?: NullableIntFieldUpdateOperationsInput | number | null
     double?: NullableIntFieldUpdateOperationsInput | number | null
     totalScore?: NullableIntFieldUpdateOperationsInput | number | null
+    scoreSheetPrefs?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type GameUserUncheckedUpdateManyWithoutUserInput = {
@@ -14387,6 +14565,7 @@ export namespace Prisma {
     generala?: NullableIntFieldUpdateOperationsInput | number | null
     double?: NullableIntFieldUpdateOperationsInput | number | null
     totalScore?: NullableIntFieldUpdateOperationsInput | number | null
+    scoreSheetPrefs?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type UserFriendshipUpdateWithoutRequesterInput = {
@@ -14490,6 +14669,7 @@ export namespace Prisma {
     turnTimeout?: NullableIntFieldUpdateOperationsInput | number | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     currentTurnId?: NullableStringFieldUpdateOperationsInput | string | null
+    turnStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     diceValues?: GameUpdatediceValuesInput | number[]
     rollCount?: IntFieldUpdateOperationsInput | number
     players?: GameUserUpdateManyWithoutGameNestedInput
@@ -14507,6 +14687,7 @@ export namespace Prisma {
     turnTimeout?: NullableIntFieldUpdateOperationsInput | number | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     currentTurnId?: NullableStringFieldUpdateOperationsInput | string | null
+    turnStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     diceValues?: GameUpdatediceValuesInput | number[]
     rollCount?: IntFieldUpdateOperationsInput | number
     players?: GameUserUncheckedUpdateManyWithoutGameNestedInput
@@ -14524,6 +14705,7 @@ export namespace Prisma {
     turnTimeout?: NullableIntFieldUpdateOperationsInput | number | null
     password?: NullableStringFieldUpdateOperationsInput | string | null
     currentTurnId?: NullableStringFieldUpdateOperationsInput | string | null
+    turnStartedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     diceValues?: GameUpdatediceValuesInput | number[]
     rollCount?: IntFieldUpdateOperationsInput | number
   }
@@ -14561,6 +14743,7 @@ export namespace Prisma {
     generala?: number | null
     double?: number | null
     totalScore?: number | null
+    scoreSheetPrefs?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type GameInvitationCreateManyGameInput = {
@@ -14584,6 +14767,7 @@ export namespace Prisma {
     generala?: NullableIntFieldUpdateOperationsInput | number | null
     double?: NullableIntFieldUpdateOperationsInput | number | null
     totalScore?: NullableIntFieldUpdateOperationsInput | number | null
+    scoreSheetPrefs?: NullableJsonNullValueInput | InputJsonValue
     user?: UserUpdateOneRequiredWithoutGamesNestedInput
   }
 
@@ -14602,6 +14786,7 @@ export namespace Prisma {
     generala?: NullableIntFieldUpdateOperationsInput | number | null
     double?: NullableIntFieldUpdateOperationsInput | number | null
     totalScore?: NullableIntFieldUpdateOperationsInput | number | null
+    scoreSheetPrefs?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type GameUserUncheckedUpdateManyWithoutGameInput = {
@@ -14619,6 +14804,7 @@ export namespace Prisma {
     generala?: NullableIntFieldUpdateOperationsInput | number | null
     double?: NullableIntFieldUpdateOperationsInput | number | null
     totalScore?: NullableIntFieldUpdateOperationsInput | number | null
+    scoreSheetPrefs?: NullableJsonNullValueInput | InputJsonValue
   }
 
   export type GameInvitationUpdateWithoutGameInput = {

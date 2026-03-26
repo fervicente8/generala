@@ -13,6 +13,7 @@ import {
   Eye,
   EyeOff,
   ChartColumnIncreasing,
+  CircleHelp,
   Trophy,
   Medal,
   Zap,
@@ -62,7 +63,7 @@ export default function MainMenu() {
     name: "",
     maxPlayers: 5,
     minPlayers: 2,
-    turnTimeout: 30,
+    turnTimeout: null,
     password: "",
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -115,6 +116,8 @@ export default function MainMenu() {
   const [showAchievements, setShowAchievements] = useState(false);
   /** Móvil: plegado por defecto. Desktop (lg+): desplegado y sin botón de plegar. */
   const [friendsPanelOpen, setFriendsPanelOpen] = useState(false);
+
+  const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === "true";
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 1024px)");
@@ -407,12 +410,29 @@ export default function MainMenu() {
   const handleCreateRoom = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!gameSettings.name.trim()) return;
+    const lo = isDevMode ? 1 : 2;
+    const minP = Math.max(
+      lo,
+      Math.min(gameSettings.minPlayers, gameSettings.maxPlayers),
+    );
+    const maxP = Math.max(minP, Math.min(gameSettings.maxPlayers, 5));
+    const turn =
+      gameSettings.turnTimeout == null
+        ? null
+        : Math.min(120, Math.max(10, gameSettings.turnTimeout));
+    const payload = {
+      ...gameSettings,
+      minPlayers: minP,
+      maxPlayers: maxP,
+      turnTimeout: turn,
+      ownerId: session?.user?.id,
+    };
     setIsCreatingRoom(true);
     try {
       const res = await fetch("/api/rooms/create-room", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...gameSettings, ownerId: session?.user?.id }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -428,7 +448,7 @@ export default function MainMenu() {
         name: "",
         maxPlayers: 5, // Updated to support 5 players
         minPlayers: 2,
-        turnTimeout: 30,
+        turnTimeout: null,
         password: "",
       });
     } catch (error) {
@@ -546,8 +566,6 @@ export default function MainMenu() {
       setIsKickingUser(false);
     }
   };
-
-  const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === "true";
 
   const startGame = async (room: Game) => {
     const minRequired = isDevMode ? 1 : Math.max(room.minPlayers, 2);
@@ -938,6 +956,16 @@ export default function MainMenu() {
             <div className="flex flex-wrap items-center gap-2 sm:justify-end">
               <motion.button
                 type="button"
+                onClick={() => router.push("/how-to-play")}
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-zinc-100 backdrop-blur-sm hover:bg-white/10 sm:px-4"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <CircleHelp className="h-4 w-4 shrink-0 text-amber-300/90 sm:h-[18px] sm:w-[18px]" />
+                Cómo jugar
+              </motion.button>
+              <motion.button
+                type="button"
                 onClick={() => {
                   setStatsToShow(session.user.stats);
                   setShowStats(true);
@@ -1002,17 +1030,17 @@ export default function MainMenu() {
                     icon={Medal}
                     accent="gold"
                     loading={rankingsLoading}
-                    emptyMessage="Todavía no hay datos."
+                    emptyMessage="Ningún jugador registró victorias aún."
                     variant="wins"
                     winsRows={globalRanking}
                   />
                   <RankingGlassCard
-                    title="Mejor partida"
-                    subtitle="Puntaje más alto · global"
+                    title="Récord global"
+                    subtitle="Mayor puntaje en una partida global"
                     icon={Zap}
                     accent="violet"
                     loading={rankingsLoading}
-                    emptyMessage="Nadie registró una partida todavía."
+                    emptyMessage="Ningún jugador registró una partida aún."
                     variant="highScore"
                     highScoreRows={globalHighScoreRanking}
                   />
@@ -1027,12 +1055,12 @@ export default function MainMenu() {
                     winsRows={friendsRanking}
                   />
                   <RankingGlassCard
-                    title="Amigos · récord"
+                    title="Récord de amigos"
                     subtitle="Mayor puntaje en una partida"
                     icon={Zap}
                     accent="sky"
                     loading={rankingsLoading}
-                    emptyMessage="Nadie de tu lista tiene récord aún."
+                    emptyMessage="Sin amigos con récord aún."
                     variant="highScore"
                     highScoreRows={friendsHighScoreRanking}
                   />
@@ -1061,17 +1089,17 @@ export default function MainMenu() {
                   icon={Medal}
                   accent="gold"
                   loading={rankingsLoading}
-                  emptyMessage="Todavía no hay datos."
+                  emptyMessage="Ningún jugador registró victorias aún."
                   variant="wins"
                   winsRows={globalRanking}
                 />
                 <RankingGlassCard
-                  title="Mejor partida"
-                  subtitle="Puntaje más alto · global"
+                  title="Récord global"
+                  subtitle="Mayor puntaje en una partida global"
                   icon={Zap}
                   accent="violet"
                   loading={rankingsLoading}
-                  emptyMessage="Nadie registró una partida todavía."
+                  emptyMessage="Ningún jugador registró una partida aún."
                   variant="highScore"
                   highScoreRows={globalHighScoreRanking}
                 />
@@ -1086,12 +1114,12 @@ export default function MainMenu() {
                   winsRows={friendsRanking}
                 />
                 <RankingGlassCard
-                  title="Amigos · récord"
+                  title="Récord de amigos"
                   subtitle="Mayor puntaje en una partida"
                   icon={Zap}
                   accent="sky"
                   loading={rankingsLoading}
-                  emptyMessage="Nadie de tu lista tiene récord aún."
+                  emptyMessage="Sin amigos con récord aún."
                   variant="highScore"
                   highScoreRows={friendsHighScoreRanking}
                 />
@@ -1101,7 +1129,7 @@ export default function MainMenu() {
 
           {/* Sala activa: todo en flujo (sin barra fija que tape el listado) */}
           {activeRoom && (
-            <section className="order-2 mt-0 sm:mt-1 lg:order-3 lg:mt-8">
+            <section className="order-2 mt-0 sm:mt-1 lg:order-3 lg:mt-8 mb-4">
               <h2 className="mb-3 font-poppins text-lg font-semibold text-white sm:mb-4 sm:text-xl">
                 Tu sala
               </h2>
@@ -1483,16 +1511,6 @@ export default function MainMenu() {
             )}
           </section>
         </div>
-
-        <motion.button
-          type="button"
-          onClick={() => router.push("/how-to-play")}
-          className="safe-area-bottom fixed bottom-[max(0.75rem,env(safe-area-inset-bottom,0px))] right-3 z-50 flex min-h-[44px] items-center justify-center rounded-full border border-white/15 bg-zinc-900/90 px-4 py-2 font-poppins text-sm text-zinc-100 shadow-lg backdrop-blur-md sm:bottom-6 sm:right-6 sm:px-5 sm:text-base"
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-        >
-          <p className="mt-[-8px]">¿Cómo jugar?</p>
-        </motion.button>
       </main>
 
       {/* Modal de Creación de Sala */}
@@ -1550,7 +1568,7 @@ export default function MainMenu() {
                   >
                     Jugadores mínimos
                   </label>
-                  <div className="flex items-center justify-between overflow-hidden rounded-xl border border-white/15 bg-white/5">
+                  <div className="flex min-h-[44px] items-stretch overflow-hidden rounded-xl border border-white/15 bg-white/5">
                     <motion.button
                       type="button"
                       onClick={() =>
@@ -1564,15 +1582,42 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className="flex min-h-[44px] min-w-[44px] items-center justify-center bg-emerald-600/80 px-3 py-1 text-sm text-white hover:bg-emerald-500 sm:px-4 sm:py-2 sm:text-base"
+                      className="flex min-w-[44px] shrink-0 items-center justify-center bg-emerald-600/80 px-2 text-sm text-white hover:bg-emerald-500 sm:px-3 sm:text-base"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
                       -
                     </motion.button>
-                    <p className="min-w-8 text-center font-quicksand text-sm font-semibold text-white sm:text-base">
-                      {gameSettings.minPlayers}
-                    </p>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      name="minPlayers"
+                      id="minPlayers"
+                      min={isDevMode ? 1 : 2}
+                      max={gameSettings.maxPlayers}
+                      value={gameSettings.minPlayers}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        if (v === "") return;
+                        const n = Number(v);
+                        if (Number.isNaN(n)) return;
+                        setGameSettings((prev) => ({
+                          ...prev,
+                          minPlayers: n,
+                        }));
+                      }}
+                      onBlur={() => {
+                        setGameSettings((prev) => {
+                          const lo = isDevMode ? 1 : 2;
+                          const clamped = Math.max(
+                            lo,
+                            Math.min(prev.minPlayers, prev.maxPlayers),
+                          );
+                          return { ...prev, minPlayers: clamped };
+                        });
+                      }}
+                      className="min-w-0 flex-1 border-x border-white/10 bg-transparent py-2 text-center font-quicksand text-sm font-semibold text-white [appearance:textfield] focus:border-amber-400/35 focus:outline-none focus:ring-2 focus:ring-amber-400/15 sm:text-base [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    />
                     <motion.button
                       type="button"
                       onClick={() =>
@@ -1586,7 +1631,7 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className="flex min-h-[44px] min-w-[44px] items-center justify-center bg-emerald-600/80 px-3 py-1 text-sm text-white hover:bg-emerald-500 sm:px-4 sm:py-2 sm:text-base"
+                      className="flex min-w-[44px] shrink-0 items-center justify-center bg-emerald-600/80 px-2 text-sm text-white hover:bg-emerald-500 sm:px-3 sm:text-base"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
@@ -1601,7 +1646,7 @@ export default function MainMenu() {
                   >
                     Jugadores máximos
                   </label>
-                  <div className="flex items-center justify-between overflow-hidden rounded-xl border border-white/15 bg-white/5">
+                  <div className="flex min-h-[44px] items-stretch overflow-hidden rounded-xl border border-white/15 bg-white/5">
                     <motion.button
                       type="button"
                       onClick={() =>
@@ -1615,15 +1660,41 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className="flex min-h-[44px] min-w-[44px] items-center justify-center bg-emerald-600/80 px-3 py-1 text-sm text-white hover:bg-emerald-500 sm:px-4 sm:py-2 sm:text-base"
+                      className="flex min-w-[44px] shrink-0 items-center justify-center bg-emerald-600/80 px-2 text-sm text-white hover:bg-emerald-500 sm:px-3 sm:text-base"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
                       -
                     </motion.button>
-                    <p className="min-w-8 text-center font-quicksand text-sm font-semibold text-white sm:text-base">
-                      {gameSettings.maxPlayers}
-                    </p>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      name="maxPlayers"
+                      id="maxPlayers"
+                      min={gameSettings.minPlayers}
+                      max={5}
+                      value={gameSettings.maxPlayers}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        if (v === "") return;
+                        const n = Number(v);
+                        if (Number.isNaN(n)) return;
+                        setGameSettings((prev) => ({
+                          ...prev,
+                          maxPlayers: n,
+                        }));
+                      }}
+                      onBlur={() => {
+                        setGameSettings((prev) => {
+                          const clamped = Math.max(
+                            prev.minPlayers,
+                            Math.min(prev.maxPlayers, 5),
+                          );
+                          return { ...prev, maxPlayers: clamped };
+                        });
+                      }}
+                      className="min-w-0 flex-1 border-x border-white/10 bg-transparent py-2 text-center font-quicksand text-sm font-semibold text-white [appearance:textfield] focus:border-amber-400/35 focus:outline-none focus:ring-2 focus:ring-amber-400/15 sm:text-base [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    />
                     <motion.button
                       type="button"
                       onClick={() =>
@@ -1637,7 +1708,7 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className="flex min-h-[44px] min-w-[44px] items-center justify-center bg-emerald-600/80 px-3 py-1 text-sm text-white hover:bg-emerald-500 sm:px-4 sm:py-2 sm:text-base"
+                      className="flex min-w-[44px] shrink-0 items-center justify-center bg-emerald-600/80 px-2 text-sm text-white hover:bg-emerald-500 sm:px-3 sm:text-base"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
@@ -1646,29 +1717,31 @@ export default function MainMenu() {
                   </div>
                 </div>
               </div>
-              <label
-                className="block mb-2 mt-4 font-quicksand text-zinc-200 text-sm sm:text-base"
-                htmlFor="turnTimeout"
-              >
-                ¿Tiempo ilimitado por ronda?
-              </label>
-              <input
-                type="checkbox"
-                name="turnTimeout"
-                id="turnTimeout"
-                checked={gameSettings.turnTimeout === null}
-                onChange={handleCheckboxChange}
-                className="mb-3 ml-2 size-4 accent-amber-500 sm:size-5"
-              />
+              <div className="flex gap-4 items-center my-4">
+                <label
+                  className="block font-quicksand text-zinc-200 text-sm sm:text-base"
+                  htmlFor="turnTimeout"
+                >
+                  Sin límite de tiempo entre tiradas
+                </label>
+                <input
+                  type="checkbox"
+                  name="turnTimeout"
+                  id="turnTimeout"
+                  checked={gameSettings.turnTimeout === null}
+                  onChange={handleCheckboxChange}
+                  className="size-4 accent-amber-500 sm:size-5"
+                />
+              </div>
               {gameSettings.turnTimeout !== null && (
                 <>
                   <label
                     className="block mb-2 font-quicksand text-zinc-200 text-sm sm:text-base"
                     htmlFor="turnTimeoutAmount"
                   >
-                    Tiempo por turno (segundos)
+                    Segundos por tirada
                   </label>
-                  <div className="flex w-36 items-center justify-between overflow-hidden rounded-xl border border-white/15 bg-white/5 sm:w-44">
+                  <div className="flex min-h-[44px] max-w-xs items-stretch overflow-hidden rounded-xl border border-white/15 bg-white/5">
                     <motion.button
                       type="button"
                       onClick={() =>
@@ -1682,15 +1755,40 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className="flex min-h-[44px] min-w-[44px] items-center justify-center bg-emerald-600/80 px-3 py-1 text-sm text-white hover:bg-emerald-500 sm:py-2 sm:text-base"
+                      className="flex min-w-[44px] shrink-0 items-center justify-center bg-emerald-600/80 px-2 text-sm text-white hover:bg-emerald-500 sm:px-3 sm:text-base"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
                       -
                     </motion.button>
-                    <p className="min-w-10 text-center font-quicksand text-sm font-semibold text-white sm:text-base">
-                      {gameSettings.turnTimeout}
-                    </p>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      name="turnTimeoutAmount"
+                      id="turnTimeoutAmount"
+                      min={10}
+                      max={120}
+                      step={1}
+                      value={gameSettings.turnTimeout ?? 30}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        if (v === "") return;
+                        const n = Number(v);
+                        if (Number.isNaN(n)) return;
+                        setGameSettings((prev) => ({
+                          ...prev,
+                          turnTimeout: n,
+                        }));
+                      }}
+                      onBlur={() => {
+                        setGameSettings((prev) => {
+                          const t = prev.turnTimeout ?? 30;
+                          const clamped = Math.min(120, Math.max(10, t));
+                          return { ...prev, turnTimeout: clamped };
+                        });
+                      }}
+                      className="min-w-0 flex-1 border-x border-white/10 bg-transparent py-2 text-center font-quicksand text-sm font-semibold text-white [appearance:textfield] focus:border-amber-400/35 focus:outline-none focus:ring-2 focus:ring-amber-400/15 sm:text-base [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    />
                     <motion.button
                       type="button"
                       onClick={() =>
@@ -1704,15 +1802,20 @@ export default function MainMenu() {
                           },
                         } as any)
                       }
-                      className="flex min-h-[44px] min-w-[44px] items-center justify-center bg-emerald-600/80 px-3 py-1 text-sm text-white hover:bg-emerald-500 sm:py-2 sm:text-base"
+                      className="flex min-w-[44px] shrink-0 items-center justify-center bg-emerald-600/80 px-2 text-sm text-white hover:bg-emerald-500 sm:px-3 sm:text-base"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
                       +
                     </motion.button>
                   </div>
+                  <p className="mt-1.5 text-xs text-zinc-500">
+                    Cada tirada reinicia el tiempo. Entre 10 y 120 s; podés
+                    escribir el número o usar +/−.
+                  </p>
                 </>
               )}
+
               <label
                 className="block mb-2 mt-4 font-quicksand text-zinc-200 text-sm sm:text-base"
                 htmlFor="roomPassword"

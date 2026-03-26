@@ -31,6 +31,7 @@ export async function POST(req: Request) {
       data: {
         status: "in_progress",
         currentTurnId: firstTurnUserId,
+        turnStartedAt: new Date(),
       },
       include: {
         players: {

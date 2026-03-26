@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
         data: {
           status: "finished",
           currentTurnId: null,
+          turnStartedAt: null,
           diceValues: [],
           rollCount: 0,
         },
@@ -59,6 +60,7 @@ export async function POST(req: NextRequest) {
           status: "finished",
           turnTimeout: emptyGame?.turnTimeout ?? null,
           currentTurnId: null,
+          turnStartedAt: null,
           diceValues: [],
           rollCount: 0,
         },
@@ -76,12 +78,22 @@ export async function POST(req: NextRequest) {
       newCurrentTurnId = remaining.length > 0 ? remaining[0].userId : null;
     }
 
+    let turnStartedAtUpdate: Date | null | undefined = undefined;
+    if (oneLeft || !newCurrentTurnId) {
+      turnStartedAtUpdate = null;
+    } else if (game.currentTurnId === userId) {
+      turnStartedAtUpdate = new Date();
+    }
+
     await prisma.game.update({
       where: { id: gameId },
       data: {
         status: oneLeft ? "finished" : "in_progress",
         ownerId: newOwnerId ?? game.ownerId,
         currentTurnId: newCurrentTurnId,
+        ...(turnStartedAtUpdate !== undefined
+          ? { turnStartedAt: turnStartedAtUpdate }
+          : {}),
         winnerId: winnerId ?? undefined,
         diceValues: [],
         rollCount: 0,
@@ -103,6 +115,7 @@ export async function POST(req: NextRequest) {
       status: updatedGame.status,
       turnTimeout: updatedGame.turnTimeout,
       currentTurnId: updatedGame.currentTurnId,
+      turnStartedAt: updatedGame.turnStartedAt?.toISOString() ?? null,
       diceValues: updatedGame.diceValues,
       rollCount: updatedGame.rollCount,
     }, { status: 200 });

@@ -103,9 +103,6 @@ export function RankingGlassCard({
                     className="size-7 shrink-0 rounded-full ring-1 ring-white/10"
                     unoptimized
                   />
-                  <span className="min-w-0 flex-1 truncate font-quicksand text-zinc-100">
-                    {item.user.name}
-                  </span>
                   <span className="shrink-0 text-right text-xs font-medium text-zinc-400">
                     <span className="text-zinc-200">{item.gamesWon}</span>{" "}
                     <span className="hidden sm:inline">

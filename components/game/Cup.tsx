@@ -62,6 +62,13 @@ export default function Cup({
       });
 
       const data = await res.json();
+      if (res.status === 408) {
+        showAlert({
+          type: "warning",
+          message: data.error || "Se acabó el tiempo de esta tirada",
+        });
+        return;
+      }
       if (!res.ok) {
         showAlert({
           type: "error",
@@ -76,6 +83,7 @@ export default function Cup({
         diceValues: data.diceValues,
         rollCount: data.rollCount,
         dicesToReroll: dicesToSend,
+        turnStartedAt: data.turnStartedAt ?? null,
       });
     } catch (error) {
       showAlert({

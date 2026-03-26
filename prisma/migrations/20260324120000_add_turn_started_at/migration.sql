@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Game" ADD COLUMN IF NOT EXISTS "turnStartedAt" TIMESTAMP(3);

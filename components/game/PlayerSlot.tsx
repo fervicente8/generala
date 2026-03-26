@@ -1,11 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GameUser } from "@/types";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { Smile } from "lucide-react";
+import {
+  secondsRemainingOnTurn,
+  turnTimeRemainingFraction,
+} from "@/lib/turnTimer";
 
 export interface PlayerReaction {
   type: "emoji" | "phrase";
@@ -18,8 +28,10 @@ interface PlayerSlotProps {
   player: GameUser;
   position: number;
   isCurrentTurn: boolean;
-  timePerTurn?: number;
-  currentTurnId?: string;
+  /** Segundos de límite por tirada (0 = sin límite) */
+  turnTimeoutSec?: number;
+  /** ISO inicio de la ventana actual (servidor) */
+  turnStartedAt?: string | null;
   totalPlayers?: number;
   players: GameUser[];
   rollCount?: number;
@@ -27,23 +39,52 @@ interface PlayerSlotProps {
   onReactionClick?: () => void;
   /** Ref del contenedor del avatar (para animación de reacciones) */
   avatarRef?: (el: HTMLDivElement | null) => void;
+  /**
+   * Solo “Silenciar efectos” (dados, lápiz, etc.). La música de fondo va aparte
+   * y no debe afectar al aviso de timeout.
+   */
+  effectsMuted?: boolean;
+}
+
+/**
+ * Borde tipo anillo: arco desde arriba en sentido horario.
+ * Tramo “restante” bien visible; tramo gastado oscuro (se ve en toda la vuelta como guía).
+ */
+function turnRingBackground(remainingFraction: number): string {
+  const f = Math.max(0, Math.min(1, remainingFraction));
+  const deg = f * 360;
+  const urgency = 1 - f;
+  const hue = Math.round(132 - urgency * 120);
+  const main = `hsl(${hue} 96% 38%)`;
+  const hot = `hsl(${Math.max(42, hue - 12)} 100% 58%)`;
+  const track = "hsla(165, 48%, 10%, 0.92)";
+  return `conic-gradient(from 0deg, ${hot} 0deg, ${main} ${deg * 0.22}deg, ${main} ${deg}deg, ${track} ${deg}deg, ${track} 360deg)`;
 }
 
 export default function PlayerSlot({
   player,
   position,
   isCurrentTurn,
-  timePerTurn = 0,
-  currentTurnId,
+  turnTimeoutSec = 0,
+  turnStartedAt = null,
   totalPlayers = 2,
   players,
   rollCount = 0,
   reaction = null,
   onReactionClick,
   avatarRef,
+  effectsMuted = false,
 }: PlayerSlotProps) {
   const { data: session } = useSession();
-  const [timeLeft, setTimeLeft] = useState(timePerTurn);
+  const prevSecsRef = useRef<number | null>(null);
+  const timeoutSoundPlayedRef = useRef(false);
+  const timeoutClockAudioRef = useRef<HTMLAudioElement | null>(null);
+  const effectsMutedRef = useRef(effectsMuted);
+  effectsMutedRef.current = effectsMuted;
+  const [displaySeconds, setDisplaySeconds] = useState<number | null>(null);
+  const [remainingFraction, setRemainingFraction] = useState<number | null>(
+    null,
+  );
   const [avatarErrors, setAvatarErrors] = useState<{ [key: string]: boolean }>(
     {},
   );
@@ -58,79 +99,132 @@ export default function PlayerSlot({
     ];
     return positions[index % positions.length];
   };
-  //   if (isCurrentTurn && timePerTurn > 0) {
-  //     setTimeLeft(timePerTurn);
-  //     const interval = setInterval(() => {
-  //       setTimeLeft((prev) => {
-  //         if (prev <= 1) {
-  //           handleSetScore(getCategoryToStrike() || "double", 0);
-  //           clearInterval(interval);
-  //           return 0;
-  //         }
-  //         return prev - 1;
-  //       });
-  //     }, 1000);
 
-  //     return () => clearInterval(interval);
-  //   }
-  // }, [isCurrentTurn, timePerTurn, player.user.id]);
+  const stopTimeoutClockSound = useCallback(() => {
+    const a = timeoutClockAudioRef.current;
+    if (a) {
+      a.pause();
+      a.currentTime = 0;
+      timeoutClockAudioRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
-    setTimeLeft(timePerTurn);
-  }, [rollCount, timePerTurn]);
-  //   try {
-  //     const res = await fetch(`/api/game/submit-score`, {
-  //       method: "POST",
-  //       body: JSON.stringify({
-  //         gameUserId: currentTurnId,
-  //         gameId: players[0].gameId,
-  //         category,
-  //         score,
-  //       }),
-  //     });
+    timeoutSoundPlayedRef.current = false;
+    prevSecsRef.current = null;
+    stopTimeoutClockSound();
+  }, [turnStartedAt, isCurrentTurn, stopTimeoutClockSound]);
 
-  //     const data = await res.json();
+  /** Cortar el reloj al tirar (`rollCount` sube) o al cambiar el turno. */
+  useEffect(() => {
+    stopTimeoutClockSound();
+  }, [rollCount, isCurrentTurn, stopTimeoutClockSound]);
 
-  //     if (!res.ok) {
-  //       showAlert({
-  //         type: "error",
-  //         message: data.error || "Error al guardar la puntuación",
-  //       });
-  //     }
+  useLayoutEffect(() => {
+    if (
+      !isCurrentTurn ||
+      !turnTimeoutSec ||
+      turnTimeoutSec <= 0 ||
+      !turnStartedAt
+    ) {
+      setRemainingFraction(null);
+      setDisplaySeconds(null);
+      return;
+    }
 
-  //     socket.emit("submitScore", {
-  //       players: players.map((player) => player.user),
-  //       currentTurnId: data.currentTurnId,
-  //       updatedGameUserId: currentTurnId,
-  //       updatedValues: data.updatedValues,
-  //     });
-  //   } catch (error) {
-  //     showAlert({
-  //       type: "error",
-  //       message: "Error al guardar la puntuación",
-  //     });
-  //   }
-  // };
+    let rafId = 0;
+    const loop = () => {
+      const f = turnTimeRemainingFraction(turnStartedAt, turnTimeoutSec);
+      const secs = secondsRemainingOnTurn(turnStartedAt, turnTimeoutSec);
+      const frac = f ?? 0;
+      const prev = prevSecsRef.current;
+      if (
+        !effectsMutedRef.current &&
+        secs !== null &&
+        secs > 0 &&
+        !timeoutSoundPlayedRef.current &&
+        (secs === 5 || (prev !== null && prev > 5 && secs < 5))
+      ) {
+        timeoutSoundPlayedRef.current = true;
+        stopTimeoutClockSound();
+        const audio = new Audio("/sounds/timeout.mp3");
+        audio.volume = 0.12;
+        timeoutClockAudioRef.current = audio;
+        const onEnded = () => {
+          if (timeoutClockAudioRef.current === audio)
+            timeoutClockAudioRef.current = null;
+          audio.removeEventListener("ended", onEnded);
+        };
+        audio.addEventListener("ended", onEnded);
+        void audio.play().catch(() => {
+          if (timeoutClockAudioRef.current === audio)
+            timeoutClockAudioRef.current = null;
+        });
+      }
+      prevSecsRef.current = secs;
+      setRemainingFraction(frac);
+      setDisplaySeconds(secs);
+      if (frac > 0.001) {
+        rafId = requestAnimationFrame(loop);
+      }
+    };
+    rafId = requestAnimationFrame(loop);
+    return () => {
+      cancelAnimationFrame(rafId);
+      stopTimeoutClockSound();
+    };
+  }, [
+    isCurrentTurn,
+    turnTimeoutSec,
+    turnStartedAt,
+    stopTimeoutClockSound,
+  ]);
 
   const handleImageError = (playerId: string) => {
     setAvatarErrors((prev) => ({ ...prev, [playerId]: true }));
   };
 
-  return (
+  const showTimer =
+    isCurrentTurn &&
+    turnTimeoutSec > 0 &&
+    turnStartedAt &&
+    displaySeconds !== null;
+
+  const showTurnRing =
+    isCurrentTurn &&
+    turnTimeoutSec > 0 &&
+    !!turnStartedAt &&
+    remainingFraction !== null;
+
+  const positionClass = getPlayerPosition(position, totalPlayers);
+
+  /** Radio interior = radio exterior (1rem) − padding del anillo, para esquinas concéntricas. */
+  const cardClass = `relative z-[1] flex flex-col items-center backdrop-blur-md px-2 sm:px-4 py-2 sm:py-4 shadow-lg transition-all ${
+    showTurnRing
+      ? "rounded-[calc(1rem-0.3rem)] sm:rounded-[calc(1rem-0.45rem)]"
+      : "rounded-xl"
+  } ${
+    showTurnRing
+      ? "scale-105 bg-linear-to-b from-(--color-pearl-white)/95 via-emerald-50/90 to-teal-50/85 ring-1 ring-(--color-metallic-gold)/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]"
+      : isCurrentTurn
+        ? "ring-2 ring-(--color-sapphire-blue) scale-105 bg-(--color-pearl-white)/30"
+        : "bg-(--color-pearl-white)/20"
+  } ${onReactionClick ? "min-w-30 sm:min-w-34 w-auto max-w-xs" : "w-24 sm:w-32 max-w-xs"}`;
+
+  const nameTextClass = showTurnRing
+    ? "text-(--color-sapphire-blue) drop-shadow-none"
+    : "text-(--color-pearl-white)";
+
+  const inner = (
     <motion.div
-      className={`absolute flex flex-col items-center bg-(--color-pearl-white)/20 backdrop-blur-md px-2 sm:px-4 py-2 sm:py-4 rounded-xl shadow-lg transition-all ${getPlayerPosition(
-        position,
-        totalPlayers,
-      )} ${
-        isCurrentTurn
-          ? "ring-2 ring-(--color-sapphire-blue) scale-105 bg-(--color-pearl-white)/30"
-          : ""
-      } ${onReactionClick ? "min-w-30 sm:min-w-34 w-auto max-w-xs" : "w-24 sm:w-32 max-w-xs"}`}
+      className={cardClass}
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
     >
-      <span className="text-(--color-pearl-white) font-poppins font-semibold text-xs sm:text-sm mb-1 sm:mb-2 max-w-full truncate">
+      <span
+        className={`font-poppins font-semibold text-xs sm:text-sm mb-1 sm:mb-2 max-w-full truncate ${nameTextClass}`}
+      >
         {player.user.name} {player.userId === session?.user?.id && "(Yo)"}
       </span>
       <div className="relative inline-flex items-center gap-1.5 sm:gap-2">
@@ -182,9 +276,15 @@ export default function PlayerSlot({
           </button>
         )}
       </div>
-      {isCurrentTurn && timePerTurn > 0 && (
-        <span className="text-(--color-sapphire-blue) text-xs absolute bottom-1 sm:bottom-2 right-1 sm:right-2 font-quicksand">
-          {timeLeft}s
+      {showTimer && (
+        <span
+          className={`text-xs absolute bottom-1 sm:bottom-2 right-1 sm:right-2 font-quicksand font-semibold tabular-nums ${
+            displaySeconds !== null && displaySeconds <= 10
+              ? "text-red-200 drop-shadow-[0_0_6px_rgba(0,0,0,0.8)]"
+              : "text-(--color-sapphire-blue)"
+          }`}
+        >
+          {displaySeconds}s
         </span>
       )}
       {isCurrentTurn && (
@@ -195,7 +295,9 @@ export default function PlayerSlot({
               className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full border-2 ${
                 i < (rollCount ?? 0)
                   ? "border-(--color-sapphire-blue) bg-(--color-sapphire-blue)"
-                  : "border-(--color-pearl-white) bg-transparent"
+                  : showTurnRing
+                    ? "border-(--color-sapphire-blue)/45 bg-white/40"
+                    : "border-(--color-pearl-white) bg-transparent"
               }`}
               initial={{ scale: 0 }}
               animate={{
@@ -212,5 +314,29 @@ export default function PlayerSlot({
         </div>
       )}
     </motion.div>
+  );
+
+  return (
+    <div className={`absolute ${positionClass}`}>
+      {showTurnRing && remainingFraction !== null ? (
+        <div
+          className="rounded-xl p-2 shadow-xl ring-2 ring-amber-900/25"
+          style={{
+            background: turnRingBackground(remainingFraction),
+            boxShadow:
+              remainingFraction < 0.2
+                ? "0 0 22px 5px hsla(12, 95%, 40%, 0.55), 0 4px 14px rgba(0,0,0,0.35)"
+                : remainingFraction < 0.45
+                  ? "0 0 18px 4px hsla(45, 100%, 46%, 0.45), 0 4px 14px rgba(0,0,0,0.3)"
+                  : "0 0 0 2px rgba(0,0,0,0.12), 0 6px 20px rgba(0,0,0,0.28)",
+          }}
+          aria-hidden
+        >
+          {inner}
+        </div>
+      ) : (
+        inner
+      )}
+    </div>
   );
 }

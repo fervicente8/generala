@@ -4,6 +4,7 @@ import "./globals.css";
 import SessionProviderWrapper from "./SessionProviderWrapper";
 import { AlertProvider } from "@/components/ui/CustomAlert";
 import { AchievementProvider } from "@/contexts/AchievementContext";
+import { AnimatedFavicon } from "@/components/AnimatedFavicon";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -77,6 +78,7 @@ export default function RootLayout({
   return (
     <html lang='es' suppressHydrationWarning>
       <body className={`${poppins.variable} antialiased safe-area-x`} suppressHydrationWarning>
+        <AnimatedFavicon />
         <AlertProvider>
           <AchievementProvider>
             <SessionProviderWrapper>{children}</SessionProviderWrapper>

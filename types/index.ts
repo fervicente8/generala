@@ -54,6 +54,8 @@ export interface Game {
     maxPlayers: number;
     minPlayers: number;
     turnTimeout?: number | null;
+    /** ISO: inicio de la ventana de tiempo (nuevo turno o última tirada) */
+    turnStartedAt?: string | null;
     password?: string;
     owner: User;
     ownerId: string; 
@@ -69,6 +71,8 @@ export interface GameUser {
     userId: string;
     game: Game;  
     gameId: string;
+    /** Preferencias del anotador (escritorio), JSON del servidor */
+    scoreSheetPrefs?: unknown;
     ones?: number;
     twos?: number;
     threes?: number;

@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { GameUser } from "@/types";
 import CustomLoadingSpinner from "@/components/ui/CustomLoadingSpinner";
@@ -21,6 +28,12 @@ import { useAchievement } from "@/contexts/AchievementContext";
 import Cup from "@/components/game/Cup";
 import DiceBoard from "@/components/game/DiceBoard";
 import { socket } from "@/lib/socket";
+import { secondsRemainingOnTurn } from "@/lib/turnTimer";
+import { getPossibleMarkHints } from "@/lib/gameScoring";
+import {
+  parseScoreSheetPrefs,
+  type DesktopScoreSheetPrefsV1,
+} from "@/lib/scoreSheetPrefs";
 import { ScoreSheetPanel } from "@/components/game/ScoreSheetPanel";
 import {
   ArrowLeft,
@@ -55,11 +68,19 @@ const SCORE_SHEET_OPEN_AFTER_LAST_ROLL_ANIM_MS = 500;
 const THIRD_ROLL_SCORE_SETTLE_MS =
   AFTER_THIRD_ROLL_MOTION_MS + SCORE_SHEET_OPEN_AFTER_LAST_ROLL_ANIM_MS;
 
+/** Cerrar la botonera de sonido si no hay interacción en este tiempo */
+const AUDIO_CONTROLS_AUTO_CLOSE_MS = 5000;
+
+/** `true` en localStorage = el usuario pausó la música de la partida */
+const GENERALA_MUSIC_PAUSED_KEY = "generala-music-paused";
+
 interface GameTableProps {
   id: string;
   players: GameUser[];
   status: "waiting" | "in progress" | "finished";
   turnTimeout: number | null;
+  /** ISO: inicio de ventana de tiempo (turno nuevo o última tirada) */
+  turnStartedAt?: string | null;
   currentTurnId: string;
   diceValues: number[];
   rollCount: number;
@@ -98,6 +119,10 @@ export default function GameTable() {
   const [rollingLoading, setRollingLoading] = useState(false);
   const [dicesToReroll, setDicesToReroll] = useState<number[]>([]);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
+  /** Solo envío rápido desde chips: categoría con spinner (el anotador no rellena esto). */
+  const [submittingQuickCategory, setSubmittingQuickCategory] = useState<
+    string | null
+  >(null);
   const [showTurnHint, setShowTurnHint] = useState(false);
   const [showScoreHint, setShowScoreHint] = useState(false);
   // Alert
@@ -108,6 +133,9 @@ export default function GameTable() {
   const [isMuted, setIsMuted] = useState(false);
   const [isSoundPlaying, setIsSoundPlaying] = useState(true);
   const [audioControlsOpen, setAudioControlsOpen] = useState(false);
+  const audioControlsIdleCloseRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
   const [isLeaving, setIsLeaving] = useState(false);
   const [isRevanchaLoading, setIsRevanchaLoading] = useState(false);
   const [reactions, setReactions] = useState<
@@ -141,12 +169,41 @@ export default function GameTable() {
   const backSoundRef = useRef<HTMLAudioElement | null>(null);
   const previousUnlockedIdsRef = useRef<Set<string>>(new Set());
   const previousGameEndedRef = useRef(false);
+  const gameSurfaceRef = useRef<HTMLDivElement>(null);
+  const [desktopScoreSheetPrefs, setDesktopScoreSheetPrefs] = useState<
+    DesktopScoreSheetPrefsV1 | null
+  >(null);
+  const scoreSheetPrefsSaveTimerRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+  const gameIdForPrefsHydrationRef = useRef<string | null>(null);
   const { showAchievement } = useAchievement();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof window === "undefined") return;
-    const saved = localStorage.getItem("generala-muted");
-    if (saved !== null) setIsMuted(saved === "true");
+
+    const effectsMuted = localStorage.getItem("generala-muted") === "true";
+    setIsMuted(effectsMuted);
+
+    const musicPaused = localStorage.getItem(GENERALA_MUSIC_PAUSED_KEY) === "true";
+    setIsSoundPlaying(!musicPaused);
+
+    const backSound = new Audio("/sounds/backSound.mp3");
+    backSound.loop = true;
+    backSound.volume = 0.03;
+    backSound.currentTime = 0;
+    backSoundRef.current = backSound;
+
+    if (!musicPaused) {
+      backSound.play().catch(() => {
+        setIsSoundPlaying(false);
+      });
+    }
+
+    return () => {
+      backSound.pause();
+      backSoundRef.current = null;
+    };
   }, []);
 
   const toggleMute = () => {
@@ -173,6 +230,21 @@ export default function GameTable() {
     pencilSound.currentTime = 0;
     pencilSound.play();
   }, [isMuted]);
+
+  const clearAudioControlsIdleClose = useCallback(() => {
+    if (audioControlsIdleCloseRef.current) {
+      clearTimeout(audioControlsIdleCloseRef.current);
+      audioControlsIdleCloseRef.current = null;
+    }
+  }, []);
+
+  const scheduleAudioControlsAutoClose = useCallback(() => {
+    clearAudioControlsIdleClose();
+    audioControlsIdleCloseRef.current = setTimeout(() => {
+      audioControlsIdleCloseRef.current = null;
+      setAudioControlsOpen(false);
+    }, AUDIO_CONTROLS_AUTO_CLOSE_MS);
+  }, [clearAudioControlsIdleClose]);
 
   useEffect(() => {
     if (!session?.user?.id || !gameId) return;
@@ -208,19 +280,63 @@ export default function GameTable() {
   }, [gameId, session?.user?.id, showAlert, router]);
 
   useEffect(() => {
-    const backSound = new Audio("/sounds/backSound.mp3");
-    backSound.loop = true;
-    backSound.volume = 0.03;
-    backSound.currentTime = 0;
-    backSoundRef.current = backSound;
-    backSound.play().catch(() => {
-      setIsSoundPlaying(false);
-    });
+    if (!game?.id || !session?.user?.id) return;
+    const me = game.players.find((p) => p.userId === session.user.id);
+    if (!me) return;
+    if (gameIdForPrefsHydrationRef.current === game.id) return;
+    gameIdForPrefsHydrationRef.current = game.id;
+    setDesktopScoreSheetPrefs(parseScoreSheetPrefs(me.scoreSheetPrefs));
+  }, [game, session?.user?.id]);
+
+  useEffect(() => {
     return () => {
-      backSoundRef.current?.pause();
-      backSoundRef.current = null;
+      if (scoreSheetPrefsSaveTimerRef.current) {
+        clearTimeout(scoreSheetPrefsSaveTimerRef.current);
+      }
     };
   }, []);
+
+  const persistScoreSheetPrefs = useCallback(
+    async (prefs: DesktopScoreSheetPrefsV1) => {
+      const id = typeof gameId === "string" ? gameId : gameId?.[0];
+      if (!id || !session?.user?.id) return;
+      try {
+        await fetch("/api/game/score-sheet-prefs", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ gameId: id, prefs }),
+        });
+      } catch {
+        /* silencioso: la UI ya tiene el estado local */
+      }
+    },
+    [gameId, session?.user?.id],
+  );
+
+  const onDesktopScoreSheetPrefsChange = useCallback(
+    (prefs: DesktopScoreSheetPrefsV1) => {
+      setDesktopScoreSheetPrefs(prefs);
+      setGame((prev) => {
+        if (!prev || !session?.user?.id) return prev;
+        return {
+          ...prev,
+          players: prev.players.map((pl) =>
+            pl.userId === session.user.id
+              ? { ...pl, scoreSheetPrefs: prefs }
+              : pl,
+          ),
+        };
+      });
+      if (scoreSheetPrefsSaveTimerRef.current) {
+        clearTimeout(scoreSheetPrefsSaveTimerRef.current);
+      }
+      scoreSheetPrefsSaveTimerRef.current = setTimeout(() => {
+        scoreSheetPrefsSaveTimerRef.current = null;
+        void persistScoreSheetPrefs(prefs);
+      }, 500);
+    },
+    [persistScoreSheetPrefs, session?.user?.id],
+  );
 
   useEffect(() => {
     if (!session?.user?.id) return;
@@ -243,6 +359,7 @@ export default function GameTable() {
       diceValues: number[];
       rollCount: number;
       dicesToReroll: number[];
+      turnStartedAt?: string | null;
     }) => {
       playDiceSound();
       setRollingLoading(true);
@@ -258,6 +375,10 @@ export default function GameTable() {
           ...prevGame,
           diceValues: data.diceValues,
           rollCount: data.rollCount,
+          turnStartedAt:
+            data.turnStartedAt !== undefined
+              ? data.turnStartedAt
+              : prevGame.turnStartedAt,
         };
       });
 
@@ -272,6 +393,7 @@ export default function GameTable() {
       currentTurnId: string;
       updatedGameUserId: string;
       updatedValues: GameUser;
+      turnStartedAt?: string | null;
     }) => {
       playPencilSound();
 
@@ -283,12 +405,20 @@ export default function GameTable() {
             diceValues: [],
             dicesToReroll: [],
             currentTurnId: data.currentTurnId,
+            turnStartedAt:
+              data.turnStartedAt !== undefined
+                ? data.turnStartedAt
+                : prevGame.turnStartedAt,
             players: prevGame.players.map((player) => {
               if (player.user.id === data.updatedValues.userId) {
-                const { user, ...rest } = player;
+                const { user } = player;
+                const upd = data.updatedValues as GameUser;
                 return {
-                  ...data.updatedValues,
+                  ...player,
+                  ...upd,
                   user,
+                  scoreSheetPrefs:
+                    upd.scoreSheetPrefs ?? player.scoreSheetPrefs,
                 };
               }
               return player;
@@ -509,6 +639,91 @@ export default function GameTable() {
   const isMyTurn = !!game && session?.user?.id === game.currentTurnId;
   const gameEnded = isGameEnded(game);
 
+  const liveGameRef = useRef(game);
+  liveGameRef.current = game;
+  const turnTimeoutFiredKeyRef = useRef<string | null>(null);
+
+  /** Salas con tiempo límite: al vencer, tachar automáticamente (API + socket como submit manual). */
+  useEffect(() => {
+    if (!game || !session?.user?.id || gameEnded) return;
+    const isMyTurnHere = session.user.id === game.currentTurnId;
+    if (
+      !game.turnTimeout ||
+      game.turnTimeout <= 0 ||
+      !game.turnStartedAt ||
+      !isMyTurnHere
+    ) {
+      return;
+    }
+    const key = `${game.id}-${game.currentTurnId}-${game.turnStartedAt}`;
+    let cancelled = false;
+
+    const tick = async () => {
+      if (cancelled) return;
+      const g = liveGameRef.current;
+      if (!g || isGameEnded(g)) return;
+      if (session.user.id !== g.currentTurnId) return;
+      const left = secondsRemainingOnTurn(g.turnStartedAt, g.turnTimeout);
+      if (left === null || left > 0) return;
+      if (turnTimeoutFiredKeyRef.current === key) return;
+      turnTimeoutFiredKeyRef.current = key;
+      setLoadingSubmit(true);
+      try {
+        const res = await fetch("/api/game/turn-timeout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ gameId: g.id }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          turnTimeoutFiredKeyRef.current = null;
+          showAlert({
+            type: "error",
+            message: data.error || "No se pudo aplicar el tiempo agotado",
+          });
+          return;
+        }
+        if (data.newlyUnlocked?.length) {
+          showAchievement(data.newlyUnlocked);
+        }
+        showAlert({
+          type: "warning",
+          message: "Tiempo agotado: se tachó la primera categoría libre.",
+        });
+        socket.emit("submitScore", {
+          players: g.players.map((p) => p.user),
+          currentTurnId: data.currentTurnId,
+          updatedGameUserId: session.user.id,
+          updatedValues: data.updatedValues,
+          turnStartedAt: data.turnStartedAt ?? null,
+        });
+      } catch {
+        turnTimeoutFiredKeyRef.current = null;
+        showAlert({ type: "error", message: "Error de conexión" });
+      } finally {
+        setLoadingSubmit(false);
+      }
+    };
+
+    const id = setInterval(() => {
+      void tick();
+    }, 1000);
+    void tick();
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [
+    game?.id,
+    game?.currentTurnId,
+    game?.turnStartedAt,
+    game?.turnTimeout,
+    gameEnded,
+    session?.user?.id,
+    showAlert,
+    showAchievement,
+  ]);
+
   const scoreSheetInputLocked =
     !!game &&
     isMyTurn &&
@@ -526,6 +741,104 @@ export default function GameTable() {
     : scoreSheetInputLocked
       ? prevDiceForScoreRef.current.rollCount
       : game.rollCount;
+
+  const currentTurnPlayer = useMemo(() => {
+    if (!game?.currentTurnId) return null;
+    return game.players.find((p) => p.userId === game.currentTurnId) ?? null;
+  }, [game]);
+
+  const diceValuesHintKey = diceValuesForScoreTable.join(",");
+
+  const markHints = useMemo(() => {
+    if (!currentTurnPlayer || !isMyTurn) return [];
+    if (diceValuesForScoreTable.length !== 5) return [];
+    if (rollCountForScoreTable < 1) return [];
+    return getPossibleMarkHints(
+      currentTurnPlayer,
+      diceValuesForScoreTable,
+      rollCountForScoreTable,
+    );
+  }, [
+    currentTurnPlayer,
+    isMyTurn,
+    diceValuesHintKey,
+    rollCountForScoreTable,
+  ]);
+
+  const handleQuickMarkHint = useCallback(
+    async (category: string, score: number) => {
+      if (!game || !session?.user?.id || !isMyTurn) return;
+      if (game.currentTurnId !== session.user.id) return;
+      if (loadingSubmit || scoreSheetInputLocked) return;
+      if (
+        !diceValuesHintKey ||
+        diceValuesHintKey.split(",").length !== 5
+      )
+        return;
+      if (rollCountForScoreTable < 1) return;
+
+      setSubmittingQuickCategory(category);
+      setLoadingSubmit(true);
+      try {
+        const res = await fetch(`/api/game/submit-score`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            gameUserId: game.currentTurnId,
+            gameId: game.id,
+            category,
+            score,
+          }),
+        });
+        const data = await res.json();
+
+        if (res.status === 408) {
+          showAlert({
+            type: "warning",
+            message: data.error || "Se acabó el tiempo de esta tirada",
+          });
+        } else if (!res.ok) {
+          showAlert({
+            type: "error",
+            message: data.error || "Error al guardar la puntuación",
+          });
+        } else {
+          if (data.newlyUnlocked?.length) {
+            showAchievement(data.newlyUnlocked);
+            (data.newlyUnlocked as { id: string }[]).forEach((a) =>
+              previousUnlockedIdsRef.current.add(a.id),
+            );
+          }
+          socket.emit("submitScore", {
+            players: game.players.map((p) => p.user),
+            currentTurnId: data.currentTurnId,
+            updatedGameUserId: game.currentTurnId,
+            updatedValues: data.updatedValues,
+            turnStartedAt: data.turnStartedAt ?? null,
+          });
+        }
+      } catch {
+        showAlert({
+          type: "error",
+          message: "Error al guardar la puntuación",
+        });
+      } finally {
+        setLoadingSubmit(false);
+        setSubmittingQuickCategory(null);
+      }
+    },
+    [
+      game,
+      session?.user?.id,
+      isMyTurn,
+      loadingSubmit,
+      scoreSheetInputLocked,
+      diceValuesHintKey,
+      rollCountForScoreTable,
+      showAlert,
+      showAchievement,
+    ],
+  );
 
   const sendReaction = useCallback(
     (targetUserId: string, choice: ReactionChoice) => {
@@ -713,6 +1026,19 @@ export default function GameTable() {
     return () => clearTimeout(hide);
   }, [showScoreHint]);
 
+  useEffect(() => {
+    if (!audioControlsOpen) {
+      clearAudioControlsIdleClose();
+      return;
+    }
+    scheduleAudioControlsAutoClose();
+    return clearAudioControlsIdleClose;
+  }, [
+    audioControlsOpen,
+    clearAudioControlsIdleClose,
+    scheduleAudioControlsAutoClose,
+  ]);
+
   if (status === "loading") {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-(--color-black-matte)">
@@ -741,11 +1067,16 @@ export default function GameTable() {
 
   const toggleBackSound = () => {
     if (!backSoundRef.current) return;
+    const audio = backSoundRef.current;
 
     if (isSoundPlaying) {
-      backSoundRef.current.pause();
+      audio.pause();
+      if (typeof window !== "undefined")
+        localStorage.setItem(GENERALA_MUSIC_PAUSED_KEY, "true");
     } else {
-      backSoundRef.current.play();
+      if (typeof window !== "undefined")
+        localStorage.setItem(GENERALA_MUSIC_PAUSED_KEY, "false");
+      void audio.play().catch(() => setIsSoundPlaying(false));
     }
 
     setIsSoundPlaying((prev) => !prev);
@@ -808,7 +1139,12 @@ export default function GameTable() {
         </div>
 
         <div className="flex-1 relative min-h-0">
-          <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 flex flex-row items-center gap-2 z-100 safe-area-bottom">
+          <div
+            className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 flex flex-row items-center gap-2 z-100 safe-area-bottom"
+            onPointerDown={() => {
+              if (audioControlsOpen) scheduleAudioControlsAutoClose();
+            }}
+          >
             <AnimatePresence>
               {audioControlsOpen && (
                 <motion.div
@@ -873,15 +1209,19 @@ export default function GameTable() {
               <Volume2 className="h-4 w-4 sm:h-5 sm:w-5 text-(--color-black-matte)" />
             </motion.button>
           </div>
-          <div className='relative w-full h-full overflow-hidden shadow-xl z-50 bg-[url("/table-mobile.png")] sm:bg-[url("/table-desktop.png")] bg-cover bg-no-repeat bg-center'>
+          <div
+            ref={gameSurfaceRef}
+            className='relative w-full h-full overflow-hidden shadow-xl z-50 bg-[url("/table-mobile.png")] sm:bg-[url("/table-desktop.png")] bg-cover bg-no-repeat bg-center'
+          >
+            {/* Sonido timeout (5s): usa isMuted = efectos; isSoundPlaying es solo música de fondo */}
             {game.players.map((player, index) => (
               <PlayerSlot
                 key={player.userId}
                 player={player}
                 position={index}
                 isCurrentTurn={player.userId === game.currentTurnId}
-                currentTurnId={game.currentTurnId}
-                timePerTurn={game.turnTimeout ? game.turnTimeout : 0}
+                turnTimeoutSec={game.turnTimeout ?? 0}
+                turnStartedAt={game.turnStartedAt ?? null}
                 totalPlayers={game.players.length}
                 players={game.players}
                 rollCount={game.rollCount}
@@ -895,6 +1235,7 @@ export default function GameTable() {
                 avatarRef={(el) => {
                   avatarRefsMap.current[player.userId] = el;
                 }}
+                effectsMuted={isMuted}
               />
             ))}
 
@@ -907,6 +1248,11 @@ export default function GameTable() {
                   setDicesToReroll={setDicesToReroll}
                   rollCount={game.rollCount}
                   isMyTurn={session?.user?.id === game.currentTurnId}
+                  markHints={markHints}
+                  onQuickSubmit={handleQuickMarkHint}
+                  loadingSubmit={loadingSubmit}
+                  submittingQuickCategory={submittingQuickCategory}
+                  scoreHintsLocked={scoreSheetInputLocked}
                 />
                 <Cup
                   gamePlayers={game.players}
@@ -954,8 +1300,8 @@ export default function GameTable() {
                     >
                       <div className="rounded-xl sm:rounded-2xl bg-(--color-pearl-white)/95 backdrop-blur-sm border border-(--color-metallic-gold) sm:border-2 shadow-lg px-3 py-2 sm:px-4 sm:py-3 text-center">
                         <p className="text-xs sm:text-base font-poppins font-medium text-(--color-sapphire-blue) leading-tight">
-                          📝 Abrí el anotador y tocá una categoría para anotar
-                          tu tirada.
+                          📝 Tocá una anotación posible abajo o abrí el anotador
+                          para elegir categoría.
                         </p>
                       </div>
                     </motion.div>
@@ -966,6 +1312,9 @@ export default function GameTable() {
                   onOpen={() => setScoreBoardOpen(true)}
                   onClose={() => setScoreBoardOpen(false)}
                   gameEnded={gameEnded}
+                  gameSurfaceRef={gameSurfaceRef}
+                  desktopScoreSheetPrefs={desktopScoreSheetPrefs}
+                  onDesktopScoreSheetPrefsChange={onDesktopScoreSheetPrefsChange}
                   players={game.players}
                   currentTurnId={game.currentTurnId}
                   isMyTurn={isMyTurn}

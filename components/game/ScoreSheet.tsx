@@ -11,6 +11,7 @@ import Image from "next/image";
 import CustomLoadingSpinner from "@/components/ui/CustomLoadingSpinner";
 import styles from "./ScoreSheet.module.css";
 import { mountBodyPencilCursor } from "./pencilCursor";
+import { calculateCategoryScore } from "@/lib/gameScoring";
 
 interface ScoreTableProps {
   players: GameUser[];
@@ -67,76 +68,6 @@ type GameUserCategory = keyof Pick<
   | "double"
 >;
 
-function calculateScore(
-  category: string,
-  dice: number[],
-  rollCount: number,
-  playerScore: GameUser,
-): number {
-  const counts = dice.reduce(
-    (acc, val) => {
-      if (acc[val]) {
-        acc[val] += 1;
-      } else {
-        acc[val] = 1;
-      }
-      return acc;
-    },
-    {} as Record<number, number>,
-  );
-
-  const sorted = [...dice].sort();
-
-  let baseScore = 0;
-  let servedBonus = rollCount === 1 ? 5 : 0;
-
-  switch (category) {
-    case "1":
-    case "2":
-    case "3":
-    case "4":
-    case "5":
-    case "6":
-      const num = parseInt(category);
-      return (counts[num] || 0) * num;
-
-    case "Escalera": {
-      const s = sorted.join("");
-      // 1-2-3-4-5, 2-3-4-5-6, y 3-4-5-6-1 (ordenados como 1-3-4-5-6)
-      baseScore = ["12345", "23456", "13456"].includes(s) ? 20 : 0;
-      break;
-    }
-
-    case "Full":
-      baseScore =
-        Object.values(counts).includes(3) && Object.values(counts).includes(2)
-          ? 30
-          : 0;
-      break;
-
-    case "Poker":
-      baseScore = Object.values(counts).some((c) => c >= 4) ? 40 : 0;
-      break;
-
-    case "Generala":
-      baseScore = Object.values(counts).some((c) => c === 5) ? 50 : 0;
-      break;
-
-    case "Doble Generala":
-    case "Generala II":
-      baseScore =
-        Object.values(counts).some((c) => c === 5) && playerScore.generala
-          ? 100
-          : 0;
-      break;
-
-    default:
-      return 0;
-  }
-
-  return baseScore > 0 ? baseScore + servedBonus : 0;
-}
-
 export default function ScoreTable({
   players,
   currentTurnId,
@@ -192,7 +123,12 @@ export default function ScoreTable({
 
       const data = await res.json();
 
-      if (!res.ok) {
+      if (res.status === 408) {
+        showAlert({
+          type: "warning",
+          message: data.error || "Se acabó el tiempo de esta tirada",
+        });
+      } else if (!res.ok) {
         showAlert({
           type: "error",
           message: data.error || "Error al guardar la puntuación",
@@ -209,6 +145,7 @@ export default function ScoreTable({
         currentTurnId: data.currentTurnId,
         updatedGameUserId: currentTurnId,
         updatedValues: data.updatedValues,
+        turnStartedAt: data.turnStartedAt ?? null,
       });
     } catch (error) {
       showAlert({
@@ -243,13 +180,6 @@ export default function ScoreTable({
   const gridCols = compact
     ? {
         gridTemplateColumns: `${labelColW} ${playerCols}`,
-      }
-    : undefined;
-
-  const categoryRowsStyle = compact
-    ? {
-        ...gridCols,
-        gridTemplateRows: "repeat(12, minmax(0, 1fr))",
       }
     : undefined;
 
@@ -313,90 +243,73 @@ export default function ScoreTable({
               </div>
             ))}
           </div>
-          <div
-            className={`grid gap-x-1 shrink-0 py-1 text-center font-quicksand font-semibold ${sideCompactText}`}
-            style={gridCols}
-          >
-            <div />
-            {players.map((player) => (
+          {/* Filas de categorías: una línea inferior por fila a todo el ancho (libreta) */}
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            {CATEGORIES.map((category) => (
               <div
-                key={player.userId}
-                className={`truncate px-0.5 ${
-                  session?.user?.id === player.userId
-                    ? "text-(--color-sapphire-blue)"
-                    : "text-(--color-black-matte)"
-                }`}
+                key={category.name}
+                className="grid min-h-0 flex-1 gap-x-1 border-b border-(--color-silver-gray)/45"
+                style={gridCols}
               >
-                {player.user.name}
-                {player.user.id === session?.user?.id && " (Yo)"}
+                <div
+                  className={`flex min-h-0 items-center px-1 text-(--color-black-matte) font-poppins font-bold ${sideCompactText}`}
+                >
+                  {category.label}
+                </div>
+                {players.map((player) => {
+                  const provisional =
+                    player.userId === currentTurnId &&
+                    isMyTurn &&
+                    !isAlreadySubmitted(
+                      category.name as GameUserCategory,
+                      player.userId,
+                    );
+                  const value = provisional
+                    ? calculateCategoryScore(
+                        category.label,
+                        diceValues,
+                        rollCount,
+                        player,
+                      )
+                    : player[category.name as GameUserCategory] === null
+                      ? ""
+                      : player[category.name as GameUserCategory];
+                  const canTap = provisional && !diceSettling;
+                  return (
+                    <div
+                      key={`${category.name}-${player.id}`}
+                      className={`flex min-h-0 items-center justify-center select-none font-quicksand ${sideCompactText} ${
+                        isAlreadySubmitted(
+                          category.name as GameUserCategory,
+                          player.userId,
+                        ) && "text-(--color-silver-gray)"
+                      } ${
+                        canTap
+                          ? `bg-(--color-sapphire-blue)/10 text-(--color-sapphire-blue) font-semibold ${tapCellCursor} hover:bg-(--color-sapphire-blue)/15 rounded-sm`
+                          : ""
+                      }`}
+                      onClick={() => {
+                        if (canTap && !loading && !loadingSubmit) {
+                          handleSetScore(category.name, value as number);
+                        }
+                      }}
+                    >
+                      {submittingCategory === category.name &&
+                      player.userId === currentTurnId &&
+                      (loading || loadingSubmit) ? (
+                        <CustomLoadingSpinner size="sm" showText={false} />
+                      ) : (
+                        value
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             ))}
           </div>
-          {/* Filas de categorías: reparten el alto disponible (12 filas × N columnas) */}
-          <div
-            className="flex-1 min-h-0 grid gap-x-1 overflow-hidden"
-            style={categoryRowsStyle}
-          >
-            {CATEGORIES.flatMap((category, index) => [
-              <div
-                key={`${category.name}-label`}
-                className={`flex items-center px-1 text-(--color-black-matte) border-b border-(--color-silver-gray)/40 font-poppins font-bold ${sideCompactText} ${index === 0 ? "border-t" : ""}`}
-              >
-                {category.label}
-              </div>,
-              ...players.map((player) => {
-                const provisional =
-                  player.userId === currentTurnId &&
-                  isMyTurn &&
-                  !isAlreadySubmitted(
-                    category.name as GameUserCategory,
-                    player.userId,
-                  );
-                const value = provisional
-                  ? calculateScore(
-                      category.label,
-                      diceValues,
-                      rollCount,
-                      player,
-                    )
-                  : player[category.name as GameUserCategory] === null
-                    ? ""
-                    : player[category.name as GameUserCategory];
-                const canTap = provisional && !diceSettling;
-                return (
-                  <div
-                    key={`${category.name}-${player.id}`}
-                    className={`flex items-center justify-center border-b border-(--color-silver-gray)/40 select-none font-quicksand ${sideCompactText} ${index === 0 ? "border-t" : ""} ${
-                      isAlreadySubmitted(
-                        category.name as GameUserCategory,
-                        player.userId,
-                      ) && "text-(--color-silver-gray)"
-                    } ${
-                      canTap
-                        ? `bg-(--color-sapphire-blue)/10 text-(--color-sapphire-blue) font-semibold ${tapCellCursor} hover:bg-(--color-sapphire-blue)/15 rounded`
-                        : ""
-                    }`}
-                    onClick={() => {
-                      if (canTap && !loading && !loadingSubmit) {
-                        handleSetScore(category.name, value as number);
-                      }
-                    }}
-                  >
-                    {submittingCategory === category.name &&
-                    player.userId === currentTurnId &&
-                    (loading || loadingSubmit) ? (
-                      <CustomLoadingSpinner size="sm" showText={false} />
-                    ) : (
-                      value
-                    )}
-                  </div>
-                );
-              }),
-            ])}
-          </div>
           {/* Fila total */}
           <div
-            className={`grid gap-x-1 shrink-0 py-2 border-t-2 border-(--color-silver-gray)/50 font-semibold ${sideCompactText}`}
+            className={`grid gap-x-1 shrink-0 py-2 border-t border-(--color-silver-gray)/50 font-semibold ${sideCompactText}`}
             style={gridCols}
           >
             <div className="font-poppins text-(--color-black-matte) flex items-center">
@@ -417,9 +330,9 @@ export default function ScoreTable({
           <h2 className="text-lg hidden lg:block sm:text-xl font-poppins font-semibold mt-2 text-(--color-black-matte)">
             Anotador
           </h2>
-          <table className="w-full border-separate border-spacing-y-1">
+          <table className="w-full border-collapse">
             <thead>
-              <tr>
+              <tr className="border-b border-(--color-silver-gray)/50">
                 <th className="text-left sticky left-0 z-10"></th>
                 {players.map((player) => (
                   <th key={player.userId} className="px-1 sm:px-2">
@@ -439,7 +352,7 @@ export default function ScoreTable({
                   </th>
                 ))}
               </tr>
-              <tr>
+              <tr className="border-b border-(--color-silver-gray)/50">
                 <th className="text-left sticky left-0 z-10 py-1 sm:py-2"></th>
                 {players.map((player) => (
                   <th
@@ -457,12 +370,13 @@ export default function ScoreTable({
               </tr>
             </thead>
             <tbody>
-              {CATEGORIES.map((category, index) => (
-                <tr key={category.name}>
+              {CATEGORIES.map((category) => (
+                <tr
+                  key={category.name}
+                  className="border-b border-(--color-silver-gray)/50"
+                >
                   <td
-                    className={`px-1 lg:px-2 py-1 text-(--color-black-matte) border-b border-(--color-silver-gray)/50 text-sm md:text-md lg:text-lg font-poppins font-bold sticky left-0 z-10 ${
-                      index === 0 && "border-t"
-                    }`}
+                    className={`px-1 lg:px-2 py-1 text-(--color-black-matte) text-sm md:text-md lg:text-lg font-poppins font-bold sticky left-0 z-10`}
                   >
                     {category.label}
                   </td>
@@ -475,7 +389,7 @@ export default function ScoreTable({
                         player.userId,
                       );
                     const value = provisional
-                      ? calculateScore(
+                      ? calculateCategoryScore(
                           category.label,
                           diceValues,
                           rollCount,
@@ -488,9 +402,7 @@ export default function ScoreTable({
                     return (
                       <td
                         key={player.id}
-                        className={`text-center px-1 lg:px-2 min-w-[150px] border-b border-(--color-silver-gray)/50 select-none text-sm md:text-md lg:text-lg font-quicksand py-1 ${
-                          index === 0 && "border-t"
-                        } ${
+                        className={`text-center px-1 lg:px-2 min-w-[150px] select-none text-sm md:text-md lg:text-lg font-quicksand py-1 ${
                           isAlreadySubmitted(
                             category.name as GameUserCategory,
                             player.userId,
@@ -520,7 +432,7 @@ export default function ScoreTable({
                   })}
                 </tr>
               ))}
-              <tr>
+              <tr className="border-t border-(--color-silver-gray)/55">
                 <td className="px-1 lg:px-2 py-1 lg:py-2 font-poppins font-bold text-sm lg:text-lg text-(--color-black-matte) sticky left-0 z-10">
                   Total
                 </td>
